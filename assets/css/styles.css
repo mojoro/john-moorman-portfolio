@@ -20,12 +20,35 @@
 
 /* Tablet (medium devices) */
 @media (min-width: 768px) and (max-width: 1024px) {
-  /* Styles for tablet devices */
+  header>.background-decoration {
+    transform: scaleX(1.5) translate(-20%, -70%) rotate(-25deg);
+  }
+
+  .about-container, .about-info {
+    display: block;
+  }
+
+  header>.about-container>.img-container{
+    display: none;
+  }
+
+  header>.about-container>.about-info>.img-container {
+    display: block;
+    max-width: 300px;
+    max-height: 400px;
+    transform-origin: bottom right;
+    transform: scale(1.2);
+    float: left;
+    box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, .7);
+    margin: -5rem 1rem 0rem 0;
+  }
 }
 
 /* Desktop (large devices) */
 @media (min-width: 1025px) {
-  /* Styles for desktop devices */
+  header>.about-container>.about-info>.img-container {
+    display: none;
+  }
 }
 
 body {
