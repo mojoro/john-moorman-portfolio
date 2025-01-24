@@ -308,11 +308,19 @@ footer .linkedin {
     display: block;
     width: clamp(200px, 400px, 500px);
     height: clamp(200px, 400px, 500px);
-    overflow: hidden;
     float: left;
     box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, .7);
     margin: -5rem 1rem 1rem 0;
     transform: none;
+  }
+
+  header>.about-container>.img-container>p {
+    font-size: 3rem;
+    top: 7.5%;
+    left: 85%;
+    width: max-content;
+    font-weight: 700;
+    text-shadow: 2px 2px 3px black;
   }
 
 }
