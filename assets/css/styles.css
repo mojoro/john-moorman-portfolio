@@ -506,6 +506,7 @@ footer .linkedin {
 
   footer .contact-img-wrapper, footer img {
     margin: 0;
+    max-width: none;
     height: 100%;
     transform: translateY(10px);
   }
