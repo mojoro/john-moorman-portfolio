@@ -5,12 +5,12 @@
   --linkedin-footer-icon: url('data:image/svg+xml;utf8,<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><path fill="%23000000" d="M116 3H12a8.91 8.91 0 00-9 8.8v104.42a8.91 8.91 0 009 8.78h104a8.93 8.93 0 009-8.81V11.77A8.93 8.93 0 00116 3z"></path><path fill="%23fff" d="M21.06 48.73h18.11V107H21.06zm9.06-29a10.5 10.5 0 11-10.5 10.49 10.5 10.5 0 0110.5-10.49M50.53 48.73h17.36v8h.24c2.42-4.58 8.32-9.41 17.13-9.41C103.6 47.28 107 59.35 107 75v32H88.89V78.65c0-6.75-.12-15.44-9.41-15.44s-10.87 7.36-10.87 15V107H50.53z"></path></svg>');
   --external-link-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23181616"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zm-4 2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-5h-2v5H5V7h5V5z"/></svg>');
   --whatsapp-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" fill="%23181616"><path d="M25,2C12.318,2,2,12.318,2,25c0,3.96,1.023,7.854,2.963,11.29L2.037,46.73c-0.096,0.343-0.003,0.711,0.245,0.966 C2.473,47.893,2.733,48,3,48c0.08,0,0.161-0.01,0.24-0.029l10.896-2.699C17.463,47.058,21.21,48,25,48c12.682,0,23-10.318,23-23 S37.682,2,25,2z M36.57,33.116c-0.492,1.362-2.852,2.605-3.986,2.772c-1.018,0.149-2.306,0.213-3.72-0.231 c-0.857-0.27-1.957-0.628-3.366-1.229c-5.923-2.526-9.791-8.415-10.087-8.804C15.116,25.235,13,22.463,13,19.594 s1.525-4.28,2.067-4.864c0.542-0.584,1.181-0.73,1.575-0.73s0.787,0.005,1.132,0.021c0.363,0.018,0.85-0.137,1.329,1.001 c0.492,1.168,1.673,4.037,1.819,4.33c0.148,0.292,0.246,0.633,0.05,1.022c-0.196,0.389-0.294,0.632-0.59,0.973 s-0.62,0.76-0.886,1.022c-0.296,0.291-0.603,0.606-0.259,1.19c0.344,0.584,1.529,2.493,3.285,4.039 c2.255,1.986,4.158,2.602,4.748,2.894c0.59,0.292,0.935,0.243,1.279-0.146c0.344-0.39,1.476-1.703,1.869-2.286 s0.787-0.487,1.329-0.292c0.542,0.194,3.445,1.604,4.035,1.896c0.59,0.292,0.984,0.438,1.132,0.681 C37.062,30.587,37.062,31.755,36.57,33.116z"></path></svg>');
-  --email-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23181616"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 11 4 6.01V6h16zM4 18V8l8 5 8-5v10H4z"/></svg>');  
+  --email-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23181616"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 11 4 6.01V6h16zM4 18V8l8 5 8-5v10H4z"/></svg>');
   --map-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>map-marker</title><path d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" fill="%23181616"/></svg>');
   --main-color: rgb(10, 145, 177);
   --accent-color: rgb(38, 215, 255);
 }
-  
+
 * {
   box-sizing: border-box;
 }
@@ -29,7 +29,7 @@ body {
 a {
   color: white;
   text-decoration: none;
-  transition: color .2s linear;
+  transition: color 0.2s linear;
   cursor: pointer;
 }
 
@@ -47,19 +47,20 @@ header {
   overflow: hidden;
 }
 
-header>.about-container {
+header > .about-container {
   background-color: white;
   display: flex;
   position: relative;
   max-width: 770px;
-  box-shadow: 3px 3px 5px 0px rgba(0,0,0,.3);
+  padding-right: 1rem;
+  box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.3);
   gap: 5rem;
 }
 
-header>.about-container>.img-container {
+header > .about-container > .img-container {
   max-width: 300px;
   position: relative;
-  box-shadow: 3px 3px 5px 0px rgba(0,0,0,.3);
+  box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.3);
   transform-origin: left;
   transform: scale(1.2);
   flex-grow: 1;
@@ -77,7 +78,7 @@ header a {
   text-decoration: underline;
 }
 
-header .img-container>p {
+header .img-container > p {
   margin: 0;
   position: absolute;
   bottom: 5px;
@@ -86,8 +87,7 @@ header .img-container>p {
   z-index: 3;
 }
 
-
-header>.about-container>.about-info {
+header > .about-container > .about-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -97,7 +97,6 @@ header>.about-container>.about-info {
   max-width: 450px;
 }
 
-
 header .social-media-icons {
   display: flex;
   gap: 8px;
@@ -105,7 +104,7 @@ header .social-media-icons {
   margin: auto 1rem 1rem 0;
 }
 
-header .social-media-icons>a {
+header .social-media-icons > a {
   display: block;
 }
 
@@ -146,14 +145,14 @@ header .social-media-icons>a {
   background-image: var(--map-icon);
 }
 
-header>.background-decoration {
+header > .background-decoration {
   position: absolute;
   z-index: -1;
   width: 100%;
   height: 100%;
   background-color: var(--main-color);
   transform: scaleX(1.2) translate(0%, -50%) rotate(-10deg);
-  box-shadow: 3px 3px 5px 0px rgba(0,0,0,.3);
+  box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.3);
   overflow: hidden;
 }
 
@@ -162,7 +161,7 @@ main {
   justify-content: center;
 }
 
-main>.portfolio-grid {
+main > .portfolio-grid {
   margin: 0 2rem;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -171,55 +170,55 @@ main>.portfolio-grid {
   max-width: 1300px;
 }
 
-main>.portfolio-grid>h1 {
+main > .portfolio-grid > h1 {
   grid-column: 1 / -1;
   margin: 0 0 -2rem;
 }
 
-main>.portfolio-grid>.project-card {
+main > .portfolio-grid > .project-card {
   display: grid;
   grid-template-columns: auto;
   grid-template-rows: auto;
-  box-shadow: 3px 3px 5px 0px rgba(0,0,0,.3);
-  border: solid gray 1px; 
+  box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.3);
+  border: solid gray 1px;
 }
 
-main>.portfolio-grid>.project-card>.project-description {
+main > .portfolio-grid > .project-card > .project-description {
   display: grid;
-  grid-template-columns: 1fr .5fr;
+  grid-template-columns: 1fr 0.5fr;
   grid-template-rows: min-content;
   margin: 1rem;
 }
 
-main>.portfolio-grid>.project-card>.project-description>h2 {
+main > .portfolio-grid > .project-card > .project-description > h2 {
   font-size: 1.2rem;
   grid-column: 1 / 2;
   margin: 0;
   align-self: start;
 }
 
-main>.portfolio-grid>.project-card>.project-description>.project-links {
+main > .portfolio-grid > .project-card > .project-description > .project-links {
   display: flex;
   grid-column: 2 / 3;
   justify-content: flex-end;
   gap: 5px;
 }
 
-main>.portfolio-grid>.project-card>.project-description>p {
+main > .portfolio-grid > .project-card > .project-description > p {
   margin: 1rem;
   font-size: 1rem;
   grid-column: 1 / -1;
 }
 
-main>.portfolio-grid>.project-card>.img-container {
+main > .portfolio-grid > .project-card > .img-container {
   background-color: var(--main-color);
   display: flex;
   align-items: center;
 }
 
-main>.portfolio-grid>.project-card>.img-container>img{
+main > .portfolio-grid > .project-card > .img-container > img {
   object-fit: cover;
-} 
+}
 
 footer {
   max-width: 100%;
@@ -234,10 +233,10 @@ footer {
 .icon-text-wrapper {
   display: flex;
   align-items: center;
-  gap: .7rem;
+  gap: 0.7rem;
 }
 
-footer>.footer-content-wrapper {
+footer > .footer-content-wrapper {
   width: 100%;
   max-width: 1300px;
   display: flex;
@@ -245,10 +244,10 @@ footer>.footer-content-wrapper {
   justify-content: space-between;
 }
 
-footer .contact-container>.social-media-icons {
+footer .contact-container > .social-media-icons {
   margin: 1rem 0;
   display: flex;
-  gap: .7rem;
+  gap: 0.7rem;
 }
 
 footer .contact-img-wrapper {
@@ -257,9 +256,9 @@ footer .contact-img-wrapper {
   align-self: center;
 }
 
-footer .contact-img-wrapper>img {
+footer .contact-img-wrapper > img {
   width: 100%;
-  box-shadow: 3px 3px 5px 0px rgba(0,0,0,.3);
+  box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.3);
 }
 
 footer .linkedin {
@@ -275,48 +274,47 @@ footer .linkedin {
 
   header {
     padding-top: 5rem;
-
   }
 
-  header>.background-decoration {
+  header > .background-decoration {
     transform: scaleX(2) translate(-20%, -50%) rotate(-25deg);
   }
 
-  header>.about-container {
+  header > .about-container {
     box-shadow: none;
     background-color: rgba(0, 0, 0, 0);
   }
 
-  header>.about-container, header>.about-container>.about-info {
+  header > .about-container,
+  header > .about-container > .about-info {
     display: block;
     max-width: 90%;
   }
 
-  header>.about-container>.about-info {
+  header > .about-container > .about-info {
     font-size: 1.5em;
     line-height: 2.2rem;
     margin: 1rem 2rem;
     padding: 1rem;
-    box-shadow: 3px 3px 5px 2px rgba(0,0,0,.4);
+    box-shadow: 3px 3px 5px 2px rgba(0, 0, 0, 0.4);
     background-color: white;
   }
 
-
-  header>.about-container>.about-info>.social-media-icons {
+  header > .about-container > .about-info > .social-media-icons {
     display: none;
   }
 
-  header>.about-container>.img-container {
+  header > .about-container > .img-container {
     display: block;
     width: clamp(200px, 400px, 500px);
     height: clamp(200px, 400px, 500px);
     float: left;
-    box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, .7);
+    box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.7);
     margin: -5rem 1rem 1rem 0;
     transform: none;
   }
 
-  header>.about-container>.img-container>p {
+  header > .about-container > .img-container > p {
     font-size: 3rem;
     top: 7.5%;
     left: 85%;
@@ -325,7 +323,7 @@ footer .linkedin {
     text-shadow: 2px 2px 3px black;
   }
 
-  main>.portfolio-grid {
+  main > .portfolio-grid {
     margin: 0 3rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -333,30 +331,34 @@ footer .linkedin {
     max-width: 1300px;
   }
 
-  main>.portfolio-grid>h1 {
+  main > .portfolio-grid > h1 {
     margin-bottom: 1rem;
     font-size: 3rem;
   }
-  
-  main>.portfolio-grid>.project-card {
+
+  main > .portfolio-grid > .project-card {
     margin-bottom: 2rem;
   }
 
-  main>.portfolio-grid>.project-card>.project-description>h2 {
+  main > .portfolio-grid > .project-card > .project-description > h2 {
     font-size: 1.5rem;
     grid-column: 1 / 2;
     margin: 0;
     align-self: center;
   }
-  
-  main>.portfolio-grid>.project-card>.project-description>.project-links {
+
+  main
+    > .portfolio-grid
+    > .project-card
+    > .project-description
+    > .project-links {
     display: flex;
     grid-column: 2 / 3;
     justify-content: flex-end;
     gap: 10px;
   }
-  
-  main>.portfolio-grid>.project-card>.project-description>p {
+
+  main > .portfolio-grid > .project-card > .project-description > p {
     margin: 1rem;
     font-size: 1.2rem;
     line-height: 1.5rem;
@@ -367,17 +369,16 @@ footer .linkedin {
     font-size: 1.5rem;
   }
 
-  footer .contact-img-wrapper{
+  footer .contact-img-wrapper {
     height: 100%;
   }
-  
+
   footer img {
     height: 100%;
     object-fit: cover;
     object-position: left;
   }
 }
-
 
 @media (max-width: 767px) {
   .icon {
@@ -390,40 +391,41 @@ footer .linkedin {
     width: 100%;
   }
 
-  header>.background-decoration {
+  header > .background-decoration {
     transform: scale(2) translate(-20%, -20%) rotate(70deg);
   }
 
-  header>.about-container {
+  header > .about-container {
     box-shadow: none;
     background-color: rgba(0, 0, 0, 0);
     gap: 1rem;
   }
 
-  header>.about-container, header>.about-container>.about-info {
+  header > .about-container,
+  header > .about-container > .about-info {
     display: flex;
     flex-direction: column;
     max-width: 100%;
   }
 
-  header>.about-container>.about-info {
+  header > .about-container > .about-info {
     align-items: center;
     font-size: 1.5em;
     line-height: 2.2rem;
     margin: 1rem 2rem;
   }
 
-  header>.about-container>.about-info>h1 {
-    margin-bottom: .5rem;
+  header > .about-container > .about-info > h1 {
+    margin-bottom: 0.5rem;
   }
 
-  header>.about-container>.about-info>.social-media-icons {
+  header > .about-container > .about-info > .social-media-icons {
     align-self: center;
     gap: 20px;
     margin: 1rem 0;
   }
 
-  header>.about-container>.img-container {
+  header > .about-container > .img-container {
     display: block;
     width: 80%;
     height: 500px;
@@ -435,45 +437,49 @@ footer .linkedin {
     align-self: center;
   }
 
-  header>.about-container>.img-container>p {
+  header > .about-container > .img-container > p {
     font-size: 3rem;
     left: 5%;
     font-weight: 700;
     text-shadow: 2px 2px 3px black;
   }
 
-  main>.portfolio-grid {
+  main > .portfolio-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 2rem;
   }
 
-  main>.portfolio-grid>h1 {
+  main > .portfolio-grid > h1 {
     margin: 2rem 0 1rem;
     font-size: 3rem;
     align-self: center;
     text-align: center;
   }
-  
-  main>.portfolio-grid>.project-card {
+
+  main > .portfolio-grid > .project-card {
     margin-bottom: 2rem;
   }
 
-  main>.portfolio-grid>.project-card>.project-description>h2 {
+  main > .portfolio-grid > .project-card > .project-description > h2 {
     font-size: 1.5rem;
     grid-column: 1 / 2;
     margin: 0;
     align-self: center;
   }
-  
-  main>.portfolio-grid>.project-card>.project-description>.project-links {
+
+  main
+    > .portfolio-grid
+    > .project-card
+    > .project-description
+    > .project-links {
     display: flex;
     grid-column: 2 / 3;
     justify-content: flex-end;
     gap: 10px;
   }
-  
-  main>.portfolio-grid>.project-card>.project-description>p {
+
+  main > .portfolio-grid > .project-card > .project-description > p {
     margin: 1rem 0.3rem;
     font-size: 1.2rem;
     line-height: 1.5rem;
@@ -487,7 +493,6 @@ footer .linkedin {
     padding: 0;
   }
 
-
   footer .contact-container {
     font-size: 1.05rem;
     padding: 1rem 1rem 0 1rem;
@@ -495,16 +500,18 @@ footer .linkedin {
     flex-direction: column;
   }
 
-  footer h1, footer .social-media-icons {
+  footer h1,
+  footer .social-media-icons {
     align-self: center;
   }
 
-  footer .contact-container>a>.icon-text-wrapper>.icon {
+  footer .contact-container > a > .icon-text-wrapper > .icon {
     width: 32px;
     height: 32px;
   }
 
-  footer .contact-img-wrapper, footer img {
+  footer .contact-img-wrapper,
+  footer img {
     margin: 0;
     max-width: none;
     height: 100%;
