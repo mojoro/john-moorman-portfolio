@@ -181,7 +181,7 @@ header .social-media-icons > a {
 }
 
 .external {
-  background-image: var(--external-link-icon);
+  background-image: url("/media/images/global.png");
 }
 
 .whatsapp {
