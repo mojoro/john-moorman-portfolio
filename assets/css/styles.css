@@ -444,11 +444,16 @@ footer .linkedin {
   header {
     height: auto;
     width: 100%;
+    padding-bottom: 4rem;
   }
 
   header > .header-content {
     flex-direction: column-reverse;
     gap: 0;
+  }
+
+  header > .header-content .social-media-icons {
+    margin-top: 2rem;
   }
 
   header > .header-img > img {
