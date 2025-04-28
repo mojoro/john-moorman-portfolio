@@ -316,6 +316,16 @@ footer {
   justify-content: space-around;
   padding: 2rem;
   margin-top: -1rem;
+  position: relative;
+}
+
+footer > .credits {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding-left: 2rem;
+  font-size: small;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .icon-text-wrapper {
@@ -492,7 +502,12 @@ footer .linkedin {
 
   footer {
     padding: 0;
-    margin: -0.5rem;
+    margin-top: -0.5rem;
+  }
+
+  footer .credits {
+    background-color: rgba(0, 0, 0, 0.3);
+    width: 100vw;
   }
 
   footer .contact-container {
