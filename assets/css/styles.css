@@ -95,13 +95,6 @@ header > .header-content > .header-img {
   width: auto;
 }
 
-@media screen and (max-width: 768px) {
-  #welcome {
-    max-height: 150px;
-    width: 100%;
-  }
-}
-
 #welcome path {
   fill: transparent;
   stroke: transparent;
@@ -164,6 +157,7 @@ header .social-media-icons > a {
   height: 28px;
   border: none;
   background: none;
+  background-repeat: no-repeat;
   padding: 0;
   cursor: pointer;
 }
@@ -265,7 +259,6 @@ main .github {
 .img-container {
   width: 100%;
   height: 200px;
-  overflow: hidden;
 }
 
 .img-container img {
@@ -279,6 +272,7 @@ main .github {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: 100%;
 }
 
 .project-description h2 {
@@ -294,6 +288,7 @@ main .github {
 .project-links {
   display: flex;
   gap: 0.5rem;
+  margin-top: auto;
 }
 
 .project-links .icon {
@@ -343,7 +338,7 @@ footer > .footer-content-wrapper {
 }
 
 footer .contact-container > .social-media-icons {
-  margin: 1rem 0;
+  margin: 1rem 0 1.5rem;
   display: flex;
   gap: 0.7rem;
 }
@@ -364,18 +359,29 @@ footer .linkedin {
 }
 
 /* Tablet (medium devices) */
-@media (min-width: 768px) and (max-width: 1024px) {
+@media (min-width: 768px) and (max-width: 1155px) {
   .icon {
     width: 40px;
     height: 40px;
   }
 
   header {
-    padding-top: 5rem;
+    height: auto;
+    width: 100%;
+    padding-bottom: 0rem;
   }
 
-  header .header-img {
-    display: none;
+  header > .header-content {
+    flex-direction: column-reverse;
+    gap: 0;
+  }
+
+  header > .header-img > img {
+    width: 400px;
+  }
+
+  header .social-media-icons {
+    gap: 1rem;
   }
 
   main > .portfolio-grid {
@@ -393,6 +399,11 @@ footer .linkedin {
 
   main > .portfolio-grid > .project-card {
     margin-bottom: 2rem;
+  }
+
+  main > .portfolio-grid > .project-card > .project-description {
+    padding: 24px 12px;
+    height: 100%;
   }
 
   main > .portfolio-grid > .project-card > .project-description > h2 {
@@ -414,14 +425,14 @@ footer .linkedin {
   }
 
   main > .portfolio-grid > .project-card > .project-description > p {
-    margin: 1rem;
+    margin: 0 1rem;
     font-size: 1.2rem;
     line-height: 1.5rem;
     grid-column: 1 / -1;
   }
 
   footer .contact-container {
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
 
   footer .contact-img-wrapper {
@@ -431,11 +442,17 @@ footer .linkedin {
   footer img {
     height: 100%;
     object-fit: cover;
-    object-position: left;
+    object-position: center;
   }
 }
 
 @media (max-width: 767px) {
+  #welcome {
+    max-height: 150px;
+    height: 20vw;
+    width: 100%;
+  }
+
   .icon {
     width: 40px;
     height: 40px;
@@ -454,10 +471,11 @@ footer .linkedin {
 
   header > .header-content .social-media-icons {
     margin-top: 2rem;
+    gap: 1rem;
   }
 
-  header > .header-img > img {
-    width: 400px;
+  header > .header-content > .header-img {
+    width: calc(100% + 4.5rem);
   }
 
   main > .portfolio-grid {
@@ -501,6 +519,10 @@ footer .linkedin {
     line-height: 1.5rem;
   }
 
+  .footer-curve {
+    margin-top: 2rem;
+  }
+
   footer .footer-content-wrapper {
     flex-direction: column;
   }
@@ -512,7 +534,7 @@ footer .linkedin {
 
   footer .credits {
     background-color: rgba(0, 0, 0, 0.3);
-    width: 100vw;
+    width: 100%;
   }
 
   footer .contact-container {
@@ -520,6 +542,10 @@ footer .linkedin {
     padding: 1rem 1rem 0 1rem;
     display: flex;
     flex-direction: column;
+  }
+
+  footer .email-link {
+    word-break: break-all;
   }
 
   footer h1,
@@ -537,6 +563,6 @@ footer .linkedin {
     margin: 0;
     max-width: none;
     height: 100%;
-    transform: translateY(10px);
+    overflow: hidden;
   }
 }
