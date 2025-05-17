@@ -322,10 +322,6 @@ main .github {
   cursor: pointer;
 }
 
-.footer-curve {
-  margin-top: 5rem;
-}
-
 footer {
   max-width: 100%;
   background-color: var(--main-color);
@@ -540,10 +536,6 @@ footer .linkedin {
     margin: 1rem 0.3rem;
     font-size: 1.2rem;
     line-height: 1.5rem;
-  }
-
-  .footer-curve {
-    margin-top: 2rem;
   }
 
   footer .footer-content-wrapper {
