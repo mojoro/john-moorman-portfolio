@@ -40,7 +40,7 @@ img {
 }
 
 body {
-  background: #f0f0f0;
+  background: var(--main-color);
   margin: 0;
   padding: 0;
   font-family: Inter, Verdana, Geneva, Tahoma, sans-serif;
@@ -60,7 +60,7 @@ a:hover {
 header {
   width: 100%;
   height: clamp(55vh, 65vh, 85vh);
-  padding: 2rem;
+  padding: 2rem 2rem 100px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -205,33 +205,29 @@ main {
   display: flex;
   justify-content: center;
   color: var(--text-color);
+  background-color: #f0f0f0;
   position: relative;
 }
 
-main::before {
+main::before,
+main::after {
   content: "";
   position: absolute;
   top: 0;
-  left: 0vw;
-  width: 100%;
+  left: -10vw;
+  width: 120vw;
   height: 100px;
   background: #f0f0f0;
   border-radius: 100% 100% 0 0;
   transform: translateY(-50%);
-  overflow: hidden;
+  z-index: 10;
 }
 
 main::after {
-  content: "";
-  position: absolute;
+  top: auto;
   bottom: 0;
-  left: 0vw;
-  width: 100%;
-  height: 100px;
-  background: #f0f0f0;
   border-radius: 0 0 100% 100%;
   transform: translateY(50%);
-  z-index: 10;
 }
 
 main .github {
@@ -336,8 +332,7 @@ footer {
   color: white;
   display: flex;
   justify-content: space-around;
-  padding: 2rem;
-  margin-top: -1rem;
+  padding: 100px 2rem 2rem;
   position: relative;
   overflow: hidden;
 }
@@ -489,7 +484,7 @@ footer .linkedin {
   header {
     height: auto;
     width: 100%;
-    padding-bottom: 4rem;
+    padding-bottom: 100px;
   }
 
   header > .header-content {
@@ -556,8 +551,7 @@ footer .linkedin {
   }
 
   footer {
-    padding: 0;
-    margin-top: -0.5rem;
+    padding-top: 35px;
   }
 
   footer .credits {
