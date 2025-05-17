@@ -206,6 +206,7 @@ main {
   justify-content: center;
   color: var(--text-color);
   background-color: #f0f0f0;
+  overflow-x: clip;
   position: relative;
 }
 
