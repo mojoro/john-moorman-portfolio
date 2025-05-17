@@ -205,6 +205,33 @@ main {
   display: flex;
   justify-content: center;
   color: var(--text-color);
+  position: relative;
+}
+
+main::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0vw;
+  width: 100%;
+  height: 100px;
+  background: #f0f0f0;
+  border-radius: 100% 100% 0 0;
+  transform: translateY(-50%);
+  overflow: hidden;
+}
+
+main::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0vw;
+  width: 100%;
+  height: 100px;
+  background: #f0f0f0;
+  border-radius: 0 0 100% 100%;
+  transform: translateY(50%);
+  z-index: 10;
 }
 
 main .github {
@@ -312,6 +339,7 @@ footer {
   padding: 2rem;
   margin-top: -1rem;
   position: relative;
+  overflow: hidden;
 }
 
 footer > .credits {
@@ -368,7 +396,7 @@ footer .linkedin {
   header {
     height: auto;
     width: 100%;
-    padding-bottom: 0rem;
+    padding-bottom: 4rem;
   }
 
   header > .header-content {
