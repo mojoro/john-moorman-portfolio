@@ -242,6 +242,7 @@ main .github {
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  z-index: 15;
 }
 
 .portfolio-grid > .portfolio-text {
