@@ -264,12 +264,21 @@ main .github {
 
 .project-card {
   background: white;
+  color: black;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.project-card > a {
+  z-index: 10;
+  height: 100%;
+  width: 100%;
+  position: absolute;
 }
 
 .project-card:hover {
@@ -314,6 +323,7 @@ main .github {
   display: flex;
   gap: 0.5rem;
   margin-top: auto;
+  justify-content: center;
 }
 
 .project-links .icon {
@@ -322,6 +332,7 @@ main .github {
   background-size: cover;
   border: none;
   cursor: pointer;
+  z-index: 15;
 }
 
 footer {
@@ -441,7 +452,6 @@ footer .linkedin {
     > .project-links {
     display: flex;
     grid-column: 2 / 3;
-    justify-content: flex-end;
     gap: 10px;
   }
 
@@ -530,7 +540,6 @@ footer .linkedin {
     > .project-links {
     display: flex;
     grid-column: 2 / 3;
-    justify-content: flex-end;
     gap: 10px;
   }
 
