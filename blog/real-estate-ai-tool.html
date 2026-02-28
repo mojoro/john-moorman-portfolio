@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>From Scraper to Inbox: Building an AI-Powered Real Estate Sourcing Tool | John Moorman</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="How I automated German real estate market monitoring for a client using Apify, n8n, Airtable, and Next.js — including an AI classifier that returns GO, NO-GO, or PRÜFEN.">
+  <meta name="author" content="John Moorman">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+</head>
+<body>
+  <header class="post-header">
+    <div class="post-header-content">
+      <a href="/blog/" class="back-link">← Back to Blog</a>
+      <h1>From Scraper to Inbox: Building an AI-Powered Real Estate Sourcing Tool</h1>
+      <time datetime="2026-02-28">28 February 2026</time>
+    </div>
+  </header>
+  <main>
+    <div class="blog-post-content">
+      <p>Finding good investment property in Germany is a slow, manual process. You&#39;re cross-referencing three or four listing platforms, filtering by your own criteria, calculating yields, and doing all of it again the next morning because new listings appeared overnight. I recently built a system to automate most of this for a client, and I am genuinely proud of the result.</p>
+<h2>The Brief</h2>
+<p>The client needed a way to monitor the real estate market here in Berlin across multiple platforms simultaneously, filter listings against their specific investment criteria, and surface only the most relevant opportunities daily — without spending hours doing it manually. The output needed to be both a persistent dashboard for browsing and a daily email digest so nothing good slipped past.</p>
+<h2>The Stack</h2>
+<p>I built the system by connecting four tools that each do one thing well:</p>
+<ul>
+<li><strong>Apify</strong> — scraping Immoscout24, Immowelt, and Kleinanzeigen on a scheduled basis</li>
+<li><strong>n8n</strong> — orchestrating the entire processing pipeline: deduplication, filtering, enrichment, AI analysis, and email dispatch</li>
+<li><strong>Airtable</strong> — serving as the data store and structured backend</li>
+<li><strong>Next.js</strong> — the client-facing dashboard, pulling data from Airtable</li>
+</ul>
+<p>No single piece of this is novel. The value is in how they fit together, and the rapidity with which they allow the goal to be reached.</p>
+<h2>The Pipeline</h2>
+<p><img src="image/real-estate-ai-tool/1772313469044.png" alt="1772313469044"></p>
+<h3>Scraping and Ingestion</h3>
+<p>Apify handles the scraping. Each of the three platforms gets its own actor running on a schedule triggered by n8n, and results land in n8n via an API call. At this stage the data is raw and messy — duplicate listings are common because the same property often appears on multiple platforms, and the field schemas differ drastically between sites and require normalization before anything useful can happen.</p>
+<p>The first n8n steps normalize fields into a common schema and deduplicate across sources. Deduplication by listing ID alone doesn&#39;t work across platforms, so the logic uses a combination of address, price, and size to catch cross-site duplicates.</p>
+<h3>Filtering and Enrichment</h3>
+<p>Once deduplicated, listings pass through a filter stage based on the client&#39;s criteria: price range, size, location, property type, heating, rental status, and energy class. Anything that doesn&#39;t fit the client criteria is logged to the Airtable with the reason for its declined status.</p>
+<p>Listings that survive filtering get enriched with yield estimates calculated from the asking price and local average rental data. This gives each listing with enough input data available a rough return figure without requiring the client to do that math manually.</p>
+<h3>The AI Analysis Step</h3>
+<p>The filtered and enriched listings are passed to an AI model (in this case Gemini 2.5 Flash for its low usage cost for prototyping) via n8n, along with a prompt derived from the client&#39;s investment criteria document. The model evaluates each listing and returns:</p>
+<ul>
+<li>A <strong>status</strong>: <code>GO</code>, <code>NO-GO</code>, or <code>PRÜFEN</code></li>
+<li>A <strong>risk summary</strong>: a short description of notable concerns</li>
+<li>A <strong>match description</strong>: how well the listing aligns with the client&#39;s stated expectations</li>
+</ul>
+<p>The three-way classification was a client request and deliberate design choice. Binary GO/NO-GO would be too blunt — a lot of listings are genuinely ambiguous, and forcing them into a binary answer tends to either create false positives or filter out actual opportunities. <code>PRÜFEN</code> (German for &quot;examine&quot;) is the answer for those in-between cases, and it gives the client a meaningful signal without pretending certainty.</p>
+<p>The model&#39;s output is written back to Airtable alongside the listing data, so it&#39;s visible in the dashboard and queryable.</p>
+<h3>Email Digest</h3>
+<p><img src="image/real-estate-ai-tool/1772313865279.png" alt="1772313865279"></p>
+<p>At the end of each daily run, n8n compiles the day&#39;s <code>GO</code> and <code>PRÜFEN</code> listings into a formatted email and sends it to the client, along with an additional AI call to evaluate the day&#39;s listings and provide 4 recommended listings to consider. The email is the primary touchpoint — the dashboard is for deeper browsing, but the email ensures the client doesn&#39;t have to think about checking in. The best opportunities come to them.</p>
+<h2>The Dashboard</h2>
+<p><img src="image/real-estate-ai-tool/1772313924383.png" alt="1772313924383">
+The Next.js frontend reads from Airtable and presents listings in a filterable table with the AI status prominently displayed. The client can sort by yield, filter by status, and access all data on individual listings to see the full analysis and data collected. Keeping Airtable as the data layer rather than a custom database was a deliberate tradeoff: it meant faster development and gave the client a familiar interface to inspect and annotate the raw data directly if they ever needed to.</p>
+<h2>What I&#39;d Do Differently</h2>
+<p>The n8n workflow grew more complex than I initially planned. What started as a linear pipeline acquired several conditional branches as edge cases emerged — what to do with listings that are missing size data, how to handle Apify and Gemini failures gracefully, how to avoid re-processing listings that had already been analyzed, and how to ensure the quality of the results. It is natural for schema to evolve as a project develops, but if I needed to do this again with what I know now, I would have spent a bit more time with a pen and paper thinking about what exactly needs to be displayed in the end, and what exactly both the client and the software needs from the database.</p>
+<h2>Plans for the future</h2>
+<p>Currently, the dashboard exists <a href="https://real-estate-dashboard-brown-seven.vercel.app/">here</a>, stuffed with mock data and disconnected from Airtable. It wouldn&#39;t do to give the whole internet the ability to write to the database! The repository can be found <a href="https://github.com/mojoro/real-estate-dashboard">here</a> on my <a href="https://github.com/mojoro">GitHub</a>.</p>
+<p>Some things I might like to add later on are:</p>
+<ul>
+<li>Ability to message the agent directly from the dashboard</li>
+<li>Feature to customize filter and search criteria</li>
+<li>More sources of listings</li>
+<li>Pause button for the scheduled runs</li>
+<li>Preview different outputs from different AI models</li>
+<li>Run a daily automation to remove listings with dead links from the database</li>
+<li>and always more and more</li>
+</ul>
+<p>Scope is an easy thing to get out of hand, so it is important to cut out the fat and understand what the core features of any software/automation/platform one is building should be. Identify that, implement that, and once all those boxes are ticked, ship that. Once it lives, it can grow.</p>
+<h2>What I Took Away From This</h2>
+<p>It was an enjoyable project to work on, and the timing of the client&#39;s needs coincided well with my own goals for the next few months. I took this project as a chance to refine my approach to automations such as these, and as always a learning opportunity to try out some of the new technologies out there while still utilizing the tried-and-true tools that I am familiar with.</p>
+
+    </div>
+  </main>
+  <footer>
+    <div class="footer-content-wrapper">
+      <div class="contact-container">
+        <h1>Contact Me</h1>
+        <p>Please get in touch if you think a collaboration could be fruitful</p>
+        <a href="https://www.google.com/maps/place/Berlin,+Germany/">
+          <div class="icon-text-wrapper">
+            <button class="icon map"></button>
+            <p>Berlin, Germany</p>
+          </div>
+        </a>
+        <a class="email-link" href="mailto:john@johnmoorman.com">
+          <div class="icon-text-wrapper">
+            <button class="icon email"></button>
+            <p>john@johnmoorman.com</p>
+          </div>
+        </a>
+        <div class="social-media-icons">
+          <a href="https://github.com/mojoro" target="_blank"><button class="icon github"></button></a>
+          <a href="https://www.linkedin.com/in/john-moorman/"><button class="icon linkedin"></button></a>
+          <a href="https://twitter.com/john_moorman"><button class="icon twitter"></button></a>
+        </div>
+      </div>
+      <div class="contact-img-wrapper">
+        <img src="../media/images/john-about-img.jpeg" alt="John Moorman standing on a mountaintop">
+      </div>
+    </div>
+    <div class="credits">
+      <p><a href="https://storyset.com/work">Work illustrations by Storyset, modified by me</a></p>
+      <p>Inspiration and welcome: <a href="https://dunks1980.com/">dunks1980.com</a></p>
+    </div>
+  </footer>
+</body>
+</html>
