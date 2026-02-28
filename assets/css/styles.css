@@ -13,7 +13,8 @@
 
 @font-face {
   font-family: "Inter";
-  src: url("/assets/fonts/Inter-Regular.woff2") format("woff2"),
+  src:
+    url("/assets/fonts/Inter-Regular.woff2") format("woff2"),
     url("/assets/fonts/Inter-Regular.woff") format("woff");
   font-weight: normal;
   font-style: normal;
@@ -22,7 +23,8 @@
 
 @font-face {
   font-family: "Inter";
-  src: url("/assets/fonts/Inter-Italic.woff2") format("woff2"),
+  src:
+    url("/assets/fonts/Inter-Italic.woff2") format("woff2"),
     url("/assets/fonts/Inter-Italic.woff") format("woff");
   font-weight: normal;
   font-style: italic;
@@ -59,7 +61,7 @@ a:hover {
 
 header {
   width: 100%;
-  height: clamp(55vh, 65vh, 85vh);
+  height: clamp(65vh, 75vh, 85vh);
   padding: 2rem 2rem 100px;
   display: flex;
   justify-content: center;
@@ -270,7 +272,9 @@ main .github {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   position: relative;
 }
 
