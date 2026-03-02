@@ -285,6 +285,14 @@ main .github {
   position: absolute;
 }
 
+.project-card  a.inline {
+  color: var(--accent-color);
+}
+
+.project-card  a.inline:hover {
+  color: var(--text-color);
+}
+
 .project-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
