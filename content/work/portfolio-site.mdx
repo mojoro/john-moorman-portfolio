@@ -1,0 +1,46 @@
+---
+title: "Portfolio Site"
+date: "2026-03-04"
+description: "This site — rebuilt from flat HTML to Next.js 15 with an AI chatbot, MDX content pipeline, and streaming Anthropic integration."
+tags: ["Next.js 15", "TypeScript", "Tailwind CSS v4", "Anthropic API", "Framer Motion"]
+---
+
+## Why Rebuild
+
+My previous portfolio was a flat HTML/CSS/JS single-page site. Functional, but it contradicted my resume — claiming Next.js and TypeScript expertise while the site itself used neither. The rebuild closes that credibility gap and turns the portfolio into a proof of skill.
+
+## Technical Decisions
+
+**Next.js 15 App Router** with TypeScript strict mode. Server Components where appropriate, client components only where interactivity requires it. Static generation via `generateStaticParams` for all content pages.
+
+**Tailwind CSS v4** with CSS custom property design tokens for the dual dark/light palette. No `@apply` — utility classes throughout, with a custom `.prose-custom` class for MDX content styling.
+
+**MDX content pipeline** using `next-mdx-remote` and `gray-matter`. Blog posts and case studies live as `.mdx` files in the repo, are statically generated at build time, and support draft mode for local previewing.
+
+**Framer Motion** for meaningful animations: staggered hero reveal, scroll-triggered section entrances, spring-physics chat panel, hover interactions. All wrapped in `useReducedMotion` checks.
+
+## The Ask John Chatbot
+
+The headline feature. A streaming AI chatbot powered by `claude-sonnet-4-20250514` that answers questions about my experience in my voice.
+
+**Architecture:**
+- Edge runtime route handler for low cold-start latency
+- Streaming via `ReadableStream` — no Vercel AI SDK dependency
+- Seven protection layers: Upstash Redis rate limiting, input/output token caps, conversation length limits, honeypot, timing-based bot detection, input sanitization, and origin checking
+- Conversations logged to Neon Postgres for review
+
+**System prompt engineering** was the most interesting part. The prompt needs to be specific enough to give accurate answers, honest about limitations, and natural enough that it doesn't sound like a chatbot reading a resume.
+
+## Performance
+
+- `next/font/google` for zero-FOUT font loading (Syne, DM Sans, JetBrains Mono)
+- Dynamic import for the chat panel — not loaded until needed
+- Static generation for all content pages
+- Image optimization via Next.js Image component in MDX
+
+---
+
+**Links**
+
+- ↗ [GitHub repository](https://github.com/mojoro/john-moorman-portfolio)
+- ↗ [Live site](https://johnmoorman.com)
