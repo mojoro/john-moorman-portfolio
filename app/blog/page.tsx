@@ -2,6 +2,7 @@ import { getPosts } from "@/lib/content"
 import Link from "next/link"
 import type { Metadata } from "next"
 
+
 export const metadata: Metadata = {
   title: "Blog | John Moorman",
   description:
@@ -13,7 +14,13 @@ export default async function BlogIndex() {
 
   return (
     <section className="py-20">
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+      <Link
+        href="/"
+        className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
+      >
+        &larr; Home
+      </Link>
+      <h1 className="mt-8 font-display text-3xl font-bold tracking-tight sm:text-4xl">
         Blog
       </h1>
       <p className="mt-4 max-w-xl text-text-secondary">
