@@ -1,6 +1,53 @@
 "use client"
 
 import { motion, useReducedMotion } from "framer-motion"
+import { SectionReveal } from "@/components/section-reveal"
+
+const SKILLS = [
+  {
+    category: "Primary",
+    items: ["TypeScript", "JavaScript (ES6+)", "Next.js 15", "React 19", "Tailwind CSS"],
+  },
+  {
+    category: "Also Proficient",
+    items: ["Vue.js", "Nuxt", "Node.js", "Python", "PHP", "Bash"],
+  },
+  {
+    category: "Backend & DB",
+    items: ["REST APIs", "Firebase", "MongoDB", "PostgreSQL"],
+  },
+  {
+    category: "DevOps",
+    items: ["Docker", "CI/CD (GitHub Actions)", "Vercel", "Linux/UNIX"],
+  },
+  {
+    category: "AI & Automation",
+    items: [
+      "Anthropic API",
+      "Claude Code",
+      "Cursor",
+      "n8n",
+      "Apify",
+      "Google Apps Script",
+    ],
+  },
+] as const
+
+function SectionHeading({
+  number,
+  children,
+}: {
+  number: string
+  children: React.ReactNode
+}) {
+  return (
+    <h2 className="flex items-center gap-3 font-display text-2xl font-semibold sm:text-3xl">
+      <span className="font-mono text-base text-accent">{number}.</span>
+      {children}
+      <span className="ml-4 hidden h-px flex-1 bg-border sm:block" />
+    </h2>
+  )
+}
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion()
@@ -100,12 +147,61 @@ export default function Home() {
         </motion.div>
       </motion.section>
 
-      <section id="about" className="min-h-screen py-24">
-        <h2 className="font-display text-3xl font-semibold">
-          <span className="mr-2 font-mono text-lg text-accent">01.</span>
-          About
-        </h2>
-        <p className="mt-6 text-text-secondary">About section placeholder.</p>
+      {/* ── About ── */}
+      <section id="about" className="py-24">
+        <SectionReveal>
+          <SectionHeading number="01">About</SectionHeading>
+        </SectionReveal>
+
+        <SectionReveal delay={0.1}>
+          <div className="mt-8 max-w-2xl space-y-4 text-text-secondary">
+            <p>
+              I came to software through an unusual door — five years training as
+              an operatic performer at Boston Conservatory at Berklee. When I
+              started building automation tools at Berlin Opera Academy in 2023, I
+              approached the work the same way I&apos;d approached a new role:
+              understand the system completely, then execute with precision.
+            </p>
+            <p>
+              I taught myself Google Apps Script from scratch, mapped the full
+              student lifecycle workflow, and built tools that replaced two
+              full-time administrative positions. That project convinced me
+              engineering was where I wanted to build my career.
+            </p>
+            <p>
+              Today I work AI-natively — Claude Code and Cursor are core to how I
+              develop. I care about business impact, not just technical elegance.
+            </p>
+          </div>
+        </SectionReveal>
+
+        <SectionReveal delay={0.2}>
+          <div className="mt-12">
+            <h3 className="mb-6 font-mono text-sm text-accent">
+              Technologies I work with
+            </h3>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {SKILLS.map((group) => (
+                <div key={group.category}>
+                  <h4 className="mb-3 text-sm font-medium text-text-primary">
+                    {group.category}
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {group.items.map((skill) => (
+                      <li
+                        key={skill}
+                        className="flex items-center gap-2 font-mono text-sm text-text-secondary"
+                      >
+                        <span className="text-accent">&#9656;</span>
+                        {skill}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </SectionReveal>
       </section>
 
       <section id="work" className="min-h-screen py-24">
