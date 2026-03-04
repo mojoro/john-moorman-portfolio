@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google"
+import { Sidebar } from "@/components/sidebar"
 import "./globals.css"
 
 const syne = Syne({
@@ -39,7 +40,14 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <Sidebar />
+        <div className="pt-14 md:ml-60 md:pt-0">
+          <div className="mx-auto max-w-[900px] px-6 md:px-12">
+            {children}
+          </div>
+        </div>
+      </body>
     </html>
   )
 }
