@@ -1,15 +1,16 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { ThemeToggle } from "./theme-toggle"
 
 const NAV_ITEMS = [
-  { number: "01", label: "About", href: "#about" },
-  { number: "02", label: "Work", href: "#work" },
-  { number: "03", label: "Experience", href: "#experience" },
-  { number: "04", label: "Blog", href: "#blog" },
-  { number: "05", label: "Contact", href: "#contact" },
+  { number: "01", label: "About",      hash: "about",      page: "/about" },
+  { number: "02", label: "Work",       hash: "work",        page: "/work" },
+  { number: "03", label: "Experience", hash: "experience",  page: null },
+  { number: "04", label: "Blog",       hash: "blog",        page: "/blog" },
+  { number: "05", label: "Contact",    hash: "contact",     page: null },
 ] as const
 
 const SOCIAL_LINKS = [
@@ -81,9 +82,15 @@ const SOCIAL_LINKS = [
 export function Sidebar() {
   const [activeSection, setActiveSection] = useState("")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
+  const router = useRouter()
+  const isHomePage = pathname === "/"
 
+  // Scroll-spy — only relevant on homepage
   useEffect(() => {
-    const sectionIds = NAV_ITEMS.map((item) => item.href.slice(1))
+    if (!isHomePage) return
+
+    const sectionIds = NAV_ITEMS.map((item) => item.hash)
     const observers: IntersectionObserver[] = []
 
     for (const id of sectionIds) {
@@ -92,9 +99,7 @@ export function Sidebar() {
 
       const observer = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) {
-            setActiveSection(id)
-          }
+          if (entry.isIntersecting) setActiveSection(id)
         },
         { rootMargin: "-40% 0px -40% 0px" }
       )
@@ -104,36 +109,45 @@ export function Sidebar() {
     }
 
     return () => {
-      for (const observer of observers) {
-        observer.disconnect()
-      }
+      for (const observer of observers) observer.disconnect()
     }
-  }, [])
+  }, [isHomePage])
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-    return () => {
-      document.body.style.overflow = ""
-    }
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : ""
+    return () => { document.body.style.overflow = "" }
   }, [mobileMenuOpen])
 
   const handleNavClick = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    (e: React.MouseEvent<HTMLAnchorElement>, hash: string, page: string | null) => {
       e.preventDefault()
-      const id = href.slice(1)
-      const el = document.getElementById(id)
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" })
-      }
       setMobileMenuOpen(false)
+
+      if (isHomePage) {
+        // Smooth scroll to section on homepage
+        document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" })
+      } else if (page) {
+        // Navigate to dedicated page
+        router.push(page)
+      } else {
+        // No dedicated page — go home to the section
+        router.push(`/#${hash}`)
+      }
     },
-    []
+    [isHomePage, router]
   )
+
+  // Determine active item: scroll-spy on home, pathname match elsewhere
+  const isActive = (item: typeof NAV_ITEMS[number]) => {
+    if (isHomePage) return activeSection === item.hash
+    return item.page !== null && pathname.startsWith(item.page)
+  }
+
+  const getHref = (item: typeof NAV_ITEMS[number]) => {
+    if (isHomePage) return `#${item.hash}`
+    return item.page ?? `/#${item.hash}`
+  }
 
   return (
     <>
@@ -154,10 +168,10 @@ export function Sidebar() {
           <nav className="mt-16">
             <ul className="flex flex-col gap-6">
               {NAV_ITEMS.map((item) => (
-                <li key={item.href}>
+                <li key={item.hash}>
                   <a
-                    href={item.href}
-                    onClick={(e) => handleNavClick(e, item.href)}
+                    href={getHref(item)}
+                    onClick={(e) => handleNavClick(e, item.hash, item.page)}
                     className="group flex items-center gap-3 text-sm"
                   >
                     <span className="font-mono text-xs text-accent">
@@ -165,19 +179,18 @@ export function Sidebar() {
                     </span>
                     <span
                       className={`relative transition-colors ${
-                        activeSection === item.href.slice(1)
+                        isActive(item)
                           ? "text-text-primary"
                           : "text-text-secondary group-hover:text-text-primary"
                       }`}
                     >
                       {item.label}
                       <span
-                        className={`absolute -bottom-1 left-0 h-px bg-accent transition-transform origin-left ${
-                          activeSection === item.href.slice(1)
+                        className={`absolute -bottom-1 left-0 h-px w-full bg-accent transition-transform origin-left ${
+                          isActive(item)
                             ? "scale-x-100"
                             : "scale-x-0 group-hover:scale-x-100"
                         }`}
-                        style={{ width: "100%" }}
                       />
                     </span>
                   </a>
@@ -224,25 +237,13 @@ export function Sidebar() {
           <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="relative z-50 flex h-8 w-8 flex-col items-center justify-center gap-1.5"
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={mobileMenuOpen}
-        >
-          <span
-            className={`h-0.5 w-5 bg-text-primary transition-all ${
-              mobileMenuOpen ? "translate-y-2 rotate-45" : ""
-            }`}
-          />
-          <span
-            className={`h-0.5 w-5 bg-text-primary transition-all ${
-              mobileMenuOpen ? "opacity-0" : ""
-            }`}
-          />
-          <span
-            className={`h-0.5 w-5 bg-text-primary transition-all ${
-              mobileMenuOpen ? "-translate-y-2 -rotate-45" : ""
-            }`}
-          />
+            className="relative z-50 flex h-8 w-8 flex-col items-center justify-center gap-1.5"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+          >
+            <span className={`h-0.5 w-5 bg-text-primary transition-all ${mobileMenuOpen ? "translate-y-2 rotate-45" : ""}`} />
+            <span className={`h-0.5 w-5 bg-text-primary transition-all ${mobileMenuOpen ? "opacity-0" : ""}`} />
+            <span className={`h-0.5 w-5 bg-text-primary transition-all ${mobileMenuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
           </button>
         </div>
       </header>
@@ -263,10 +264,10 @@ export function Sidebar() {
           <nav>
             <ul className="flex flex-col items-center gap-8">
               {NAV_ITEMS.map((item) => (
-                <li key={item.href}>
+                <li key={item.hash}>
                   <a
-                    href={item.href}
-                    onClick={(e) => handleNavClick(e, item.href)}
+                    href={getHref(item)}
+                    onClick={(e) => handleNavClick(e, item.hash, item.page)}
                     className="flex flex-col items-center gap-1 text-center"
                   >
                     <span className="font-mono text-sm text-accent">
