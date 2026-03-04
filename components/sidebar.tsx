@@ -187,26 +187,23 @@ export function Sidebar() {
           </nav>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-5">
-            {SOCIAL_LINKS.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target={link.href.startsWith("mailto:") ? undefined : "_blank"}
-                rel={
-                  link.href.startsWith("mailto:")
-                    ? undefined
-                    : "noopener noreferrer"
-                }
-                className="text-text-muted transition-colors hover:text-accent"
-                aria-label={link.label}
-              >
-                {link.icon}
-              </a>
-            ))}
-          </div>
-          <ThemeToggle />
+        <div className="flex items-center gap-5">
+          {SOCIAL_LINKS.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target={link.href.startsWith("mailto:") ? undefined : "_blank"}
+              rel={
+                link.href.startsWith("mailto:")
+                  ? undefined
+                  : "noopener noreferrer"
+              }
+              className="text-text-muted transition-colors hover:text-accent"
+              aria-label={link.label}
+            >
+              {link.icon}
+            </a>
+          ))}
         </div>
       </aside>
 
@@ -249,6 +246,11 @@ export function Sidebar() {
           </button>
         </div>
       </header>
+
+      {/* Desktop theme toggle — fixed top-right */}
+      <div className="fixed right-5 top-5 z-50 hidden md:block">
+        <ThemeToggle />
+      </div>
 
       {/* Mobile menu overlay */}
       {mobileMenuOpen && (
