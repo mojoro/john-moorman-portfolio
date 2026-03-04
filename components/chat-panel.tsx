@@ -25,6 +25,7 @@ export function ChatPanel() {
   const [error, setError] = useState<string | null>(null)
   const [honeypot, setHoneypot] = useState("")
   const [pageLoadedAt] = useState(() => Date.now())
+  const [sessionId] = useState(() => crypto.randomUUID())
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const shouldReduceMotion = useReducedMotion()
@@ -62,6 +63,7 @@ export function ChatPanel() {
           body: JSON.stringify({
             message: text,
             history: messages,
+            sessionId,
             honeypot,
             pageLoadedAt,
           }),
