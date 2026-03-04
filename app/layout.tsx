@@ -30,6 +30,37 @@ export const metadata: Metadata = {
   title: "John Moorman — Software Engineer",
   description:
     "Software Engineer based in Berlin. AI-native development, Next.js, TypeScript.",
+  metadataBase: new URL("https://johnmoorman.com"),
+  openGraph: {
+    title: "John Moorman — Software Engineer",
+    description:
+      "Software Engineer based in Berlin. AI-native development, Next.js, TypeScript.",
+    url: "https://johnmoorman.com",
+    siteName: "John Moorman",
+    images: [{ url: "/og", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "John Moorman — Software Engineer",
+    description:
+      "Software Engineer based in Berlin. AI-native development, Next.js, TypeScript.",
+    images: ["/og"],
+  },
+}
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "John Moorman",
+  url: "https://johnmoorman.com",
+  jobTitle: "Software Engineer",
+  address: { "@type": "PostalAddress", addressLocality: "Berlin", addressCountry: "DE" },
+  email: "john@johnmoorman.com",
+  sameAs: [
+    "https://github.com/mojoro",
+    "https://linkedin.com/in/john-moorman",
+  ],
 }
 
 // Inline script to prevent flash of wrong theme on initial load.
@@ -58,6 +89,10 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className="antialiased">
         <ThemeProvider>
