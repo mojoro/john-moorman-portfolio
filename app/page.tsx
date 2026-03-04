@@ -75,6 +75,33 @@ const PROJECTS = [
   },
 ] as const
 
+const EXPERIENCE = [
+  {
+    role: "Freelance Software Engineer",
+    company: "Self-employed",
+    period: "2025 — Present",
+    location: "Berlin",
+    highlights: [
+      "Full-stack development across multiple client engagements with end-to-end ownership",
+      "Built an AI-powered real estate data pipeline using n8n, Apify, and the Anthropic API",
+      "CI/CD pipelines via GitHub Actions + Docker — reduced deployment times 30%",
+      "1,000+ monthly active users across deployed applications",
+    ],
+  },
+  {
+    role: "Software Engineer",
+    company: "Berlin Opera Academy",
+    period: "2023 — 2025",
+    location: "Berlin",
+    highlights: [
+      "Identified and automated the entire administrative function — student lifecycle, payments, communications",
+      "Built complete automation suite from scratch: offer letters, payment tracking, PayPal reconciliation, automated emails",
+      "Reduced admin team from 4 staff to 2 part-time — €74K annual savings",
+      "Built production website: 95/100 Lighthouse score, top-3 organic rankings, 8% organic traffic growth",
+    ],
+  },
+] as const
+
 function SectionHeading({
   number,
   children,
@@ -276,9 +303,50 @@ export default function Home() {
         </SectionReveal>
       </section>
 
+      {/* ── Experience ── */}
+      <section id="experience" className="py-24">
+        <SectionReveal>
+          <SectionHeading number="03">Experience</SectionHeading>
+        </SectionReveal>
+
+        <div className="mt-10 space-y-12">
+          {EXPERIENCE.map((job, i) => (
+            <SectionReveal key={job.company} delay={i * 0.1}>
+              <div>
+                <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
+                  <h3 className="text-lg font-medium text-text-primary">
+                    {job.role}{" "}
+                    <span className="text-accent">@ {job.company}</span>
+                  </h3>
+                  <span className="font-mono text-sm text-text-muted">
+                    {job.period}
+                  </span>
+                </div>
+                <p className="mt-1 font-mono text-xs text-text-muted">
+                  {job.location}
+                </p>
+                <ul className="mt-4 space-y-2">
+                  {job.highlights.map((item) => (
+                    <li
+                      key={item}
+                      className="flex gap-2 text-sm text-text-secondary"
+                    >
+                      <span className="mt-0.5 shrink-0 text-accent">
+                        &#9656;
+                      </span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </SectionReveal>
+          ))}
+        </div>
+      </section>
+
       <section id="blog" className="min-h-screen py-24">
         <h2 className="font-display text-3xl font-semibold">
-          <span className="mr-2 font-mono text-lg text-accent">03.</span>
+          <span className="mr-2 font-mono text-lg text-accent">04.</span>
           Blog
         </h2>
         <p className="mt-6 text-text-secondary">Blog section placeholder.</p>
