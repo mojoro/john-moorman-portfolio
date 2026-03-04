@@ -19,14 +19,14 @@
 }
 
 [data-theme="light"] {
-  --bg: #f5f3ee;
-  --bg-surface: #edeae3;
-  --bg-elevated: #e4e0d7;
-  --accent: #0a7a5c;
-  --text-primary: #1a1a2e;
-  --text-secondary: #4a5568;
-  --text-muted: #94a3b8;
-  --border: rgba(0, 0, 0, 0.08);
+  --bg:             #faf2e2;
+  --bg-surface:     #f5e6c8;
+  --bg-elevated:    #ecdab8;
+  --accent:         #0a7a5c;
+  --text-primary:   #1c1409;
+  --text-secondary: #5c4a2a;
+  --text-muted:     #9c8a6a;
+  --border:         rgba(0, 0, 0, 0.08);
 }
 
 @theme inline {
