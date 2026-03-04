@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion"
 import Link from "next/link"
 import { SectionReveal } from "@/components/section-reveal"
+import { ContactForm } from "@/components/contact-form"
 
 const SKILLS = [
   {
@@ -59,7 +60,7 @@ const PROJECTS = [
   {
     title: "finalflow",
     summary:
-      "Full marketing site SPA built to pixel-perfect Figma specs. Waitlist signup, account creation, Firebase auth.",
+      "Marketing site for a music tech startup, built pixel-perfect to Figma. Waitlist signup, account creation, Firebase auth.",
     stats: [],
     tags: ["Vue.js", "TypeScript", "Tailwind CSS", "Firebase"],
     href: "/work/finalflow",
@@ -365,6 +366,17 @@ export default function Home() {
             </SectionReveal>
           ))}
         </div>
+
+        <SectionReveal delay={0.2}>
+          <div className="mt-10">
+            <Link
+              href="/resume"
+              className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
+            >
+              View full resume &rarr;
+            </Link>
+          </div>
+        </SectionReveal>
       </section>
 
       {/* ── Blog ── */}
@@ -427,12 +439,12 @@ export default function Home() {
             at Berlin startups. Whether you have a specific role in mind or just
             want to connect, my inbox is open.
           </p>
-          <a
-            href="mailto:john@johnmoorman.com"
-            className="mt-8 inline-flex items-center gap-2 rounded border border-accent px-8 py-4 font-mono text-sm text-accent transition-colors hover:bg-accent/10"
-          >
-            Say hello
-          </a>
+        </SectionReveal>
+
+        <SectionReveal delay={0.1}>
+          <div className="mt-10 max-w-xl">
+            <ContactForm />
+          </div>
         </SectionReveal>
       </section>
 
