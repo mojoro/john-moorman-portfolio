@@ -3,6 +3,7 @@ import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Sidebar } from "@/components/sidebar"
 import { ChatPanelLazy } from "@/components/chat-panel-lazy"
+import { Analytics } from "@vercel/analytics/react"
 import "./globals.css"
 
 const syne = Syne({
@@ -103,6 +104,7 @@ export default function RootLayout({
             </div>
           </div>
           <ChatPanelLazy />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
