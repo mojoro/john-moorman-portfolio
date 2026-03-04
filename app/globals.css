@@ -19,13 +19,13 @@
 }
 
 [data-theme="light"] {
-  --bg:             #faf2e2;
-  --bg-surface:     #f5e6c8;
-  --bg-elevated:    #ecdab8;
-  --accent:         #0a7a5c;
-  --text-primary:   #1c1409;
-  --text-secondary: #5c4a2a;
-  --text-muted:     #9c8a6a;
+  --bg:             #f0f4f8;   /* cool blue-grey — the daylight version of the navy */
+  --bg-surface:     #e3ecf3;   /* cards, panels */
+  --bg-elevated:    #d6e3ee;   /* hover states */
+  --accent:         #0891b2;   /* cyan-600 — same family as mint, readable on light */
+  --text-primary:   #0d1b2e;   /* deep navy — mirrors dark mode bg tones */
+  --text-secondary: #374e6a;   /* blue-grey */
+  --text-muted:     #6b87a4;   /* muted blue-grey */
   --border:         rgba(0, 0, 0, 0.08);
 }
 
