@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Sidebar } from "@/components/sidebar"
+import { ChatPanelLazy } from "@/components/chat-panel-lazy"
 import "./globals.css"
 
 const syne = Syne({
@@ -66,6 +67,7 @@ export default function RootLayout({
               {children}
             </div>
           </div>
+          <ChatPanelLazy />
         </ThemeProvider>
       </body>
     </html>
