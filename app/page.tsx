@@ -1,6 +1,7 @@
 "use client"
 
 import { motion, useReducedMotion } from "framer-motion"
+import Link from "next/link"
 import { SectionReveal } from "@/components/section-reveal"
 
 const SKILLS = [
@@ -50,7 +51,7 @@ const PROJECTS = [
     title: "Real Estate AI Pipeline",
     summary:
       "Automated property intelligence pipeline — scrapes, structures, and AI-analyzes listings for daily investment recommendations.",
-    stats: [{ label: "Daily automated reports", value: "1" }],
+    stats: [],
     tags: ["n8n", "Apify", "Anthropic API", "Airtable"],
     href: "/work/real-estate-pipeline",
     featured: true,
@@ -282,6 +283,17 @@ export default function Home() {
             </div>
           </div>
         </SectionReveal>
+
+        <SectionReveal delay={0.3}>
+          <div className="mt-10">
+            <Link
+              href="/about"
+              className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
+            >
+              Full bio &rarr;
+            </Link>
+          </div>
+        </SectionReveal>
       </section>
 
       {/* ── Work ── */}
@@ -304,12 +316,12 @@ export default function Home() {
 
         <SectionReveal delay={0.4}>
           <div className="mt-10">
-            <a
+            <Link
               href="/work"
               className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
             >
               View all projects &rarr;
-            </a>
+            </Link>
           </div>
         </SectionReveal>
       </section>
@@ -396,12 +408,12 @@ export default function Home() {
 
         <SectionReveal delay={0.2}>
           <div className="mt-10">
-            <a
+            <Link
               href="/blog"
               className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
             >
               Read all posts &rarr;
-            </a>
+            </Link>
           </div>
         </SectionReveal>
       </section>
