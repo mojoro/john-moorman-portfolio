@@ -342,7 +342,7 @@ export default function Home() {
                       key={item}
                       className="flex gap-2 text-sm text-text-secondary"
                     >
-                      <span className="mt-0.5 shrink-0 text-accent">
+                      <span className="mt-0 shrink-0 text-accent">
                         &#9656;
                       </span>
                       <span>{item}</span>
