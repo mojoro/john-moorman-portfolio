@@ -33,6 +33,48 @@ const SKILLS = [
   },
 ] as const
 
+const PROJECTS = [
+  {
+    title: "BOA Automation Suite",
+    summary:
+      "Complete administrative automation for Berlin Opera Academy — replaced manual workflows across the entire student lifecycle.",
+    stats: [
+      { label: "Annual savings", value: "€74K" },
+      { label: "Payment collection", value: "+20%" },
+    ],
+    tags: ["Google Apps Script", "PayPal API", "Gmail API"],
+    href: "/work/boa-automation",
+    featured: true,
+  },
+  {
+    title: "Real Estate AI Pipeline",
+    summary:
+      "Automated property intelligence pipeline — scrapes, structures, and AI-analyzes listings for daily investment recommendations.",
+    stats: [{ label: "Daily automated reports", value: "1" }],
+    tags: ["n8n", "Apify", "Anthropic API", "Airtable"],
+    href: "/work/real-estate-pipeline",
+    featured: true,
+  },
+  {
+    title: "finalflow",
+    summary:
+      "Full marketing site SPA built to pixel-perfect Figma specs. Waitlist signup, account creation, Firebase auth.",
+    stats: [],
+    tags: ["Vue.js", "TypeScript", "Tailwind CSS", "Firebase"],
+    href: "/work/finalflow",
+    featured: false,
+  },
+  {
+    title: "Serenity Retreat",
+    summary:
+      "Frontend rebuild, analytics integration, data pipeline migration, and custom PHP calendar sync plugin.",
+    stats: [],
+    tags: ["PHP", "JavaScript", "Analytics", "REST APIs"],
+    href: "/work/serenity-retreat",
+    featured: false,
+  },
+] as const
+
 function SectionHeading({
   number,
   children,
@@ -204,12 +246,34 @@ export default function Home() {
         </SectionReveal>
       </section>
 
-      <section id="work" className="min-h-screen py-24">
-        <h2 className="font-display text-3xl font-semibold">
-          <span className="mr-2 font-mono text-lg text-accent">02.</span>
-          Work
-        </h2>
-        <p className="mt-6 text-text-secondary">Work section placeholder.</p>
+      {/* ── Work ── */}
+      <section id="work" className="py-24">
+        <SectionReveal>
+          <SectionHeading number="02">Work</SectionHeading>
+          <p className="mt-4 text-text-secondary">
+            Selected projects — each one shipped to production with real users
+            and measurable outcomes.
+          </p>
+        </SectionReveal>
+
+        <div className="mt-10 space-y-6">
+          {PROJECTS.map((project, i) => (
+            <SectionReveal key={project.title} delay={i * 0.1}>
+              <ProjectCard project={project} />
+            </SectionReveal>
+          ))}
+        </div>
+
+        <SectionReveal delay={0.4}>
+          <div className="mt-10">
+            <a
+              href="/work"
+              className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
+            >
+              View all projects &rarr;
+            </a>
+          </div>
+        </SectionReveal>
       </section>
 
       <section id="blog" className="min-h-screen py-24">
@@ -230,5 +294,60 @@ export default function Home() {
         </p>
       </section>
     </main>
+  )
+}
+
+function ProjectCard({
+  project,
+}: {
+  project: (typeof PROJECTS)[number]
+}) {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <motion.a
+      href={project.href}
+      className="group block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
+      whileHover={shouldReduceMotion ? {} : { y: -4 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex-1">
+          {project.featured && (
+            <p className="mb-2 font-mono text-xs text-accent">Featured</p>
+          )}
+          <h3 className="text-xl font-medium text-text-primary transition-colors group-hover:text-accent">
+            {project.title}
+          </h3>
+          <p className="mt-2 text-sm text-text-secondary">{project.summary}</p>
+        </div>
+
+        {project.stats.length > 0 && (
+          <div className="flex gap-6 sm:text-right">
+            {project.stats.map((stat) => (
+              <div key={stat.label}>
+                <p className="font-display text-2xl font-bold text-accent">
+                  {stat.value}
+                </p>
+                <p className="font-mono text-xs text-text-muted">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {project.tags.map((tag) => (
+          <span
+            key={tag}
+            className="rounded-full bg-accent/10 px-3 py-1 font-mono text-xs text-accent"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    </motion.a>
   )
 }
