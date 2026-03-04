@@ -102,6 +102,17 @@ const EXPERIENCE = [
   },
 ] as const
 
+const BLOG_POSTS = [
+  {
+    title: "From Scraper to Inbox: Building an AI-Powered Real Estate Sourcing Tool",
+    date: "2026-02-28",
+    description:
+      "How I built an automated property intelligence pipeline using Apify, n8n, Airtable, and the Anthropic API.",
+    tags: ["n8n", "Apify", "Anthropic API"],
+    href: "/blog/real-estate-ai-tool",
+  },
+] as const
+
 function SectionHeading({
   number,
   children,
@@ -344,12 +355,55 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="blog" className="min-h-screen py-24">
-        <h2 className="font-display text-3xl font-semibold">
-          <span className="mr-2 font-mono text-lg text-accent">04.</span>
-          Blog
-        </h2>
-        <p className="mt-6 text-text-secondary">Blog section placeholder.</p>
+      {/* ── Blog ── */}
+      <section id="blog" className="py-24">
+        <SectionReveal>
+          <SectionHeading number="04">Blog</SectionHeading>
+          <p className="mt-4 text-text-secondary">
+            Writing about what I build and how I build it.
+          </p>
+        </SectionReveal>
+
+        <div className="mt-10 space-y-8">
+          {BLOG_POSTS.map((post, i) => (
+            <SectionReveal key={post.href} delay={i * 0.1}>
+              <a href={post.href} className="group block">
+                <p className="font-mono text-sm text-text-muted">
+                  {new Date(post.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+                <h3 className="mt-2 text-xl font-medium text-text-primary transition-colors group-hover:text-accent">
+                  {post.title}
+                </h3>
+                <p className="mt-2 text-text-secondary">{post.description}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {post.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-accent/10 px-3 py-1 font-mono text-xs text-accent"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </a>
+            </SectionReveal>
+          ))}
+        </div>
+
+        <SectionReveal delay={0.2}>
+          <div className="mt-10">
+            <a
+              href="/blog"
+              className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
+            >
+              Read all posts &rarr;
+            </a>
+          </div>
+        </SectionReveal>
       </section>
 
       <section id="contact" className="py-24">
