@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import { ThemeToggle } from "./theme-toggle"
 
 const NAV_ITEMS = [
   { number: "01", label: "About", href: "#about" },
@@ -185,23 +186,26 @@ export function Sidebar() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-5">
-          {SOCIAL_LINKS.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              target={link.href.startsWith("mailto:") ? undefined : "_blank"}
-              rel={
-                link.href.startsWith("mailto:")
-                  ? undefined
-                  : "noopener noreferrer"
-              }
-              className="text-text-muted transition-colors hover:text-accent"
-              aria-label={link.label}
-            >
-              {link.icon}
-            </a>
-          ))}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-5">
+            {SOCIAL_LINKS.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target={link.href.startsWith("mailto:") ? undefined : "_blank"}
+                rel={
+                  link.href.startsWith("mailto:")
+                    ? undefined
+                    : "noopener noreferrer"
+                }
+                className="text-text-muted transition-colors hover:text-accent"
+                aria-label={link.label}
+              >
+                {link.icon}
+              </a>
+            ))}
+          </div>
+          <ThemeToggle />
         </div>
       </aside>
 
@@ -218,8 +222,10 @@ export function Sidebar() {
           JM
         </Link>
 
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="relative z-50 flex h-8 w-8 flex-col items-center justify-center gap-1.5"
           aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileMenuOpen}
@@ -239,7 +245,8 @@ export function Sidebar() {
               mobileMenuOpen ? "-translate-y-2 -rotate-45" : ""
             }`}
           />
-        </button>
+          </button>
+        </div>
       </header>
 
       {/* Mobile menu overlay */}
