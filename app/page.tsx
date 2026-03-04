@@ -406,15 +406,56 @@ export default function Home() {
         </SectionReveal>
       </section>
 
+      {/* ── Contact ── */}
       <section id="contact" className="py-24">
-        <h2 className="font-display text-3xl font-semibold">
-          <span className="mr-2 font-mono text-lg text-accent">04.</span>
-          Contact
-        </h2>
-        <p className="mt-6 text-text-secondary">
-          Contact section placeholder.
-        </p>
+        <SectionReveal>
+          <SectionHeading number="05">Contact</SectionHeading>
+          <p className="mt-6 max-w-xl text-text-secondary">
+            I&apos;m currently looking for mid-level fullstack or frontend roles
+            at Berlin startups. Whether you have a specific role in mind or just
+            want to connect, my inbox is open.
+          </p>
+          <a
+            href="mailto:john@johnmoorman.com"
+            className="mt-8 inline-flex items-center gap-2 rounded border border-accent px-8 py-4 font-mono text-sm text-accent transition-colors hover:bg-accent/10"
+          >
+            Say hello
+          </a>
+        </SectionReveal>
       </section>
+
+      {/* ── Footer ── */}
+      <footer className="border-t border-border py-12">
+        <div className="flex flex-col items-center gap-6 text-center">
+          <div className="flex flex-wrap justify-center gap-6 font-mono text-sm text-text-muted">
+            <a
+              href="mailto:john@johnmoorman.com"
+              className="transition-colors hover:text-accent"
+            >
+              john@johnmoorman.com
+            </a>
+            <a
+              href="https://github.com/mojoro"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-accent"
+            >
+              GitHub
+            </a>
+            <a
+              href="https://linkedin.com/in/john-moorman"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-accent"
+            >
+              LinkedIn
+            </a>
+          </div>
+          <p className="text-xs text-text-muted">
+            Built with Next.js, TypeScript &amp; Tailwind CSS.
+          </p>
+        </div>
+      </footer>
     </main>
   )
 }
