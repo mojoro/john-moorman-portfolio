@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk"
 import { checkRateLimit } from "@/lib/ratelimit"
 import { sanitizeInput } from "@/lib/sanitize"
 import { SYSTEM_PROMPT } from "@/lib/chatbot-prompt"
+import { upsertConversation } from "@/lib/db"
 
 export const runtime = "edge"
 
@@ -16,6 +17,7 @@ interface ChatMessage {
 interface ChatRequest {
   message: string
   history: ChatMessage[]
+  sessionId: string
   honeypot?: string
   pageLoadedAt?: number
 }
@@ -35,17 +37,14 @@ export async function POST(request: Request) {
     return new Response("Invalid request body", { status: 400 })
   }
 
-  const { message, history = [], honeypot, pageLoadedAt } = body
+  const { message, history = [], sessionId, honeypot, pageLoadedAt } = body
 
   // ── Layer 5a: honeypot ──
-  // Hidden field that bots fill but humans don't. Return a fake
-  // success response to avoid revealing the detection mechanism.
   if (honeypot) {
     return Response.json({ message: "Thanks!" }, { status: 200 })
   }
 
   // ── Layer 5b: timing-based bot detection ──
-  // If the message arrives within 500ms of page load, it's a bot.
   if (pageLoadedAt && Date.now() - pageLoadedAt < 500) {
     return Response.json({ message: "Thanks!" }, { status: 200 })
   }
@@ -72,7 +71,6 @@ export async function POST(request: Request) {
   // ── Layer 3: conversation length limit ──
   const trimmedHistory = history.slice(-(MAX_TURNS * 2))
 
-  // Build the messages array for Anthropic
   const messages: Anthropic.MessageParam[] = [
     ...trimmedHistory.map((msg) => ({
       role: msg.role as "user" | "assistant",
@@ -81,7 +79,6 @@ export async function POST(request: Request) {
     { role: "user" as const, content: sanitizedMessage },
   ]
 
-  // ── Layer 2 continued: hard output token cap ──
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
     return new Response("Chat is temporarily unavailable.", { status: 503 })
@@ -97,23 +94,41 @@ export async function POST(request: Request) {
       messages,
     })
 
-    // Convert the Anthropic SDK stream to a ReadableStream for the client
     const encoder = new TextEncoder()
     const readable = new ReadableStream({
       async start(controller) {
+        let assistantContent = ""
+
         try {
           for await (const event of stream) {
             if (
               event.type === "content_block_delta" &&
               event.delta.type === "text_delta"
             ) {
+              assistantContent += event.delta.text
               controller.enqueue(encoder.encode(event.delta.text))
             }
           }
-          controller.close()
         } catch {
           controller.close()
+          return
         }
+
+        // Write the completed exchange to Neon before closing the stream.
+        // The user has already received the full streamed response by this
+        // point, so the brief DB write latency is invisible to them.
+        if (sessionId && assistantContent) {
+          const fullConversation = [
+            ...trimmedHistory,
+            { role: "user" as const, content: sanitizedMessage },
+            { role: "assistant" as const, content: assistantContent },
+          ]
+          await upsertConversation(sessionId, ip, fullConversation).catch(
+            () => {} // DB errors must never break the chat response
+          )
+        }
+
+        controller.close()
       },
     })
 
