@@ -7,8 +7,9 @@ import { ThemeToggle } from "./theme-toggle"
 const NAV_ITEMS = [
   { number: "01", label: "About", href: "#about" },
   { number: "02", label: "Work", href: "#work" },
-  { number: "03", label: "Blog", href: "#blog" },
-  { number: "04", label: "Contact", href: "#contact" },
+  { number: "03", label: "Experience", href: "#experience" },
+  { number: "04", label: "Blog", href: "#blog" },
+  { number: "05", label: "Contact", href: "#contact" },
 ] as const
 
 const SOCIAL_LINKS = [
