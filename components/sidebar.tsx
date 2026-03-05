@@ -256,19 +256,19 @@ export function Sidebar() {
       {/* Mobile menu overlay */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-bg md:hidden"
+          className="fixed inset-0 z-40 flex items-start justify-start bg-bg md:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
         >
           <nav>
-            <ul className="flex flex-col items-center gap-8">
+            <ul className="flex flex-col items-start gap-8 px-6 pt-24">
               {NAV_ITEMS.map((item) => (
                 <li key={item.hash}>
                   <a
                     href={getHref(item)}
                     onClick={(e) => handleNavClick(e, item.hash, item.page)}
-                    className="flex flex-col items-center gap-1 text-center"
+                    className="flex flex-col items-start gap-1"
                   >
                     <span className="font-mono text-sm text-accent">
                       {item.number}.
