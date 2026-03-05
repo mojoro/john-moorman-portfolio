@@ -3,6 +3,7 @@ import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Sidebar } from "@/components/sidebar"
 import { ChatPanelLazy } from "@/components/chat-panel-lazy"
+import { CursorGlow } from "@/components/cursor-glow"
 import { Analytics } from "@vercel/analytics/react"
 import "./globals.css"
 
@@ -97,6 +98,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
+          <CursorGlow />
           <Sidebar />
           <div className="pt-14 md:ml-60 md:pt-0">
             <div className="mx-auto max-w-[900px] px-6 md:px-12">
