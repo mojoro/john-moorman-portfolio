@@ -6,9 +6,7 @@ export function CursorGlow() {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // No cursor on touch devices — skip entirely
     if (window.matchMedia("(pointer: coarse)").matches) return
-    // Respect reduced-motion preference
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
 
     const div = ref.current
@@ -20,8 +18,31 @@ export function CursorGlow() {
       div.style.opacity = "1"
     }
 
-    window.addEventListener("mousemove", onMove, { passive: true })
-    return () => window.removeEventListener("mousemove", onMove)
+    const isDark = () =>
+      document.documentElement.getAttribute("data-theme") !== "light"
+
+    const attach = () =>
+      window.addEventListener("mousemove", onMove, { passive: true })
+
+    const detach = () => {
+      window.removeEventListener("mousemove", onMove)
+      div.style.opacity = "0"
+    }
+
+    if (isDark()) attach()
+
+    const observer = new MutationObserver(() => {
+      isDark() ? attach() : detach()
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    })
+
+    return () => {
+      detach()
+      observer.disconnect()
+    }
   }, [])
 
   return (
