@@ -202,7 +202,7 @@ export default function Home() {
           className="mt-6 max-w-xl text-text-secondary"
         >
           Software engineer in Berlin. I built an automation suite that saved a
-          company €74K/year — letting two part-time administrators do the work of four. Now I ship AI-native
+          company €74K/year, letting two part-time administrators do the work of four. Now I ship AI-native
           software for clients, learning whatever stack the project needs and
           delivering on tight timelines.
         </motion.p>
