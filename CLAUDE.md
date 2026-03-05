@@ -149,6 +149,7 @@ All loaded via `next/font/google` (not a `<link>` tag).
 
 ```
 ANTHROPIC_API_KEY=          # Server-side only — never NEXT_PUBLIC_
+GOOGLE_AI_API_KEY=          # Gemini fallback — free tier at aistudio.google.com
 UPSTASH_REDIS_REST_URL=     # Upstash console
 UPSTASH_REDIS_REST_TOKEN=   # Upstash console
 DATABASE_URL=               # Neon PostgreSQL connection string
