@@ -166,7 +166,7 @@ export default function Home() {
         </motion.p>
         <motion.h1
           variants={fadeUp}
-          className="mt-5 font-display text-4xl font-extrabold leading-tight sm:text-5xl"
+          className="mt-5 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl"
         >
           John Moorman.
         </motion.h1>
@@ -174,15 +174,16 @@ export default function Home() {
           variants={fadeUp}
           className="font-display text-[clamp(1.5rem,4vw,3rem)] font-bold leading-tight text-text-secondary"
         >
-          I build things that work — and automate the rest.
+          I write software that earns its place.
         </motion.h2>
         <motion.p
           variants={fadeUp}
           className="mt-6 max-w-xl text-text-secondary"
         >
-          Software engineer in Berlin. I saved a company €74K/year by automating
-          their entire admin function, and I build AI-native tools that ship to
-          production. Currently freelancing and looking for the right team.
+          Software engineer in Berlin. I built an automation suite that saved a
+          company €74K/year and eliminated two admin roles. Now I ship AI-native
+          software for clients, learning whatever stack the project needs and
+          delivering on tight timelines.
         </motion.p>
         <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-4">
           <a
@@ -204,7 +205,7 @@ export default function Home() {
         >
           <a
             href="mailto:john@johnmoorman.com"
-            className="font-mono text-sm transition-colors hover:text-accent"
+            className="font-mono text-[11px] transition-colors hover:text-accent sm:text-sm"
           >
             john@johnmoorman.com
           </a>
@@ -213,7 +214,7 @@ export default function Home() {
             href="https://linkedin.com/in/john-moorman"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-sm transition-colors hover:text-accent"
+            className="font-mono text-[11px] transition-colors hover:text-accent sm:text-sm"
           >
             LinkedIn
           </a>
@@ -222,7 +223,7 @@ export default function Home() {
             href="https://github.com/mojoro"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-sm transition-colors hover:text-accent"
+            className="font-mono text-[11px] transition-colors hover:text-accent sm:text-sm"
           >
             GitHub
           </a>
