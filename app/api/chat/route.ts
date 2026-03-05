@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { checkRateLimit } from "@/lib/ratelimit"
 import { sanitizeInput } from "@/lib/sanitize"
 import { SYSTEM_PROMPT } from "@/lib/chatbot-prompt"
@@ -21,6 +22,127 @@ interface ChatRequest {
   honeypot?: string
   pageLoadedAt?: number
 }
+
+// ── Shared helpers ──
+
+/** Persist the completed conversation to Neon. Swallows errors so a DB
+ *  failure never breaks the chat response the user already received. */
+async function saveConversation(
+  sessionId: string,
+  ip: string,
+  trimmedHistory: ChatMessage[],
+  sanitizedMessage: string,
+  assistantContent: string
+): Promise<void> {
+  if (!sessionId || !assistantContent) return
+  const fullConversation = [
+    ...trimmedHistory,
+    { role: "user" as const, content: sanitizedMessage },
+    { role: "assistant" as const, content: assistantContent },
+  ]
+  await upsertConversation(sessionId, ip, fullConversation).catch(() => {})
+}
+
+// ── Provider streaming helpers ──
+
+/** Stream a response from Anthropic's Claude API. Throws if the initial
+ *  API call fails (bad key, rate limit, service down). */
+async function streamAnthropic(
+  messages: ChatMessage[],
+  ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string }
+): Promise<ReadableStream<Uint8Array>> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+
+  const anthropicMessages: Anthropic.MessageParam[] = messages.map((msg) => ({
+    role: msg.role as "user" | "assistant",
+    content: msg.content,
+  }))
+
+  // This await throws on auth errors, rate limits, or service outages —
+  // the caller catches it and falls back to Gemini.
+  const stream = await client.messages.stream({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: MAX_OUTPUT_TOKENS,
+    system: SYSTEM_PROMPT,
+    messages: anthropicMessages,
+  })
+
+  const encoder = new TextEncoder()
+  return new ReadableStream({
+    async start(controller) {
+      let assistantContent = ""
+      try {
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            assistantContent += event.delta.text
+            controller.enqueue(encoder.encode(event.delta.text))
+          }
+        }
+      } catch {
+        controller.close()
+        return
+      }
+      await saveConversation(
+        ctx.sessionId, ctx.ip, ctx.trimmedHistory, ctx.sanitizedMessage, assistantContent
+      )
+      controller.close()
+    },
+  })
+}
+
+/** Stream a response from Google's Gemini API. Used as a fallback when
+ *  Anthropic is unavailable. Throws on initial connection errors. */
+async function streamGemini(
+  messages: ChatMessage[],
+  ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string }
+): Promise<ReadableStream<Uint8Array>> {
+  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    systemInstruction: SYSTEM_PROMPT,
+  })
+
+  // Gemini uses "model" instead of "assistant". History must exclude the
+  // latest user message — that goes into sendMessageStream().
+  const history = messages.slice(0, -1).map((m) => ({
+    role: m.role === "assistant" ? ("model" as const) : ("user" as const),
+    parts: [{ text: m.content }],
+  }))
+
+  const chat = model.startChat({
+    history,
+    generationConfig: { maxOutputTokens: MAX_OUTPUT_TOKENS },
+  })
+
+  const lastMessage = messages.at(-1)!.content
+  const result = await chat.sendMessageStream(lastMessage)
+
+  const encoder = new TextEncoder()
+  return new ReadableStream({
+    async start(controller) {
+      let assistantContent = ""
+      try {
+        for await (const chunk of result.stream) {
+          const text = chunk.text()
+          assistantContent += text
+          controller.enqueue(encoder.encode(text))
+        }
+      } catch {
+        controller.close()
+        return
+      }
+      await saveConversation(
+        ctx.sessionId, ctx.ip, ctx.trimmedHistory, ctx.sanitizedMessage, assistantContent
+      )
+      controller.close()
+    },
+  })
+}
+
+// ── Route handler ──
 
 export async function POST(request: Request) {
   // ── Layer 7: origin check ──
@@ -71,7 +193,7 @@ export async function POST(request: Request) {
   // ── Layer 3: conversation length limit ──
   const trimmedHistory = history.slice(-(MAX_TURNS * 2))
 
-  const messages: Anthropic.MessageParam[] = [
+  const allMessages: ChatMessage[] = [
     ...trimmedHistory.map((msg) => ({
       role: msg.role as "user" | "assistant",
       content: msg.content,
@@ -79,73 +201,33 @@ export async function POST(request: Request) {
     { role: "user" as const, content: sanitizedMessage },
   ]
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    return new Response("Chat is temporarily unavailable.", { status: 503 })
+  const ctx = { sessionId, ip, trimmedHistory, sanitizedMessage }
+  const responseHeaders = {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Cache-Control": "no-cache",
   }
 
-  const client = new Anthropic({ apiKey })
-
-  try {
-    const stream = await client.messages.stream({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: MAX_OUTPUT_TOKENS,
-      system: SYSTEM_PROMPT,
-      messages,
-    })
-
-    const encoder = new TextEncoder()
-    const readable = new ReadableStream({
-      async start(controller) {
-        let assistantContent = ""
-
-        try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              assistantContent += event.delta.text
-              controller.enqueue(encoder.encode(event.delta.text))
-            }
-          }
-        } catch {
-          controller.close()
-          return
-        }
-
-        // Write the completed exchange to Neon before closing the stream.
-        // The user has already received the full streamed response by this
-        // point, so the brief DB write latency is invisible to them.
-        if (sessionId && assistantContent) {
-          const fullConversation = [
-            ...trimmedHistory,
-            { role: "user" as const, content: sanitizedMessage },
-            { role: "assistant" as const, content: assistantContent },
-          ]
-          await upsertConversation(sessionId, ip, fullConversation).catch(
-            () => {} // DB errors must never break the chat response
-          )
-        }
-
-        controller.close()
-      },
-    })
-
-    return new Response(readable, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache",
-      },
-    })
-  } catch (error) {
-    if (error instanceof Anthropic.APIError && error.status === 429) {
-      return new Response("Service is busy. Please try again in a moment.", {
-        status: 429,
-      })
+  // Try Anthropic first, fall back to Gemini on any error
+  if (process.env.ANTHROPIC_API_KEY) {
+    try {
+      const readable = await streamAnthropic(allMessages, ctx)
+      return new Response(readable, { headers: responseHeaders })
+    } catch {
+      // Anthropic failed — fall through to Gemini
     }
-    return new Response("Something went wrong. Please try again.", {
-      status: 500,
-    })
   }
+
+  if (process.env.GOOGLE_AI_API_KEY) {
+    try {
+      const readable = await streamGemini(allMessages, ctx)
+      return new Response(readable, { headers: responseHeaders })
+    } catch {
+      // Gemini also failed
+    }
+  }
+
+  return new Response(
+    "Chat is temporarily unavailable. Please email john@johnmoorman.com instead.",
+    { status: 503 }
+  )
 }
