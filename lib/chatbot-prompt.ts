@@ -11,7 +11,7 @@ Berlin Opera Academy (2023-2025), Software Engineer:
 - Identified that BOA's administrative function was consuming 4 full salaries for work that was almost entirely repetitive and rule-based
 - Taught myself Google Apps Script from scratch, mapped the full student lifecycle workflow, and built a complete automation suite
 - Automated: student offer letter writing, payment tracking, confirmation/reminder/cancellation emails, PayPal integration, payment reconciliation
-- Result: administrative team reduced from 4 staff to 2 part-time. Annual overhead reduced by approximately €74,000 (verified against internal budget documentation)
+- Result: two part-time administrators now do the work that previously required four full-time staff. Annual overhead reduced by approximately €74,000 (verified against internal budget documentation)
 - Also built a payment reconciliation system that triggered automated follow-up emails, achieving an 18% increase in payment collection
 - Built the production website from scratch: 95/100 Lighthouse score, top-3 organic rankings on key search terms, 8% organic traffic increase through technical SEO
 

@@ -31,7 +31,7 @@ const EXPERIENCE = [
     highlights: [
       "Identified that the administrative function consumed 4 full salaries for entirely rule-based work. Built an automation suite to replace it",
       "Automated the complete student lifecycle: offer letters, payment tracking, PayPal reconciliation, confirmation/reminder/cancellation emails",
-      "Administrative team reduced from 4 staff to 2 part-time, approximately €74,000 in annual overhead savings",
+      "Enabled two part-time administrators to do the work of four, approximately €74,000 in annual overhead savings",
       "Payment reconciliation system with automated follow-ups achieved an 18% increase in payment collection rate",
       "Built the production website from scratch: 95/100 Lighthouse score, top-3 organic rankings on key terms, 8% organic traffic growth",
     ],

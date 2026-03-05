@@ -96,7 +96,7 @@ const EXPERIENCE = [
     period: "2023 – 2025",
     location: "Berlin",
     highlights: [
-      "Reduced admin team from 4 staff to 2 part-time, saving approximately €74K per year",
+      "Enabled two part-time administrators to do the work of four, saving approximately €74K per year",
       "Built complete automation suite in Google Apps Script: offer letters, payment tracking, PayPal reconciliation, automated emails",
       "Payment reconciliation with automated follow-ups achieved an 18% increase in collection",
       "Built production website: 95/100 Lighthouse score, top-3 organic rankings, 8% organic traffic growth",
@@ -202,7 +202,7 @@ export default function Home() {
           className="mt-6 max-w-xl text-text-secondary"
         >
           Software engineer in Berlin. I built an automation suite that saved a
-          company €74K/year and eliminated two admin roles. Now I ship AI-native
+          company €74K/year — letting two part-time administrators do the work of four. Now I ship AI-native
           software for clients, learning whatever stack the project needs and
           delivering on tight timelines.
         </motion.p>
