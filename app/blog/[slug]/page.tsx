@@ -1,9 +1,22 @@
 import { getPosts, getPost } from "@/lib/content"
 import { MDXRemote } from "next-mdx-remote/rsc"
-import Image from "next/image"
+import { LightboxProvider } from "@/components/lightbox-provider"
+import { MdxImage } from "@/components/mdx-image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+
+const mdxComponents = {
+  img: MdxImage,
+  a: (props: React.ComponentProps<"a">) => (
+    <a
+      {...props}
+      className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
+      target={props.href?.startsWith("http") ? "_blank" : undefined}
+      rel={props.href?.startsWith("http") ? "noopener noreferrer" : undefined}
+    />
+  ),
+}
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -23,30 +36,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${post.frontmatter.title} | John Moorman`,
     description: post.frontmatter.description,
   }
-}
-
-const mdxComponents = {
-  img: (props: React.ComponentProps<"img">) => {
-    const src = typeof props.src === "string" ? props.src : ""
-    return (
-      <Image
-        src={src}
-        alt={props.alt ?? ""}
-        width={900}
-        height={500}
-        className="my-6 rounded-lg"
-        sizes="(max-width: 768px) 100vw, 680px"
-      />
-    )
-  },
-  a: (props: React.ComponentProps<"a">) => (
-    <a
-      {...props}
-      className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
-      target={props.href?.startsWith("http") ? "_blank" : undefined}
-      rel={props.href?.startsWith("http") ? "noopener noreferrer" : undefined}
-    />
-  ),
 }
 
 export default async function BlogPost({ params }: Props) {
@@ -89,9 +78,11 @@ export default async function BlogPost({ params }: Props) {
         )}
       </header>
 
-      <div className="prose-custom mt-12 max-w-[680px]">
-        <MDXRemote source={post.content} components={mdxComponents} />
-      </div>
+      <LightboxProvider>
+        <div className="prose-custom mt-12 max-w-[680px]">
+          <MDXRemote source={post.content} components={mdxComponents} />
+        </div>
+      </LightboxProvider>
     </article>
   )
 }
