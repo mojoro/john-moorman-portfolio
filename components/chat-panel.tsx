@@ -273,7 +273,7 @@ export function ChatPanel() {
               onSubmit={handleSubmit}
               className="border-t border-border px-5 py-4"
             >
-              {/* Layer 5a: honeypot — hidden from real users */}
+              {/* Layer 5a: honeypot, hidden from real users */}
               <input
                 name="website"
                 tabIndex={-1}

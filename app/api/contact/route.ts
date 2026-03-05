@@ -21,12 +21,12 @@ export async function POST(request: Request) {
 
   const { name, email, message, honeypot, pageLoadedAt } = body
 
-  // Honeypot — bots fill hidden fields, humans don't
+  // Honeypot: bots fill hidden fields, humans don't
   if (honeypot) {
     return Response.json({ success: true })
   }
 
-  // Timing check — real users take more than 2 seconds to fill a form
+  // Timing check: real users take more than 2 seconds to fill a form
   if (pageLoadedAt && Date.now() - pageLoadedAt < 2000) {
     return Response.json({ success: true })
   }
@@ -59,9 +59,9 @@ export async function POST(request: Request) {
 
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
-    // Resend not configured — still return success so the form works on Vercel
+    // Resend not configured. Still return success so the form works on Vercel
     // once the env var is added. Silently drop in development.
-    console.warn("RESEND_API_KEY not set — contact form submission dropped")
+    console.warn("RESEND_API_KEY not set, contact form submission dropped")
     return Response.json({ success: true })
   }
 

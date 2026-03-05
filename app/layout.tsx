@@ -29,12 +29,12 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "John Moorman — Software Engineer",
+  title: "John Moorman | Software Engineer",
   description:
     "Software Engineer based in Berlin. AI-native development, Next.js, TypeScript.",
   metadataBase: new URL("https://johnmoorman.com"),
   openGraph: {
-    title: "John Moorman — Software Engineer",
+    title: "John Moorman | Software Engineer",
     description:
       "Software Engineer based in Berlin. AI-native development, Next.js, TypeScript.",
     url: "https://johnmoorman.com",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "John Moorman — Software Engineer",
+    title: "John Moorman | Software Engineer",
     description:
       "Software Engineer based in Berlin. AI-native development, Next.js, TypeScript.",
     images: ["/og"],
@@ -66,7 +66,7 @@ const jsonLd = {
 }
 
 // Inline script to prevent flash of wrong theme on initial load.
-// Runs synchronously before paint — checks localStorage, then system preference.
+// Runs synchronously before paint. Checks localStorage, then system preference.
 const themeScript = `
   (function() {
     var theme = localStorage.getItem('theme');

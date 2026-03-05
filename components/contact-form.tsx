@@ -51,7 +51,7 @@ export function ContactForm() {
           Message sent.
         </p>
         <p className="mt-2 text-sm text-text-secondary">
-          Thanks for reaching out — I&apos;ll get back to you soon.
+          Thanks for reaching out. I&apos;ll get back to you soon.
         </p>
         <button
           onClick={() => setStatus("idle")}
@@ -65,7 +65,7 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Honeypot — hidden from real users */}
+      {/* Honeypot: hidden from real users */}
       <input
         name="website"
         tabIndex={-1}
