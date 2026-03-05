@@ -261,14 +261,14 @@ export function Sidebar() {
           aria-modal="true"
           aria-label="Navigation menu"
         >
-          <nav>
-            <ul className="flex flex-col items-start gap-8 px-6 pt-24">
+          <nav className="w-full">
+            <ul className="flex w-full flex-col pt-24">
               {NAV_ITEMS.map((item) => (
-                <li key={item.hash}>
+                <li key={item.hash} className="w-full">
                   <a
                     href={getHref(item)}
                     onClick={(e) => handleNavClick(e, item.hash, item.page)}
-                    className="flex flex-col items-start gap-1"
+                    className="flex w-full flex-col items-start gap-1 px-6 py-4"
                   >
                     <span className="font-mono text-sm text-accent">
                       {item.number}.
