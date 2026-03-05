@@ -28,7 +28,7 @@
   --text-secondary: #374e6a;   /* blue-grey */
   --text-muted:     #6b87a4;   /* muted blue-grey */
   --border:         rgba(0, 0, 0, 0.08);
-  --cursor-glow:    rgba(8, 145, 178, 0.06);
+  --cursor-glow:    transparent;
 }
 
 @theme inline {
