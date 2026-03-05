@@ -130,7 +130,7 @@ export function ChatPanel() {
       {/* Floating trigger button */}
       <button
         onClick={() => setOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-accent bg-bg px-5 py-3 font-mono text-sm text-accent shadow-lg transition-colors hover:bg-accent/10 ${
+        className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-accent bg-bg px-5 py-3 font-mono text-sm text-accent shadow-lg transition-colors hover:bg-accent/10 print:hidden ${
           open ? "hidden" : ""
         }`}
         aria-label="Open chat"

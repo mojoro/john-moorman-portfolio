@@ -57,7 +57,7 @@ const EDUCATION = [
 
 export default function ResumePage() {
   return (
-    <div className="py-20">
+    <div className="py-20 print:pt-4">
       <Link
         href="/"
         className="font-mono text-xs text-text-muted transition-colors hover:text-accent print:hidden"

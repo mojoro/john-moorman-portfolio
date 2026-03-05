@@ -249,7 +249,7 @@ export function Sidebar() {
       </header>
 
       {/* Desktop theme toggle — fixed top-right */}
-      <div className="fixed right-5 top-5 z-50 hidden md:block">
+      <div className="fixed right-5 top-5 z-50 hidden md:block print:hidden">
         <ThemeToggle />
       </div>
 
