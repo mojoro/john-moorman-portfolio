@@ -5,7 +5,7 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "About | John Moorman",
   description:
-    "From opera to engineering — how a background in performance became a career in software.",
+    "From opera to engineering: how a background in performance became a career in software.",
 }
 
 export default function AboutPage() {
@@ -41,7 +41,7 @@ export default function AboutPage() {
           </p>
           <p>
             I spent five years training as an operatic performer at Boston
-            Conservatory at Berklee — sight-reading scores, memorising roles in
+            Conservatory at Berklee, sight-reading scores, memorising roles in
             three languages, performing under pressure in front of live
             audiences. It was rigorous, technical work that most people
             don&apos;t associate with engineering. But the skills transferred
@@ -67,18 +67,20 @@ export default function AboutPage() {
 
         <p>
           That project convinced me that engineering was where I wanted to spend
-          my career. Not because I stopped caring about craft — but because
+          my career. Not because I stopped caring about craft, but because
           software is where I found the same combination of analytical rigour
           and creative problem-solving that drew me to music in the first place.
         </p>
 
         <p>
           Since then I&apos;ve built production systems for clients across
-          Berlin: a real estate intelligence pipeline using n8n, Apify, and the
-          Anthropic API; a full-stack SPA for a fintech startup built to
-          pixel-perfect Figma specs; web infrastructure for a wellness retreat.
-          I work AI-natively — Claude Code and Cursor are core to how I
-          develop, not shortcuts but force multipliers.
+          Berlin: a real estate intelligence pipeline using n8n, Apify, and
+          Gemini; a marketing site and education platform foundation for a music
+          tech startup built to pixel-perfect Figma specs in Vue; web
+          infrastructure for a wellness retreat in PHP. Every engagement has
+          brought a new stack to learn, and I&apos;ve delivered in each one. I
+          work AI-natively: Claude Code and Cursor are core to how I develop,
+          not shortcuts but force multipliers.
         </p>
 
         <p>
