@@ -8,9 +8,10 @@ import { ThemeToggle } from "./theme-toggle"
 const NAV_ITEMS = [
   { number: "01", label: "About",      hash: "about",      page: "/about" },
   { number: "02", label: "Work",       hash: "work",        page: "/work" },
-  { number: "03", label: "Experience", hash: "experience",  page: null },
-  { number: "04", label: "Blog",       hash: "blog",        page: "/blog" },
-  { number: "05", label: "Contact",    hash: "contact",     page: null },
+  { number: "03", label: "Building",   hash: "building",    page: null },
+  { number: "04", label: "Experience", hash: "experience",  page: null },
+  { number: "05", label: "Blog",       hash: "blog",        page: "/blog" },
+  { number: "06", label: "Contact",    hash: "contact",     page: null },
 ] as const
 
 const SOCIAL_LINKS = [
@@ -86,7 +87,7 @@ export function Sidebar() {
   const router = useRouter()
   const isHomePage = pathname === "/"
 
-  // Scroll-spy — only relevant on homepage
+  // Scroll-spy: only relevant on homepage
   useEffect(() => {
     if (!isHomePage) return
 
@@ -131,7 +132,7 @@ export function Sidebar() {
         // Navigate to dedicated page
         router.push(page)
       } else {
-        // No dedicated page — go home to the section
+        // No dedicated page, go home to the section
         router.push(`/#${hash}`)
       }
     },
@@ -248,7 +249,7 @@ export function Sidebar() {
         </div>
       </header>
 
-      {/* Desktop theme toggle — fixed top-right */}
+      {/* Desktop theme toggle, fixed top-right */}
       <div className="fixed right-5 top-5 z-50 hidden md:block print:hidden">
         <ThemeToggle />
       </div>
