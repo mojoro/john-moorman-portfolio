@@ -212,19 +212,21 @@ Copy `content/blog/_template.mdx` as a starting point.
 
 ## Commit Conventions
 
-```
-<type>(<scope>): <what and briefly why>
-```
+Plain English imperative sentence. No conventional commit prefixes.
 
-Types: `chore`, `feat`, `style`, `fix`, `refactor`, `content`, `config`
-
+- Start with a capitalized verb: `Add`, `Fix`, `Remove`, `Rewrite`, `Update`, `Wire`, etc.
 - Max ~75 characters
-- First letter capitalized after the colon
 - No `Co-Authored-By` line
 - Never vague: no `update`, `fix stuff`, `wip`
 - Never commit broken code
+- If a decision involved a meaningful tradeoff, note it in the commit body
 
-If a decision involved a meaningful tradeoff, note it in the commit body.
+Examples:
+```
+Add currently-building section with 10-in-10 challenge
+Guard Upstash init against placeholder env values
+Wire image lightbox into blog and work MDX pages
+```
 
 ---
 
