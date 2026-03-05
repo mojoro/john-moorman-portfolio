@@ -5,34 +5,34 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Resume | John Moorman",
   description:
-    "John Moorman — Software Engineer based in Berlin. Next.js, TypeScript, AI-native development.",
+    "John Moorman | Software Engineer based in Berlin. Next.js, TypeScript, AI-native development.",
 }
 
 const EXPERIENCE = [
   {
     role: "Freelance Software Engineer",
     company: "Self-employed",
-    period: "2025 — Present",
+    period: "2025 – Present",
     location: "Berlin, Germany",
     highlights: [
       "Full-stack development across multiple client engagements with end-to-end ownership",
-      "Built an AI-powered real estate data pipeline using n8n, Apify, and the Anthropic API — automated daily investment recommendations for a Berlin-based client",
+      "Built an AI-powered real estate data pipeline using n8n, Apify, and Gemini: automated daily investment recommendations for a Berlin-based client",
       "Rebuilt frontend, implemented analytics, and migrated data pipelines for Serenity Retreat; built custom PHP calendar sync plugin",
       "Built finalflow's marketing site as a pixel-perfect SPA: Vue, TypeScript, Tailwind, Firebase Authentication",
-      "CI/CD pipelines via GitHub Actions + Docker — reduced deployment times 30% across projects",
+      "CI/CD pipelines via GitHub Actions + Docker, reducing deployment times 30% across projects",
       "1,000+ monthly active users across deployed applications",
     ],
   },
   {
     role: "Software Engineer",
     company: "Berlin Opera Academy",
-    period: "2023 — 2025",
+    period: "2023 – 2025",
     location: "Berlin, Germany",
     highlights: [
-      "Identified that the administrative function consumed 4 full salaries for entirely rule-based work; built an automation suite to replace it",
+      "Identified that the administrative function consumed 4 full salaries for entirely rule-based work. Built an automation suite to replace it",
       "Automated the complete student lifecycle: offer letters, payment tracking, PayPal reconciliation, confirmation/reminder/cancellation emails",
-      "Administrative team reduced from 4 staff to 2 part-time — approximately €74,000 in annual overhead savings",
-      "Payment reconciliation system with automated follow-ups achieved a 20% increase in payment collection rate",
+      "Administrative team reduced from 4 staff to 2 part-time, approximately €74,000 in annual overhead savings",
+      "Payment reconciliation system with automated follow-ups achieved an 18% increase in payment collection rate",
       "Built the production website from scratch: 95/100 Lighthouse score, top-3 organic rankings on key terms, 8% organic traffic growth",
     ],
   },
@@ -50,7 +50,7 @@ const EDUCATION = [
   {
     institution: "Boston Conservatory at Berklee",
     degree: "Bachelor of Music, Voice Performance",
-    period: "2016 — 2020",
+    period: "2017 – 2022",
     detail: "GPA 3.84",
   },
 ]
@@ -170,7 +170,7 @@ export default function ResumePage() {
                   <span className="font-mono text-sm text-text-muted">{ed.period}</span>
                 </div>
                 <p className="mt-0.5 text-sm text-text-secondary">
-                  {ed.degree} — {ed.detail}
+                  {ed.degree} · {ed.detail}
                 </p>
               </div>
             ))}
@@ -185,7 +185,7 @@ export default function ResumePage() {
           <div className="mt-6 flex gap-8 text-sm">
             <div>
               <p className="font-medium text-text-primary">English</p>
-              <p className="text-text-muted">C2 — Native</p>
+              <p className="text-text-muted">C2 (Native)</p>
             </div>
             <div>
               <p className="font-medium text-text-primary">German</p>
