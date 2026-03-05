@@ -1,20 +1,20 @@
 ---
 title: "BOA Automation Suite"
 date: "2025-01-15"
-description: "Automated the entire student lifecycle at Berlin Opera Academy — reducing admin staff from 4 to 2 and saving approximately €74,000 per year."
+description: "Automated the entire student lifecycle at Berlin Opera Academy, reducing admin staff from 4 to 2 and saving approximately €74,000 per year."
 tags: ["Google Apps Script", "Gmail API", "PayPal API", "Google Sheets"]
 featured: true
 ---
 
 ## The Problem
 
-Berlin Opera Academy ran its entire administrative function manually. Four staff members spent their days generating offer letters, tracking payments, sending confirmation and reminder emails, reconciling PayPal transactions, and managing cancellations. The work was almost entirely repetitive and rule-based — the kind of work that shouldn't require a human to sit down and do it every day.
+Berlin Opera Academy ran its entire administrative function manually. Four staff members spent their days writing offer letters, tracking payments, sending confirmation and reminder emails, reconciling PayPal transactions, and managing cancellations. The work was almost entirely repetitive and rule-based: the kind of work that shouldn't require a human to sit down and do it every day.
 
 The overhead was approximately €148,000 per year in administrative salaries for processes that followed the same logic every time.
 
 ## The Decision to Automate
 
-I was working at BOA in an operational role when I started noticing patterns. Every student went through the same lifecycle: application, offer, payment, confirmation, follow-up, and (sometimes) cancellation. Each step had clear triggers, clear rules, and clear outputs. There was no ambiguity — just volume.
+I was working at BOA in an operational role when I started noticing patterns. Every student went through the same lifecycle: application, offer, payment, confirmation, follow-up, and (sometimes) cancellation. Each step had clear triggers, clear rules, and clear outputs. There was no ambiguity, just volume.
 
 I proposed building an automation suite and taught myself Google Apps Script from scratch to do it. The organisation used Google Workspace for everything, so building on that ecosystem meant zero additional infrastructure cost and no migration required.
 
@@ -24,30 +24,30 @@ The system is built entirely in Google Apps Script, using Google Sheets as the o
 
 **What it automates:**
 
-- **Offer letter generation** — Populates template documents with student data and sends them automatically when an application is approved
-- **Payment tracking** — Monitors PayPal transactions via their API and matches them to expected payments in the student records
-- **Confirmation and reminder emails** — Triggered automatically based on payment status and timeline rules
-- **Cancellation handling** — Detects missed payment deadlines and initiates the cancellation workflow with appropriate notifications
-- **Payment reconciliation** — Cross-references PayPal records with internal tracking, flags discrepancies, and triggers automated follow-up emails for outstanding balances
+- **Offer letter writing**:Populates template documents with student data and sends them automatically when an application is approved
+- **Payment tracking**:Monitors PayPal transactions via their API and matches them to expected payments in the student records
+- **Confirmation and reminder emails**:Triggered automatically based on payment status and timeline rules
+- **Cancellation handling**:Detects missed payment deadlines and initiates the cancellation workflow with appropriate notifications
+- **Payment reconciliation**:Cross-references PayPal records with internal tracking, flags discrepancies, and triggers automated follow-up emails for outstanding balances
 
-Google Sheets serves as both the data layer and the admin interface. Staff can see the current state of every student, and the automation writes back to the same sheets — no separate dashboard needed.
+Google Sheets serves as both the data layer and the admin interface. Staff can see the current state of every student, and the automation writes back to the same sheets. No separate dashboard needed.
 
 ## Results
 
-- Administrative team reduced from 4 staff to 2 part-time — approximately **€74,000 in annual savings**
-- Payment reconciliation system with automated follow-ups achieved a **20% increase in payment collection**
-- Zero additional infrastructure cost — built entirely on existing Google Workspace tools
+- Administrative team reduced from 4 staff to 2 part-time, approximately **€74,000 in annual savings**
+- Payment reconciliation system with automated follow-ups achieved an **18% increase in payment collection**
+- Zero additional infrastructure cost, built entirely on existing Google Workspace tools
 - Also built the production website: **95/100 Lighthouse score**, top-3 organic rankings on key search terms, 8% organic traffic increase through technical SEO
 
 ## What I Learned
 
-This was my first production system — code that ran every day, handled real money, and affected real people. I learned that building for reliability matters more than building for elegance. Every edge case needed handling: what happens when a payment is partially received, when a student changes their email mid-process, when PayPal's API returns unexpected data.
+This was my first production system. Code that ran every day, handled real money, and affected real people. I learned that building for reliability matters more than building for elegance. Every edge case needed handling: what happens when a payment is partially received, when a student changes their email mid-process, when PayPal's API returns unexpected data.
 
-I also learned that the most valuable skill in automation isn't writing the code — it's mapping the process accurately enough that the code can replace the human doing it.
+I also learned that the most valuable skill in automation isn't writing the code. It's mapping the process accurately enough that the code can replace the human doing it.
 
 ---
 
 **Links**
 
-- Code is proprietary (internal business tools)
-- ↗ [BOA Website](https://berlinoperaacademy.com) — also built by me
+- Code is proprietary, but I am happy to discuss it and answer any questions about the specifics
+- ↗ [BOA Website](https://berlinoperaacademy.com), also built by me
