@@ -104,6 +104,27 @@ const EXPERIENCE = [
   },
 ] as const
 
+const CURRENT_PROJECTS = [
+  {
+    week: 1,
+    title: "Real Estate AI Pipeline",
+    status: "shipped" as const,
+    href: "/work/real-estate-pipeline",
+  },
+  {
+    week: 2,
+    title: "Portfolio Site Rebuild",
+    status: "shipped" as const,
+    href: "/work/portfolio-site",
+  },
+  {
+    week: 3,
+    title: "Coming soon",
+    status: "upcoming" as const,
+    href: undefined,
+  },
+]
+
 const BLOG_POSTS = [
   {
     title: "From Scraper to Inbox: Building an AI-Powered Real Estate Sourcing Tool",
@@ -329,10 +350,62 @@ export default function Home() {
         </SectionReveal>
       </section>
 
+      {/* ── Currently Building ── */}
+      <section id="building" className="py-24">
+        <SectionReveal>
+          <SectionHeading number="03">Currently Building</SectionHeading>
+          <p className="mt-4 text-text-secondary">
+            10 projects in 10 weeks. A challenge from a mentor: build and ship
+            one project every week for 10 weeks.
+          </p>
+        </SectionReveal>
+
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          {CURRENT_PROJECTS.map((project, i) => (
+            <SectionReveal key={project.week} delay={i * 0.1}>
+              <div
+                className={`rounded-lg border p-4 ${
+                  project.status === "shipped"
+                    ? "border-border bg-bg-surface"
+                    : "border-dashed border-border/60 bg-transparent"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-text-muted">
+                    Week {project.week}
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${
+                      project.status === "shipped"
+                        ? "bg-accent/10 text-accent"
+                        : "bg-text-muted/10 text-text-muted"
+                    }`}
+                  >
+                    {project.status === "shipped" ? "Shipped" : "Upcoming"}
+                  </span>
+                </div>
+                {project.href ? (
+                  <a
+                    href={project.href}
+                    className="mt-2 block text-sm font-medium text-text-primary transition-colors hover:text-accent"
+                  >
+                    {project.title}
+                  </a>
+                ) : (
+                  <p className="mt-2 text-sm text-text-muted italic">
+                    {project.title}
+                  </p>
+                )}
+              </div>
+            </SectionReveal>
+          ))}
+        </div>
+      </section>
+
       {/* ── Experience ── */}
       <section id="experience" className="py-24">
         <SectionReveal>
-          <SectionHeading number="03">Experience</SectionHeading>
+          <SectionHeading number="04">Experience</SectionHeading>
         </SectionReveal>
 
         <div className="mt-10 space-y-12">
@@ -384,7 +457,7 @@ export default function Home() {
       {/* ── Blog ── */}
       <section id="blog" className="py-24">
         <SectionReveal>
-          <SectionHeading number="04">Blog</SectionHeading>
+          <SectionHeading number="05">Blog</SectionHeading>
           <p className="mt-4 text-text-secondary">
             Writing about what I build and how I build it.
           </p>
@@ -435,7 +508,7 @@ export default function Home() {
       {/* ── Contact ── */}
       <section id="contact" className="py-24">
         <SectionReveal>
-          <SectionHeading number="05">Contact</SectionHeading>
+          <SectionHeading number="06">Contact</SectionHeading>
           <p className="mt-6 max-w-xl text-text-secondary">
             I&apos;m currently looking for mid-level fullstack or frontend roles
             at Berlin startups. Whether you have a specific role in mind or just
