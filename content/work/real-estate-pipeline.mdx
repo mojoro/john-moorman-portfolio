@@ -2,13 +2,13 @@
 title: "Real Estate AI Pipeline"
 date: "2026-02-28"
 description: "An automated property intelligence system that scrapes, filters, AI-analyzes, and delivers daily investment recommendations via email."
-tags: ["n8n", "Apify", "Anthropic API", "Next.js", "Airtable"]
+tags: ["n8n", "Apify", "Gemini", "Next.js", "Airtable", "Claude Code"]
 featured: true
 ---
 
 ## The Problem
 
-A Berlin-based client needed to monitor the German real estate market across multiple platforms simultaneously. They were manually cross-referencing Immoscout24, Immowelt, and Kleinanzeigen every morning — filtering by their investment criteria, estimating yields, and trying not to miss good listings that appeared overnight.
+A Berlin-based client needed to monitor the German real estate market across multiple platforms simultaneously. They were manually cross-referencing Immoscout24, Immowelt, and Kleinanzeigen every morning: filtering by their investment criteria, estimating yields, and trying not to miss good listings that appeared overnight.
 
 The process took hours and was unreliable. Good opportunities were slipping through.
 
@@ -23,24 +23,30 @@ I built an automated pipeline connecting four tools that each handle one part of
 
 ### AI Classification
 
-The core differentiator is the AI analysis step. Filtered and enriched listings are passed to an AI model with the client's investment criteria. Each listing receives:
+The core differentiator is the AI analysis step. Filtered and enriched listings are passed to Gemini 2.5 Flash (chosen for its low per-token cost during prototyping) with the client's investment criteria. Each listing receives:
 
 - A status: **GO**, **NO-GO**, or **PRÜFEN** (examine)
 - A risk summary
 - A match description
 
-The three-way classification was deliberate — binary GO/NO-GO is too blunt for genuinely ambiguous listings. `PRÜFEN` gives the client a meaningful signal without pretending certainty.
+The three-way classification was deliberate. Binary GO/NO-GO is too blunt for genuinely ambiguous listings. `PRÜFEN` gives the client a meaningful signal without pretending certainty.
 
 ### Daily Digest
 
-Each morning, n8n compiles the day's GO and PRÜFEN listings into a formatted email with AI-recommended top picks. The email is the primary touchpoint — the dashboard exists for deeper exploration.
+Each morning, n8n compiles the day's GO and PRÜFEN listings into a formatted email with AI-recommended top picks. The email is the primary touchpoint. The dashboard exists for deeper exploration.
+
+## The Dashboard
+
+The Next.js dashboard connects directly to Airtable, allowing the client to not only browse and filter listings but also edit and annotate data in real time. Changes made in the dashboard write back to Airtable immediately, so the client has a single source of truth across both interfaces.
+
+I built the dashboard using Claude Code with two MCP servers: one for filesystem operations and one for interacting with the Airtable API during development. This let me iterate quickly on the data layer without manual API testing.
 
 ## Results
 
 - Fully automated pipeline running daily with zero manual intervention
 - Deduplication across three platforms using address/price/size matching
 - AI-powered investment recommendations delivered to inbox before morning coffee
-- Client can browse, filter, and sort all listings in the Next.js dashboard
+- Client can browse, filter, sort, and annotate all listings in real time
 
 ## What I'd Change
 
