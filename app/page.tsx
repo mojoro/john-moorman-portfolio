@@ -39,10 +39,10 @@ const PROJECTS = [
   {
     title: "BOA Automation Suite",
     summary:
-      "Complete administrative automation for Berlin Opera Academy — replaced manual workflows across the entire student lifecycle.",
+      "Complete administrative automation for Berlin Opera Academy, replacing manual workflows across the entire student lifecycle.",
     stats: [
       { label: "Annual savings", value: "€74K" },
-      { label: "Payment collection", value: "+20%" },
+      { label: "Payment collection", value: "+18%" },
     ],
     tags: ["Google Apps Script", "PayPal API", "Gmail API"],
     href: "/work/boa-automation",
@@ -51,16 +51,16 @@ const PROJECTS = [
   {
     title: "Real Estate AI Pipeline",
     summary:
-      "Automated property intelligence pipeline — scrapes, structures, and AI-analyzes listings for daily investment recommendations.",
+      "Automated property intelligence pipeline that scrapes, structures, and AI-analyzes listings for daily investment recommendations.",
     stats: [],
-    tags: ["n8n", "Apify", "Anthropic API", "Airtable"],
+    tags: ["n8n", "Apify", "Gemini", "Airtable"],
     href: "/work/real-estate-pipeline",
     featured: true,
   },
   {
     title: "finalflow",
     summary:
-      "Marketing site for a music tech startup, built pixel-perfect to Figma. Waitlist signup, account creation, Firebase auth.",
+      "Marketing site and education platform foundation for a music tech startup. Pixel-perfect Figma execution in the client's preferred stack.",
     stats: [],
     tags: ["Vue.js", "TypeScript", "Tailwind CSS", "Firebase"],
     href: "/work/finalflow",
@@ -81,24 +81,24 @@ const EXPERIENCE = [
   {
     role: "Freelance Software Engineer",
     company: "Self-employed",
-    period: "2025 — Present",
+    period: "2025 – Present",
     location: "Berlin",
     highlights: [
-      "Full-stack development across multiple client engagements with end-to-end ownership",
-      "Built an AI-powered real estate data pipeline using n8n, Apify, and the Anthropic API",
-      "CI/CD pipelines via GitHub Actions + Docker — reduced deployment times 30%",
+      "Full-stack client work with end-to-end ownership, adapting to each project's preferred stack: Vue, PHP, n8n, Next.js",
+      "Built an AI-powered real estate pipeline: automated scraping, AI classification, and daily investment reports for a Berlin client",
+      "CI/CD pipelines via GitHub Actions + Docker, reducing deployment times 30% across projects",
       "1,000+ monthly active users across deployed applications",
     ],
   },
   {
     role: "Software Engineer",
     company: "Berlin Opera Academy",
-    period: "2023 — 2025",
+    period: "2023 – 2025",
     location: "Berlin",
     highlights: [
-      "Identified and automated the entire administrative function — student lifecycle, payments, communications",
-      "Built complete automation suite from scratch: offer letters, payment tracking, PayPal reconciliation, automated emails",
-      "Reduced admin team from 4 staff to 2 part-time — €74K annual savings",
+      "Reduced admin team from 4 staff to 2 part-time, saving approximately €74K per year",
+      "Built complete automation suite in Google Apps Script: offer letters, payment tracking, PayPal reconciliation, automated emails",
+      "Payment reconciliation with automated follow-ups achieved an 18% increase in collection",
       "Built production website: 95/100 Lighthouse score, top-3 organic rankings, 8% organic traffic growth",
     ],
   },
@@ -109,7 +109,7 @@ const BLOG_POSTS = [
     title: "From Scraper to Inbox: Building an AI-Powered Real Estate Sourcing Tool",
     date: "2026-02-28",
     description:
-      "How I built an automated property intelligence pipeline using Apify, n8n, Airtable, and the Anthropic API.",
+      "How I built an automated property intelligence pipeline using Apify, n8n, Airtable, and Gemini.",
     tags: ["n8n", "Apify", "Anthropic API"],
     href: "/blog/real-estate-ai-tool",
   },
@@ -239,11 +239,12 @@ export default function Home() {
         <SectionReveal delay={0.1}>
           <div className="mt-8 max-w-2xl space-y-4 text-text-secondary">
             <p>
-              I came to software through an unusual door — five years training as
-              an operatic performer at Boston Conservatory at Berklee. When I
-              started building automation tools at Berlin Opera Academy in 2023, I
-              approached the work the same way I&apos;d approached a new role:
-              understand the system completely, then execute with precision.
+              I came to software through an unusual door. Five years training as
+              an operatic performer at Boston Conservatory at Berklee taught me
+              precision and discipline. When I started building automation tools
+              at Berlin Opera Academy in 2023, I approached the work the same way
+              I&apos;d approached a new role: understand the system completely,
+              then execute.
             </p>
             <p>
               I taught myself Google Apps Script from scratch, mapped the full
@@ -252,7 +253,7 @@ export default function Home() {
               engineering was where I wanted to build my career.
             </p>
             <p>
-              Today I work AI-natively — Claude Code and Cursor are core to how I
+              Today I work AI-natively. Claude Code and Cursor are core to how I
               develop. I care about business impact, not just technical elegance.
             </p>
           </div>
@@ -303,7 +304,7 @@ export default function Home() {
         <SectionReveal>
           <SectionHeading number="02">Work</SectionHeading>
           <p className="mt-4 text-text-secondary">
-            Selected projects — each one shipped to production with real users
+            Selected projects, each one shipped to production with real users
             and measurable outcomes.
           </p>
         </SectionReveal>
