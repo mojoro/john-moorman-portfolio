@@ -98,6 +98,12 @@ export function ChatPanel() {
             { role: "assistant", content: assistantContent },
           ])
         }
+
+        if (!assistantContent) {
+          throw new Error(
+            "No response received. The chat may be temporarily unavailable."
+          )
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Something went wrong"
@@ -245,6 +251,15 @@ export function ChatPanel() {
                       className="text-accent underline"
                     >
                       john@johnmoorman.com
+                    </a>{" "}
+                    or on{" "}
+                    <a
+                      href="https://linkedin.com/in/john-moorman"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-accent underline"
+                    >
+                      LinkedIn
                     </a>
                   </p>
                 </div>

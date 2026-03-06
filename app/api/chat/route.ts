@@ -58,13 +58,14 @@ async function streamAnthropic(
     content: msg.content,
   }))
 
-  // This await throws on auth errors, rate limits, or service outages —
-  // the caller catches it and falls back to Gemini.
-  const stream = await client.messages.stream({
+  // .create() with stream: true is properly async — throws on auth
+  // errors, rate limits, or service outages before we return a Response.
+  const stream = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: MAX_OUTPUT_TOKENS,
     system: SYSTEM_PROMPT,
     messages: anthropicMessages,
+    stream: true,
   })
 
   const encoder = new TextEncoder()
@@ -101,7 +102,7 @@ async function streamGemini(
 ): Promise<ReadableStream<Uint8Array>> {
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     systemInstruction: SYSTEM_PROMPT,
   })
 
@@ -212,8 +213,8 @@ export async function POST(request: Request) {
     try {
       const readable = await streamAnthropic(allMessages, ctx)
       return new Response(readable, { headers: responseHeaders })
-    } catch {
-      // Anthropic failed — fall through to Gemini
+    } catch (e) {
+      console.error("[chat] Anthropic failed, falling back to Gemini:", e)
     }
   }
 
@@ -221,8 +222,8 @@ export async function POST(request: Request) {
     try {
       const readable = await streamGemini(allMessages, ctx)
       return new Response(readable, { headers: responseHeaders })
-    } catch {
-      // Gemini also failed
+    } catch (e) {
+      console.error("[chat] Gemini also failed:", e)
     }
   }
 
