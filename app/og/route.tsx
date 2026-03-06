@@ -2,7 +2,12 @@ import { ImageResponse } from "next/og"
 
 export const runtime = "edge"
 
-export function GET() {
+export async function GET(request: Request) {
+  const origin = new URL(request.url).origin
+  const photo = await fetch(`${origin}/images/og-about-img.jpeg`).then((r) =>
+    r.arrayBuffer()
+  )
+
   return new ImageResponse(
     (
       <div
@@ -11,38 +16,56 @@ export function GET() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "80px",
         }}
       >
+        {/* Left half — text */}
         <div
           style={{
-            color: "#64ffda",
-            fontFamily: "monospace",
-            fontSize: 18,
+            width: "50%",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            paddingLeft: 80,
           }}
         >
-          johnmoorman.com
+          <div
+            style={{ color: "#64ffda", fontFamily: "monospace", fontSize: 18 }}
+          >
+            johnmoorman.com
+          </div>
+          <div
+            style={{
+              color: "#ccd6f6",
+              fontSize: 72,
+              fontWeight: 800,
+              marginTop: 16,
+              lineHeight: 1.1,
+            }}
+          >
+            John Moorman
+          </div>
+          <div style={{ color: "#8892b0", fontSize: 28, marginTop: 12 }}>
+            Software Engineer · Berlin
+          </div>
         </div>
+
+        {/* Right half — headshot centered */}
         <div
           style={{
-            color: "#ccd6f6",
-            fontSize: 72,
-            fontWeight: 800,
-            marginTop: 16,
+            width: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          John Moorman
-        </div>
-        <div
-          style={{
-            color: "#8892b0",
-            fontSize: 28,
-            marginTop: 12,
-          }}
-        >
-          Software Engineer · Berlin
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photo as unknown as string}
+            width={390}
+            height={390}
+            alt=""
+            style={{ borderRadius: 999, objectFit: "cover" }}
+          />
         </div>
       </div>
     ),
