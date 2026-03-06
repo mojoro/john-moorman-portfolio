@@ -123,12 +123,15 @@ body {
   margin: 2rem 0;
 }
 
-/* Scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
+/* Scrollbar — Firefox only (no ::-webkit-scrollbar support) */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+  }
 }
 
+/* Scrollbar — Chromium / Safari (full control, no arrows) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -149,5 +152,6 @@ body {
 }
 
 ::-webkit-scrollbar-button {
-  display: none;
+  height: 0;
+  width: 0;
 }
