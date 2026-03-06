@@ -1,5 +1,4 @@
 import Anthropic from "@anthropic-ai/sdk"
-import { GoogleGenerativeAI } from "@google/generative-ai"
 import { checkRateLimit } from "@/lib/ratelimit"
 import { sanitizeInput } from "@/lib/sanitize"
 import { SYSTEM_PROMPT } from "@/lib/chatbot-prompt"
@@ -94,42 +93,64 @@ async function streamAnthropic(
   })
 }
 
-/** Stream a response from Google's Gemini API. Used as a fallback when
- *  Anthropic is unavailable. Throws on initial connection errors. */
+/** Stream a response via OpenRouter (Gemini fallback). Uses the OpenAI-
+ *  compatible SSE endpoint, so no SDK required — just fetch. Throws if
+ *  the initial HTTP request fails. */
 async function streamGemini(
   messages: ChatMessage[],
   ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string }
 ): Promise<ReadableStream<Uint8Array>> {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    systemInstruction: SYSTEM_PROMPT,
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash-lite",
+      max_tokens: MAX_OUTPUT_TOKENS,
+      stream: true,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+      ],
+    }),
   })
 
-  // Gemini uses "model" instead of "assistant". History must exclude the
-  // latest user message — that goes into sendMessageStream().
-  const history = messages.slice(0, -1).map((m) => ({
-    role: m.role === "assistant" ? ("model" as const) : ("user" as const),
-    parts: [{ text: m.content }],
-  }))
+  if (!response.ok || !response.body) {
+    throw new Error(`OpenRouter error: ${response.status}`)
+  }
 
-  const chat = model.startChat({
-    history,
-    generationConfig: { maxOutputTokens: MAX_OUTPUT_TOKENS },
-  })
-
-  const lastMessage = messages.at(-1)!.content
-  const result = await chat.sendMessageStream(lastMessage)
-
+  const upstream = response.body.getReader()
   const encoder = new TextEncoder()
+  const decoder = new TextDecoder()
+
   return new ReadableStream({
     async start(controller) {
       let assistantContent = ""
+      let buffer = ""
       try {
-        for await (const chunk of result.stream) {
-          const text = chunk.text()
-          assistantContent += text
-          controller.enqueue(encoder.encode(text))
+        while (true) {
+          const { done, value } = await upstream.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split("\n")
+          buffer = lines.pop() ?? ""
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue
+            const payload = line.slice(6).trim()
+            if (payload === "[DONE]") continue
+            try {
+              const chunk = JSON.parse(payload)
+              const text: string = chunk.choices?.[0]?.delta?.content ?? ""
+              if (text) {
+                assistantContent += text
+                controller.enqueue(encoder.encode(text))
+              }
+            } catch {
+              // skip malformed SSE chunk
+            }
+          }
         }
       } catch {
         controller.close()
@@ -218,12 +239,12 @@ export async function POST(request: Request) {
     }
   }
 
-  if (process.env.GOOGLE_AI_API_KEY) {
+  if (process.env.OPENROUTER_API_KEY) {
     try {
       const readable = await streamGemini(allMessages, ctx)
       return new Response(readable, { headers: responseHeaders })
     } catch (e) {
-      console.error("[chat] Gemini also failed:", e)
+      console.error("[chat] OpenRouter fallback failed:", e)
     }
   }
 
