@@ -203,7 +203,7 @@ export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") ?? "anonymous"
   const { allowed } = await checkRateLimit(ip)
   if (!allowed) {
-    return new Response("Rate limit exceeded. Try again later.", {
+    return new Response("Conversation size limit reached. Please try again later.", {
       status: 429,
     })
   }

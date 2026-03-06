@@ -22,7 +22,7 @@ const redis = hasRedis ? Redis.fromEnv() : null
 export const hourlyLimit = hasRedis
   ? new Ratelimit({
       redis: redis!,
-      limiter: Ratelimit.slidingWindow(10, "1 h"),
+      limiter: Ratelimit.slidingWindow(20, "1 h"),
       prefix: "rl:hourly",
       analytics: true,
     })
