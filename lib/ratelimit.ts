@@ -40,6 +40,10 @@ export const dailyLimit = hasRedis
 export async function checkRateLimit(
   ip: string
 ): Promise<{ allowed: boolean; remaining?: number }> {
+  if (process.env.NODE_ENV !== "production") {
+    return { allowed: true }
+  }
+
   if (!hourlyLimit || !dailyLimit) {
     return { allowed: true }
   }
