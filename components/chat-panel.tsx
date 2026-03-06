@@ -2,6 +2,27 @@
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import ReactMarkdown from "react-markdown"
+import type { Components } from "react-markdown"
+
+const chatMarkdownComponents: Components = {
+  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+  ul: ({ children }) => <ul className="mb-2 list-disc pl-4 space-y-0.5">{children}</ul>,
+  ol: ({ children }) => <ol className="mb-2 list-decimal pl-4 space-y-0.5">{children}</ol>,
+  li: ({ children }) => <li className="leading-snug">{children}</li>,
+  strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
+  em: ({ children }) => <em className="italic">{children}</em>,
+  h3: ({ children }) => <h3 className="font-semibold text-text-primary mt-2 mb-1">{children}</h3>,
+  h2: ({ children }) => <h2 className="font-semibold text-text-primary mt-3 mb-1">{children}</h2>,
+  code: ({ children }) => (
+    <code className="font-mono text-xs bg-bg-elevated px-1 py-0.5 rounded">{children}</code>
+  ),
+  a: ({ href, children }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text-accent underline">
+      {children}
+    </a>
+  ),
+}
 
 interface Message {
   role: "user" | "assistant"
@@ -229,7 +250,13 @@ export function ChatPanel() {
                         : "bg-bg-surface text-text-secondary"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === "user" ? (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    ) : (
+                      <ReactMarkdown components={chatMarkdownComponents}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    )}
                     {msg.role === "assistant" &&
                       msg.content === "" &&
                       streaming && (
