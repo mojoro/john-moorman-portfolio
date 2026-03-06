@@ -50,7 +50,9 @@ async function streamAnthropic(
   messages: ChatMessage[],
   ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string }
 ): Promise<ReadableStream<Uint8Array>> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  // maxRetries: 0 — fail fast so rate limits and auth errors immediately
+  // trigger the OpenRouter fallback instead of hanging on SDK retries.
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY!, maxRetries: 0 })
 
   const anthropicMessages: Anthropic.MessageParam[] = messages.map((msg) => ({
     role: msg.role as "user" | "assistant",
