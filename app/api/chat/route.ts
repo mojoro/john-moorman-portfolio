@@ -7,7 +7,7 @@ import { upsertConversation } from "@/lib/db"
 export const runtime = "edge"
 
 const MAX_TURNS = 10
-const MAX_OUTPUT_TOKENS = 400
+const MAX_OUTPUT_TOKENS = 1200
 
 interface ChatMessage {
   role: "user" | "assistant"
@@ -107,7 +107,7 @@ async function streamGemini(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash-lite",
+      model: "google/gemini-3-flash-preview",
       max_tokens: MAX_OUTPUT_TOKENS,
       stream: true,
       messages: [
