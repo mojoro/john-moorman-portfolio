@@ -195,7 +195,7 @@ export default function Home() {
           variants={fadeUp}
           className="font-display text-[clamp(1.5rem,4vw,3rem)] font-bold leading-tight text-text-secondary"
         >
-          I write software that earns its place.
+          I write software that pays for itself.
         </motion.h2>
         <motion.p
           variants={fadeUp}
