@@ -119,6 +119,12 @@ const CURRENT_PROJECTS = [
   },
   {
     week: 3,
+    title: "Job Hunt Web Application",
+    status: "in-progress" as const,
+    href: undefined,
+  },
+  {
+    week: 4,
     title: "Coming soon",
     status: "upcoming" as const,
     href: undefined,
@@ -363,40 +369,7 @@ export default function Home() {
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           {CURRENT_PROJECTS.map((project, i) => (
             <SectionReveal key={project.week} delay={i * 0.1}>
-              <div
-                className={`rounded-lg border p-4 ${
-                  project.status === "shipped"
-                    ? "border-border bg-bg-surface"
-                    : "border-dashed border-border/60 bg-transparent"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-text-muted">
-                    Week {project.week}
-                  </span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${
-                      project.status === "shipped"
-                        ? "bg-accent/10 text-accent"
-                        : "bg-text-muted/10 text-text-muted"
-                    }`}
-                  >
-                    {project.status === "shipped" ? "Shipped" : "Upcoming"}
-                  </span>
-                </div>
-                {project.href ? (
-                  <a
-                    href={project.href}
-                    className="mt-2 block text-sm font-medium text-text-primary transition-colors hover:text-accent"
-                  >
-                    {project.title}
-                  </a>
-                ) : (
-                  <p className="mt-2 text-sm text-text-muted italic">
-                    {project.title}
-                  </p>
-                )}
-              </div>
+              <CurrentProjectCard project={project} />
             </SectionReveal>
           ))}
         </div>
@@ -611,5 +584,69 @@ function ProjectCard({
         ))}
       </div>
     </motion.a>
+  )
+}
+
+function CurrentProjectCard({
+  project,
+}: {
+  project: (typeof CURRENT_PROJECTS)[number]
+}) {
+  const shouldReduceMotion = useReducedMotion()
+
+  const badgeClass =
+    project.status === "shipped"
+      ? "bg-accent/10 text-accent"
+      : project.status === "in-progress"
+      ? "bg-yellow-400/10 text-yellow-400"
+      : "bg-text-muted/10 text-text-muted"
+
+  const badgeLabel =
+    project.status === "shipped"
+      ? "Shipped"
+      : project.status === "in-progress"
+      ? "In Progress"
+      : "Upcoming"
+
+  const borderClass =
+    project.status === "shipped"
+      ? "border-border bg-bg-surface"
+      : project.status === "in-progress"
+      ? "border-yellow-400/20 bg-bg-surface"
+      : "border-dashed border-border/60 bg-transparent"
+
+  const inner = (
+    <>
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-xs text-text-muted">
+          Week {project.week}
+        </span>
+        <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${badgeClass}`}>
+          {badgeLabel}
+        </span>
+      </div>
+      <p className={`mt-2 text-sm font-medium ${project.href ? "text-text-primary" : "italic text-text-muted"}`}>
+        {project.title}
+      </p>
+    </>
+  )
+
+  if (project.href) {
+    return (
+      <motion.a
+        href={project.href}
+        className={`group block rounded-lg border p-4 transition-colors hover:border-accent/40 ${borderClass}`}
+        whileHover={shouldReduceMotion ? {} : { y: -4 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        {inner}
+      </motion.a>
+    )
+  }
+
+  return (
+    <div className={`rounded-lg border p-4 ${borderClass}`}>
+      {inner}
+    </div>
   )
 }
