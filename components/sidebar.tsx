@@ -154,7 +154,7 @@ export function Sidebar() {
     <>
       {/* Desktop sidebar */}
       <aside
-        className="fixed left-0 top-0 z-40 hidden h-screen w-60 flex-col justify-between border-r border-border bg-bg px-6 py-10 md:flex"
+        className="fixed left-0 top-0 z-40 hidden h-screen w-60 flex-col justify-between border-r border-border bg-bg px-6 py-10 md:flex print:hidden"
         aria-label="Main navigation"
       >
         <div>
@@ -223,7 +223,7 @@ export function Sidebar() {
 
       {/* Mobile top bar */}
       <header
-        className="fixed left-0 top-0 z-50 flex h-14 w-full items-center justify-between border-b border-border bg-bg/90 px-6 backdrop-blur-sm md:hidden"
+        className="fixed left-0 top-0 z-50 flex h-14 w-full items-center justify-between border-b border-border bg-bg/90 px-6 backdrop-blur-sm md:hidden print:hidden"
         aria-label="Mobile navigation"
       >
         <Link
@@ -257,7 +257,7 @@ export function Sidebar() {
       {/* Mobile menu overlay */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 flex items-start justify-start bg-bg md:hidden"
+          className="fixed inset-0 z-40 flex items-start justify-start bg-bg md:hidden print:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"

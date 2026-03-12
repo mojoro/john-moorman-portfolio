@@ -100,7 +100,7 @@ export default function RootLayout({
         <ThemeProvider>
           <CursorGlow />
           <Sidebar />
-          <div className="pt-14 md:ml-60 md:pt-0">
+          <div className="pt-14 md:ml-60 md:pt-0 print:ml-0 print:pt-0">
             <div className="mx-auto max-w-[900px] px-6 md:px-12">
               {children}
             </div>
