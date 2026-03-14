@@ -12,7 +12,7 @@ What we built is called **Drop**. The pitch: paste any URL or topic and get a sh
 ## The Team
 
 - **[John Moorman](https://www.linkedin.com/in/john-moorman)** (me) — frontend, full API pipeline, ElevenLabs integration, pitch
-- **[Bernard Eisvogel](https://www.linkedin.com/in/beisvogel/)** (Math PhD) — ElevenLabs SDK integration and audio stitching
+- **[Bernhard Eisvogel](https://www.linkedin.com/in/beisvogel/)** (Math PhD) — ElevenLabs SDK integration and audio stitching
 - **[Rahul Bedjavalge](https://www.linkedin.com/in/rahul-bedjavalge/)** (AI Masters student) — Needle ingestion and Featherless script generation
 
 ## The Idea
@@ -23,7 +23,7 @@ The three sponsors mapped cleanly onto a three-stage pipeline. Needle extracts c
 
 ## The Build
 
-We divided clearly: Bernard owned ElevenLabs and audio stitching, Rahul owned Needle and Featherless, I built the frontend and the `/api/generate` route that wired all three stages together.
+We divided clearly: Bernhard owned ElevenLabs and audio stitching, Rahul owned Needle and Featherless, I built the frontend and the `/api/generate` route that wired all three stages together.
 
 **What went smoothly:** 
 
@@ -31,7 +31,7 @@ Prompt engineering for the script format locked in early. The `ALEX:` / `SAM:` c
 
 **What was hard:**
 
-*ElevenLabs on Vercel.* Bernard's original integration used `writeFileSync` to track character usage to a CSV. Vercel's serverless runtime has a read-only filesystem, so this crashed every request in production. Fix: remove the tracking, make the ElevenLabs client lazy-initialize inside the function rather than at module load time. That also resolved a separate issue where `dotenv` hadn't populated `process.env` before the SDK constructor ran.
+*ElevenLabs on Vercel.* Bernhard's original integration used `writeFileSync` to track character usage to a CSV. Vercel's serverless runtime has a read-only filesystem, so this crashed every request in production. Fix: remove the tracking, make the ElevenLabs client lazy-initialize inside the function rather than at module load time. That also resolved a separate issue where `dotenv` hadn't populated `process.env` before the SDK constructor ran.
 
 *Needle reliability.* Failing on every call, three separate root causes: the SDK constructor requires an explicit `{ apiKey }` argument (doesn't auto-read from the environment), `collections.create` requires a `model` field that was overlooked, and the polling loop was running for 120 seconds — longer than Vercel's function timeout. Fixed all three, added a direct HTML fetch fallback, capped polling at 24 seconds.
 
