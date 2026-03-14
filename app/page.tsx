@@ -133,6 +133,14 @@ const CURRENT_PROJECTS = [
 
 const BLOG_POSTS = [
   {
+    title: "Drop: Paste a URL, Get a Podcast",
+    date: "2026-03-14",
+    description:
+      "What we built at the AI Mini Hackathon Berlin: a two-voice podcast generator powered by Needle, Featherless, and ElevenLabs, shipped in 2.5 hours.",
+    tags: ["Next.js", "ElevenLabs", "Hackathon"],
+    href: "/blog/hackathon-drop",
+  },
+  {
     title: "From Scraper to Inbox: Building an AI-Powered Real Estate Sourcing Tool",
     date: "2026-02-28",
     description:
