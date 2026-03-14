@@ -1,0 +1,60 @@
+---
+title: "Drop: Paste a URL, Get a Podcast"
+date: "2026-03-14"
+description: "What we built at the AI Mini Hackathon Berlin: a two-voice podcast generator powered by Needle, Featherless, and ElevenLabs, shipped in 2.5 hours."
+tags: ["Next.js", "ElevenLabs", "TypeScript", "Hackathon", "Needle", "Featherless"]
+---
+
+The [AI Mini Hackathon Berlin](https://lu.ma/g4gbi1w0), organized by [Luis Rieke](https://www.linkedin.com/in/luisrieke/), ran today at Needle's office near Alexanderplatz. The format: three hours, build something real, pitch it. About 40 teams. Three sponsors provided API credits: Needle for document ingestion, Featherless for open-weight LLM inference, ElevenLabs for voice synthesis. I arrived without a team and found one in the first fifteen minutes.
+
+What we built is called **Drop**. The pitch: paste any URL or topic and get a shareable two-voice podcast episode in about 60 seconds.
+
+## The Team
+
+- **[John Moorman](https://www.linkedin.com/in/john-moorman)** (me) — frontend, full API pipeline, ElevenLabs integration, pitch
+- **[Bernard Eisvogel](https://www.linkedin.com/in/beisvogel/)** (Math PhD) — ElevenLabs SDK integration and audio stitching
+- **[Rahul Bedjavalge](https://www.linkedin.com/in/rahul-bedjavalge/)** (AI Masters student) — Needle ingestion and Featherless script generation
+
+## The Idea
+
+ElevenLabs makes ElevenReader, which reads any webpage aloud. AI summaries are everywhere. The twist here is format: instead of flat text-to-speech, you get two podcast hosts having an actual conversation about the content. Alex is curious, asks sharp questions. Sam is the expert with direct takes. Seven to nine exchanges, one memorable last line.
+
+The three sponsors mapped cleanly onto a three-stage pipeline. Needle extracts content from a URL. Featherless generates the dialogue script. ElevenLabs voices it. That alignment made the idea easy to commit to quickly.
+
+## The Build
+
+We divided clearly: Bernard owned ElevenLabs and audio stitching, Rahul owned Needle and Featherless, I built the frontend and the `/api/generate` route that wired all three stages together.
+
+**What went smoothly:** Prompt engineering for the script format locked in early. The `ALEX:` / `SAM:` constraint with a fixed exchange count produced usable output from the first test and barely needed iteration. The merge was also cleaner than expected — both teammates had left `page.tsx` untouched and worked entirely in `lib/` files, so my UI was preserved and their modules came in without conflict.
+
+**What was hard:**
+
+*ElevenLabs on Vercel.* Bernard's original integration used `writeFileSync` to track character usage to a CSV. Vercel's serverless runtime has a read-only filesystem, so this crashed every request in production. Fix: remove the tracking, make the ElevenLabs client lazy-initialize inside the function rather than at module load time. That also resolved a separate issue where `dotenv` hadn't populated `process.env` before the SDK constructor ran.
+
+*Needle reliability.* Failing on every call, three separate root causes: the SDK constructor requires an explicit `{ apiKey }` argument (doesn't auto-read from the environment), `collections.create` requires a `model` field (`"basilikum-minima"`) that was overlooked, and the polling loop was running for 120 seconds — longer than Vercel's function timeout. Fixed all three, added a direct HTML fetch fallback, capped polling at 24 seconds.
+
+*Audio that sounds like a conversation.* The original approach generated all of Alex's lines as one file and Sam's as another, playing them sequentially. It didn't sound like a conversation. Fix: generate one audio clip per script line in dialogue order, then byte-concatenate the MP3 buffers into a single stitched file. Same ElevenLabs usage, but the result plays like two people actually talking.
+
+## The Pitch
+
+Over 40 teams in a roughly 45-minute block. I was patching the Needle integration down to the wire, the final fix going in at commit `31c6370` immediately before pitches started.
+
+The approach: type a URL into the input live in front of the room so the audience could see the real interface, then switch to a pre-loaded tab with a completed generation of the same URL to show the transcript and play the audio. Waiting 40 seconds for a live generation was not an option at that pace.
+
+We didn't place. But someone from the Needle team found me afterward and said "strong pitch." We connected, and that felt like a reasonable return on the day.
+
+## The Portfolio Demo
+
+The live app requires active API keys and costs real credits on every generation, which makes it impractical to leave publicly accessible. After the hackathon I built a self-contained demo version: a `/demo` route that animates through the same three-stage pipeline UI with realistic delays (around 17 seconds), then reveals a pre-baked episode and transcript identical in appearance to a real generation.
+
+The demo episode topic: **Attention as Infrastructure**, on the argument that the attention economy might be the defining public health crisis of the century. Sam's closing line: *"The most valuable thing you own isn't your house or your savings. It's the hours of genuine focus you have left in your life. The question is who you're going to let spend them."*
+
+The audio was generated once locally using a one-shot script and committed as a static file. The root URL redirects to `/demo`. Anyone who wants to run the live generator can clone the repo and bring their own keys.
+
+## What I Took From It
+
+Hackathons like this are primarily a scoping exercise. Three hours is long enough to ship something real if the idea maps tightly onto the available tools and the team divides well. Both were true here, which is why it worked.
+
+The debugging was messier than I would have liked, Needle especially. But having a clear pipeline concept from the start meant every integration problem had somewhere to land. That made the difference between a working demo and a slide deck.
+
+The repo is on my [GitHub](https://github.com/mojoro).
