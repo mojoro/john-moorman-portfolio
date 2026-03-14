@@ -14,6 +14,7 @@ export function MdxImage(props: React.ComponentProps<"img">) {
       width={900}
       height={500}
       className="my-6 cursor-zoom-in rounded-lg"
+      quality={100}
       sizes="(max-width: 768px) 100vw, 680px"
       onClick={() => open(src, props.alt ?? "")}
     />

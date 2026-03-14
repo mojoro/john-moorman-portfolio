@@ -5,10 +5,10 @@ description: "What we built at the AI Mini Hackathon Berlin: a two-voice podcast
 tags: ["Next.js", "ElevenLabs", "TypeScript", "Hackathon", "Needle", "Featherless"]
 ---
 
-The [AI Mini Hackathon Berlin](https://lu.ma/g4gbi1w0), organized by [Luis Rieke](https://www.linkedin.com/in/luisrieke/), ran today at Needle's office near Alexanderplatz. The format: three hours, build something real, pitch it. About 40 teams. Three sponsors provided API credits: Needle for document ingestion, Featherless for open-weight LLM inference, ElevenLabs for voice synthesis. I arrived without a team and found one in the first fifteen minutes.
+The [AI Mini Hackathon Berlin](https://lu.ma/g4gbi1w0), organized by [Luis Rieke](https://www.linkedin.com/in/luisrieke/), ran today at Needle's office near Jannowitzbrücke. The format: three hours, build something real, pitch it. About 40 teams, around 140 people on campus. Three sponsors provided API credits: Needle for document ingestion, Featherless for open-weight LLM inference, ElevenLabs for voice synthesis. I arrived without a team and found one in the first fifteen minutes.
 
 What we built is called **Drop**. The pitch: paste any URL or topic and get a shareable two-voice podcast episode in about 60 seconds.
-
+![Drop Title Page](/images/blog/hackathon-drop/drop-screenshot.png)
 ## The Team
 
 - **[John Moorman](https://www.linkedin.com/in/john-moorman)** (me) — frontend, full API pipeline, ElevenLabs integration, pitch
@@ -25,36 +25,44 @@ The three sponsors mapped cleanly onto a three-stage pipeline. Needle extracts c
 
 We divided clearly: Bernard owned ElevenLabs and audio stitching, Rahul owned Needle and Featherless, I built the frontend and the `/api/generate` route that wired all three stages together.
 
-**What went smoothly:** Prompt engineering for the script format locked in early. The `ALEX:` / `SAM:` constraint with a fixed exchange count produced usable output from the first test and barely needed iteration. The merge was also cleaner than expected — both teammates had left `page.tsx` untouched and worked entirely in `lib/` files, so my UI was preserved and their modules came in without conflict.
+**What went smoothly:** 
+
+Prompt engineering for the script format locked in early. The `ALEX:` / `SAM:` constraint with a fixed exchange count produced usable output from the first test and barely needed iteration. The merge was also fairly smooth. Both teammates had left `page.tsx` untouched and worked entirely in `lib/` files, so my UI was preserved and their modules came in without conflict. Just a little rearranging and rewiring and all was well.
 
 **What was hard:**
 
 *ElevenLabs on Vercel.* Bernard's original integration used `writeFileSync` to track character usage to a CSV. Vercel's serverless runtime has a read-only filesystem, so this crashed every request in production. Fix: remove the tracking, make the ElevenLabs client lazy-initialize inside the function rather than at module load time. That also resolved a separate issue where `dotenv` hadn't populated `process.env` before the SDK constructor ran.
 
-*Needle reliability.* Failing on every call, three separate root causes: the SDK constructor requires an explicit `{ apiKey }` argument (doesn't auto-read from the environment), `collections.create` requires a `model` field (`"basilikum-minima"`) that was overlooked, and the polling loop was running for 120 seconds — longer than Vercel's function timeout. Fixed all three, added a direct HTML fetch fallback, capped polling at 24 seconds.
+*Needle reliability.* Failing on every call, three separate root causes: the SDK constructor requires an explicit `{ apiKey }` argument (doesn't auto-read from the environment), `collections.create` requires a `model` field that was overlooked, and the polling loop was running for 120 seconds — longer than Vercel's function timeout. Fixed all three, added a direct HTML fetch fallback, capped polling at 24 seconds.
 
-*Audio that sounds like a conversation.* The original approach generated all of Alex's lines as one file and Sam's as another, playing them sequentially. It didn't sound like a conversation. Fix: generate one audio clip per script line in dialogue order, then byte-concatenate the MP3 buffers into a single stitched file. Same ElevenLabs usage, but the result plays like two people actually talking.
+*Reliable Results* Trying to orchestrate so many moving parts in such a short amount of time comes with a lot of bugs that can be difficult to debug quickly. From the chosen model giving the correct response format only most of the time, to the flow suddenly breaking with only a generic 500 error to go off of (sometimes the free api usage ran out, sometimes the env passing was misconfigured, etc.). 
 
 ## The Pitch
 
-Over 40 teams in a roughly 45-minute block. I was patching the Needle integration down to the wire, the final fix going in at commit `31c6370` immediately before pitches started.
+Over 40 teams in a roughly 45-minute block. I was patching the application down to the wire, with the final fix going in immediately before pitches started.
 
-The approach: type a URL into the input live in front of the room so the audience could see the real interface, then switch to a pre-loaded tab with a completed generation of the same URL to show the transcript and play the audio. Waiting 40 seconds for a live generation was not an option at that pace.
+With the pace of the presentations, even taking 2 minutes for the presentation was too long, so I opted type a URL into the input live in front of the room so the audience could see the real interface and beginning of the generation, then switch to a tab with a completed generation of the same URL to show the transcript and play the audio.
 
-We didn't place. But someone from the Needle team found me afterward and said "strong pitch." We connected, and that felt like a reasonable return on the day.
+![pitch in progress](/images/blog/hackathon-drop/pitch-talk.jpeg)
+
+There were 4 prizes for the roughly 40 teams to compete for, and the winners brought some fantastic ideas and implementations. 
+
+*Drop* didn't place. But one of Needle's founders approached me afterwards and said "strong pitch." We connected and had a pleasant and enjoyable conversation. That, combined with all the other creative and passionate people I met, made the day especially worthwhile. 
 
 ## The Portfolio Demo
 
-The live app requires active API keys and costs real credits on every generation, which makes it impractical to leave publicly accessible. After the hackathon I built a self-contained demo version: a `/demo` route that animates through the same three-stage pipeline UI with realistic delays (around 17 seconds), then reveals a pre-baked episode and transcript identical in appearance to a real generation.
+The live app requires active API keys and costs real credits on every generation, which makes it impractical to leave publicly accessible. After the hackathon I built a [self-contained demo version](https://drop-gamma-seven.vercel.app/demo): a `/demo` route that animates through the same three-stage pipeline UI with realistic delays (around 17 seconds), then reveals a pre-baked episode and transcript identical in appearance to a real generation.
 
 The demo episode topic: **Attention as Infrastructure**, on the argument that the attention economy might be the defining public health crisis of the century. Sam's closing line: *"The most valuable thing you own isn't your house or your savings. It's the hours of genuine focus you have left in your life. The question is who you're going to let spend them."*
 
-The audio was generated once locally using a one-shot script and committed as a static file. The root URL redirects to `/demo`. Anyone who wants to run the live generator can clone the repo and bring their own keys.
+The audio was generated once locally using a one-shot script and committed as a static file. The root URL redirects to `/demo`. But anyone who wants to run the live generator can clone the repo and bring their own keys.
 
 ## What I Took From It
 
-Hackathons like this are primarily a scoping exercise. Three hours is long enough to ship something real if the idea maps tightly onto the available tools and the team divides well. Both were true here, which is why it worked.
+Hackathons like this are primarily a scoping exercise. Three hours is long enough to ship something real if the idea maps tightly onto the available tools, the team divides well, and the "nice-to-have" features are sent to the graveyard. All were true here, which is why it worked.
 
-The debugging was messier than I would have liked, Needle especially. But having a clear pipeline concept from the start meant every integration problem had somewhere to land. That made the difference between a working demo and a slide deck.
+The debugging was messier than I would have liked. In a perfect world, I could start with a simple testing suite next time, but I will definitely at least have much more detailed error logging at every API endpoint. Far too much time was wasted debugging things that worked once then broke as development continued. Time that could have been used to flesh out the features, our pitch, or just relax and reduce stress.
 
-The repo is on my [GitHub](https://github.com/mojoro).
+However, having a clear concept of the architecture and data pipeline from the start meant that every person had something they could take ownership of and verify its functionality. That made the difference between a functional demo and a mocked up app like the one I made after the fact.
+
+The repo is on my [GitHub](https://github.com/mojoro/ElevenLabPodcast), and the [demo](https://drop-gamma-seven.vercel.app/demo) is deployed via Vercel. 
