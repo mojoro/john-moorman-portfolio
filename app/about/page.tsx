@@ -41,7 +41,7 @@ export default function AboutPage() {
           </p>
           <p>
             I spent five years training as an operatic performer at Boston
-            Conservatory at Berklee, sight-reading scores, memorising roles in
+            Conservatory at Berklee, sight-reading scores, memorizing roles in
             three languages, performing under pressure in front of live
             audiences. It was rigorous, technical work that most people
             don&apos;t associate with engineering. But the skills transferred
@@ -68,7 +68,7 @@ export default function AboutPage() {
         <p>
           That project convinced me that engineering was where I wanted to spend
           my career. Not because I stopped caring about craft, but because
-          software is where I found the same combination of analytical rigour
+          software is where I found the same combination of analytical rigor
           and creative problem-solving that drew me to music in the first place.
         </p>
 
