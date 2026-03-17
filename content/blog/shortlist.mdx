@@ -18,7 +18,9 @@ The result is **Shortlist**, a full-stack application that aggregates job listin
 
 Two threads came together. The first was my [real estate sourcing tool](/blog/real-estate-ai-tool). That project taught me how satisfying it is to take a messy, manual process and compress it into something systematic. Scraping listings, classifying them with AI, surfacing only the ones worth looking at. The structure mapped almost directly onto job hunting.
 
-The second thread was a feature I kept thinking about during that build: the idea of a "tailor." Not just finding good listings, but helping you respond to them with a resume that actually speaks to the specific role. When I combined those two ideas, automated sourcing plus intelligent tailoring, the shape of the product became obvious.
+The second thread was a feature I've been turning over in my head for a while: the idea of a "tailor." Not just finding good listings, but helping you respond to them with a resume that actually speaks to the specific role. Most people I talk to are going through this process manually with a chatbot interface, finagling it to give the result they need but isn't necessarily optimized to give.  
+
+When I combined those two ideas, automated sourcing plus intelligent tailoring, the shape of the product became obvious.
 
 I also just wanted to use it. That's the most honest motivation. I'm actively looking for work in Berlin, and every hour I spend manually cross-referencing listings and reformatting my CV is an hour I'm not spending on the things that actually move the needle: building, learning, reaching out to people.
 
@@ -40,7 +42,7 @@ Shortlist has five core capabilities:
 
 ![The tailor in action: editing the resume, previewing the PDF, and collapsing the job panel](/images/blog/shortlist/tailor-preview.gif)
 
-**Pipeline Tracker.** Once you decide to apply, drag the job into your pipeline. Track what you've applied to, what's in progress, where you've interviewed, what you're waiting on. It's a simple Kanban-style board, nothing revolutionary, but having it live alongside the feed and the tailor means you never have to context-switch to a spreadsheet.
+**Pipeline Tracker.** Once you decide to apply, click confirm. Shortlist will automatically take you to the job's application page and silently add the listing to and redirect you to the pipeline page. Here, you track what you've applied to, what's in progress, where you've interviewed, what you're waiting on. For now, it's a simple spreadsheet, nothing revolutionary, but having it live alongside the feed and the tailor means you never have to context-switch to a different app or manage files to access the version of you resume that you sent.
 
 ![The pipeline tracker](/images/blog/shortlist/pipeline.png)
 
@@ -67,6 +69,14 @@ A few architectural decisions that shaped the build:
 **Writing rules as hard constraints.** The tailoring prompt doesn't just say "rewrite this resume for the role." It injects your writing rules as non-negotiable instructions: these phrases must appear, these phrases must not, these metrics are verified (use them), these claims are off-limits (don't fabricate). This is what makes the output trustworthy. Without guardrails, an LLM will cheerfully invent accomplishments for you. With them, it becomes a disciplined writing partner.
 
 **Native streaming.** Rather than using a higher-level SDK, I stream AI responses directly with `ReadableStream` and server-sent events. It's more work to set up, but it gives me precise control over the streaming experience. For the tailor, where you're watching your resume appear in real time, that granularity matters.
+
+The last stretch before I called it feature-complete was a security and performance overhaul, followed by a testing suite. These are the kinds of additions that don't show up in the feature list but make the difference between a prototype and something you'd actually put in front of strangers.
+
+**Security.** The security pass added a full Content-Security-Policy header, HSTS, X-Frame-Options, and a handful of others. The more interesting piece was the rate limiter. Each sensitive endpoint (scoring, tailoring, extraction) now runs through a sliding window check keyed by `userId + action`. It's in-memory, which means it resets on cold starts, but the monthly token limit in the `Usage` table is the hard backstop regardless. The rate limiter is just friction. Together they're insurance. I also went through every API route and sanitized error responses. No raw Prisma errors, no stack traces, nothing useful to someone probing the surface.
+
+**Performance.** Two changes made the biggest difference. The first was removing framer-motion entirely and replacing it with Tailwind CSS transitions. Framer-motion is a 170KB library. For a tool people use every morning, that's a real cost. I'd added it for the landing page demo preview, realized it was overkill, and cut it. The second was moving from repeated database reads to a client-side Zustand store hydrated once at layout mount. Before this, navigating between the feed, a job detail, and the pipeline meant three separate data fetches. After, those transitions are instant. The DB still powers the initial page load and any mutations; the store just caches what's already been fetched and keeps the UI consistent across pages. I also added DB indexes on the foreign keys used in the most common queries, switched the dashboard to Suspense streaming so the shell renders immediately, and set `staleTimes` in the Next.js config to let the router cache hold onto pages instead of re-fetching on every back navigation.
+
+**Testing.** I added a Playwright suite covering the five main surfaces: landing page CTAs, the feed with filters and actions, the pipeline table, the job detail with its AI scoring panel and tailor trigger, and cross-page navigation. The setup handles Clerk auth automatically via a global setup file, so tests run against the actual app with a real authenticated session. The tests are smoke tests, not exhaustive coverage. The goal was a safety net for the things that had broken in the past: the PDF rendering policy issue, a Zustand selector bug that caused an infinite render loop in the dashboard. That last one has its own regression test now, which is probably the most valuable thing in the whole suite.
 
 ## The Build Process
 
