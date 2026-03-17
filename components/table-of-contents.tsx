@@ -22,7 +22,6 @@ export function TableOfContents({ items }: Props) {
         const visible = entries
           .filter((e) => e.isIntersecting)
           .map((e) => e.target.id)
-
         if (visible.length > 0) {
           const first = items.find((item) => visible.includes(item.id))
           if (first) setActiveId(first.id)
@@ -40,13 +39,14 @@ export function TableOfContents({ items }: Props) {
   return (
     <nav
       aria-label="Table of contents"
-      className="hidden xl:block w-48 shrink-0 order-first sticky top-24 self-start"
+      className="hidden 2xl:block absolute top-0 bottom-0 right-[calc(100%+2rem)] w-44"
     >
-      <p className="font-mono text-[11px] uppercase tracking-widest text-text-muted mb-4">
-        On this page
-      </p>
-      <ul className="space-y-3">
-        {items.map((item) => {
+      <div className="sticky top-24">
+        <p className="font-mono text-[11px] uppercase tracking-widest text-text-muted mb-4">
+          On this page
+        </p>
+        <ul className="space-y-3">
+          {items.map((item) => {
             const isActive = activeId === item.id
             return (
               <li
@@ -84,7 +84,8 @@ export function TableOfContents({ items }: Props) {
               </li>
             )
           })}
-      </ul>
+        </ul>
+      </div>
     </nav>
   )
 }

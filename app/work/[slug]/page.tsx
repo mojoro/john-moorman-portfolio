@@ -75,7 +75,7 @@ export default async function WorkPost({ params }: Props) {
   const headings = extractHeadings(post.content)
 
   return (
-    <article className="py-20">
+    <article className="py-20 mx-auto max-w-[680px]">
       <Link
         href="/work"
         className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
@@ -104,13 +104,13 @@ export default async function WorkPost({ params }: Props) {
         )}
       </header>
 
-      <div className="mt-12 flex items-start gap-12">
+      <div className="relative mt-12">
+        <TableOfContents items={headings} />
         <LightboxProvider>
-          <div className="prose-custom min-w-0 max-w-[680px] flex-1">
+          <div className="prose-custom">
             <MDXRemote source={post.content} components={mdxComponents} />
           </div>
         </LightboxProvider>
-        <TableOfContents items={headings} />
       </div>
     </article>
   )
