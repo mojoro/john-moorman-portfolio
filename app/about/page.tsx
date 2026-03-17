@@ -37,21 +37,21 @@ export default function AboutPage() {
 
         <div className="max-w-[520px] space-y-5 text-text-secondary leading-relaxed">
           <p className="text-lg font-medium text-text-primary">
-            I came to software through an unusual door.
+            Originally from the States, now based in Berlin.
           </p>
           <p>
-            I spent five years training as an operatic performer at Boston
-            Conservatory at Berklee, sight-reading scores, memorizing roles in
+            I studied vocal performance at Boston Conservatory at Berklee,
+            graduating in 2022 with a Bachelor of Music (GPA 3.84). Five years
+            of operatic training: sight-reading scores, memorizing roles in
             three languages, performing under pressure in front of live
-            audiences. It was rigorous, technical work that most people
-            don&apos;t associate with engineering. But the skills transferred
-            more directly than I expected.
+            audiences. It was rigorous, technical work that taught me how to
+            learn fast and execute precisely.
           </p>
           <p>
-            When I started building automation tools at Berlin Opera Academy in
-            2023, I approached the work the same way I&apos;d approached a new
-            role: understand the system completely before touching it, then
-            execute with precision.
+            After graduating I moved to Berlin. What started as a gap year
+            turned into a career change when I discovered that the same
+            analytical thinking and creative problem-solving that drew me to
+            music was exactly what engineering required.
           </p>
         </div>
       </div>
@@ -59,33 +59,37 @@ export default function AboutPage() {
       {/* Rest of the story */}
       <div className="mt-12 max-w-[680px] space-y-5 text-text-secondary leading-relaxed">
         <p>
-          I taught myself Google Apps Script from scratch, mapped the full
-          student lifecycle workflow, and built a suite of tools that replaced
-          two full-time administrative positions. The €74,000 in annual savings
-          was a side effect of doing the job properly.
-        </p>
-
-        <p>
-          That project convinced me that engineering was where I wanted to spend
-          my career. Not because I stopped caring about craft, but because
-          software is where I found the same combination of analytical rigor
-          and creative problem-solving that drew me to music in the first place.
+          In 2023 I was working at Berlin Opera Academy in an operational role
+          when I noticed that every student went through the same lifecycle:
+          application, payment, confirmation, follow-up. Clear triggers, clear
+          rules, clear outputs. I taught myself Google Apps Script from scratch
+          and built an automation suite that replaced two full-time
+          administrative positions, saving the company €74,000 per year. That
+          project proved to me that I could deliver real business impact as an
+          engineer.
         </p>
 
         <p>
           Since then I&apos;ve built production systems for clients across
           Berlin: a real estate intelligence pipeline using n8n, Apify, and
-          Gemini; a marketing site and education platform foundation for a music
-          tech startup built to pixel-perfect Figma specs in Vue; web
-          infrastructure for a wellness retreat in PHP. Every engagement has
-          brought a new stack to learn, and I&apos;ve delivered in each one. I
-          work AI-natively: Claude Code and Cursor are core to how I develop,
-          not shortcuts but force multipliers.
+          Gemini; a marketing site for a music tech startup built to
+          pixel-perfect Figma specs in Vue; web infrastructure for a wellness
+          retreat in PHP. Every engagement has brought a new stack to learn, and
+          I&apos;ve delivered in each one.
         </p>
 
         <p>
-          I&apos;m currently based in Berlin, open to the right mid-level
-          fullstack role, and actively building in public.
+          I work AI-natively: Claude Code and Cursor are core to how I develop,
+          not shortcuts but force multipliers. I&apos;m currently running a
+          &quot;10 projects in 10 weeks&quot; challenge to push my shipping pace
+          and build a public portfolio of work.
+        </p>
+
+        <p>
+          Outside of engineering I still sing (though opera has been replaced by
+          the occasional karaoke bar). I speak English natively and German at
+          B2. I&apos;m open to the right mid-level fullstack or frontend role
+          at a Berlin startup.
         </p>
       </div>
 
