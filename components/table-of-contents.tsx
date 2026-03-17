@@ -40,14 +40,13 @@ export function TableOfContents({ items }: Props) {
   return (
     <nav
       aria-label="Table of contents"
-      className="hidden xl:flex xl:self-stretch w-48 shrink-0 order-first"
+      className="hidden xl:block w-48 shrink-0 order-first sticky top-24 self-start"
     >
-      <div className="sticky top-24">
-        <p className="font-mono text-[11px] uppercase tracking-widest text-text-muted mb-4">
-          On this page
-        </p>
-        <ul className="space-y-3">
-          {items.map((item) => {
+      <p className="font-mono text-[11px] uppercase tracking-widest text-text-muted mb-4">
+        On this page
+      </p>
+      <ul className="space-y-3">
+        {items.map((item) => {
             const isActive = activeId === item.id
             return (
               <li
@@ -85,8 +84,7 @@ export function TableOfContents({ items }: Props) {
               </li>
             )
           })}
-        </ul>
-      </div>
+      </ul>
     </nav>
   )
 }
