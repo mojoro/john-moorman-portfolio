@@ -153,15 +153,20 @@ export function HomeClient({ blogPosts }: { blogPosts: BlogPost[] }) {
         >
           I write software that pays for itself.
         </motion.h2>
-        <motion.p
-          variants={fadeUp}
-          className="mt-6 max-w-xl text-text-secondary"
-        >
-          Software engineer in Berlin. I built an automation suite that saved a
-          company €74K/year, letting two part-time administrators do the work of four. Now I ship AI-native
-          software for clients, learning whatever stack the project needs and
-          delivering on tight timelines.
-        </motion.p>
+        <motion.div variants={fadeUp} className="mt-6 max-w-xl">
+          <p className="text-text-secondary">
+            Software engineer in Berlin. I built an automation suite that saved a
+            company €74K/year, letting two part-time administrators do the work of four. Now I ship AI-native
+            software for clients, learning whatever stack the project needs and
+            delivering on tight timelines.
+          </p>
+          <Link
+            href="/about"
+            className="mt-3 inline-block font-mono text-sm text-accent transition-colors hover:underline"
+          >
+            Full story &rarr;
+          </Link>
+        </motion.div>
         <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-4">
           <a
             href="mailto:john@johnmoorman.com"
@@ -175,14 +180,6 @@ export function HomeClient({ blogPosts }: { blogPosts: BlogPost[] }) {
           >
             See my work &darr;
           </a>
-        </motion.div>
-        <motion.div variants={fadeUp} className="mt-4">
-          <Link
-            href="/about"
-            className="font-mono text-sm text-accent transition-colors hover:underline"
-          >
-            Full story &rarr;
-          </Link>
         </motion.div>
         <motion.div
           variants={fadeUp}
