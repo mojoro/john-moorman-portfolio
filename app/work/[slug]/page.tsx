@@ -65,7 +65,7 @@ export default async function WorkPost({ params }: Props) {
             {post.frontmatter.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted"
+                className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted transition-colors duration-200 hover:border-accent hover:text-accent"
               >
                 {tag}
               </span>

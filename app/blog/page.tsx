@@ -35,13 +35,17 @@ export default async function BlogIndex() {
               href={`/blog/${post.slug}`}
               className="group block"
             >
-              <time className="font-mono text-xs text-text-muted">
-                {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </time>
+              <div className="flex items-center gap-3 font-mono text-xs text-text-muted">
+                <time>
+                  {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </time>
+                <span className="text-border">·</span>
+                <span>{Math.max(1, Math.round(post.content.trim().split(/\s+/).length / 238))} min read</span>
+              </div>
               <h2 className="mt-1 font-display text-xl font-semibold transition-colors group-hover:text-accent">
                 {post.frontmatter.title}
               </h2>
@@ -53,7 +57,7 @@ export default async function BlogIndex() {
                   {post.frontmatter.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted"
+                      className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted transition-colors duration-200 hover:border-accent hover:text-accent"
                     >
                       {tag}
                     </span>
