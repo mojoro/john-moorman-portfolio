@@ -47,3 +47,6 @@ changes.md
 
 # superpowers brainstorming
 .superpowers/
+
+# playwright
+.playwright-mcp/
