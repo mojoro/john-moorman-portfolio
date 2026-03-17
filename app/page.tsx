@@ -47,30 +47,34 @@ const PROJECTS = [
   },
 ] as const
 
-const CURRENT_PROJECTS = [
+const CURRENT_PROJECTS: Array<{
+  week: number
+  title: string
+  status: "shipped" | "in-progress" | "upcoming"
+  href?: string
+}> = [
   {
     week: 1,
     title: "Real Estate AI Pipeline",
-    status: "shipped" as const,
+    status: "shipped",
     href: "/work/real-estate-pipeline",
   },
   {
     week: 2,
     title: "Portfolio Site Rebuild",
-    status: "shipped" as const,
+    status: "shipped",
     href: "/work/portfolio-site",
   },
   {
     week: 3,
-    title: "Job Hunt Web Application",
-    status: "in-progress" as const,
-    href: undefined,
+    title: "Shortlist",
+    status: "shipped",
+    href: "/work/shortlist",
   },
   {
     week: 4,
     title: "Coming soon",
-    status: "upcoming" as const,
-    href: undefined,
+    status: "upcoming",
   },
 ]
 

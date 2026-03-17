@@ -1,0 +1,36 @@
+---
+title: "Shortlist"
+date: "2026-03-17"
+description: "AI-powered job search tool that scrapes listings from major ATS platforms, scores them against your profile, tailors your resume on demand, and tracks your pipeline. Built in seven days."
+tags: ["Next.js", "TypeScript", "Prisma", "Neon", "Anthropic API", "Clerk"]
+status: "shipped"
+challenge: "10-in-10"
+---
+
+Job searching is a volume game dressed up as a skill game. The actual skill is filtering fast and responding well. Shortlist automates the filtering and accelerates the responding.
+
+## What It Does
+
+**Feed.** Shortlist scrapes listings daily from Greenhouse, Lever, and Ashby job boards, deduplicates across sources, and scores each one against your profile on a 0–100 scale. The model considers role fit, skill alignment, seniority match, and location. Low-scoring listings are hidden automatically.
+
+**Import.** Paste any job URL or raw page text and the AI extracts structured details automatically. Works with nearly any board or format.
+
+**Tailor.** Pick a job, hit Tailor. Shortlist rewrites your resume for the specific role in real time, streaming the output as it writes. Writing rules give you control over what the AI can and cannot say: protected phrases, banned phrases, verified metrics, off-limits claims.
+
+**Pipeline.** Drag jobs through a Kanban-style tracker from first interest through offer. Each application stays linked to the resume version you sent.
+
+## Technical Approach
+
+The core schema decision was separating `JobPool` (global, source-deduplicated raw listings) from `Job` (per-profile junction records with AI scores and feed status). Scraping runs once globally; matching runs once per profile. This makes deduplication trivial and keeps query costs flat as users multiply.
+
+AI calls route through OpenRouter to Anthropic's models. Scoring and field extraction use Claude Haiku (fast, cheap, runs in batches). Tailoring uses Claude Sonnet (the output goes to employers). Responses stream via native `ReadableStream` and SSE, no SDK wrapper.
+
+The full stack: Next.js, TypeScript, Prisma ORM over Neon PostgreSQL, Clerk auth, Tailwind v4. React Compiler enabled. Rate limiting, security headers, CSP, and a Playwright smoke test suite shipped before launch.
+
+8,000 lines of code. 130 commits. Seven days.
+
+---
+
+[Full write-up on the blog](/blog/shortlist) — including the architecture decisions, the AI design choices, and what surprised me most about building it.
+
+[Live app](https://shortlist.johnmoorman.com) · [GitHub](https://github.com/mojoro/shortlist)
