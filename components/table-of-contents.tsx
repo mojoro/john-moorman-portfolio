@@ -63,16 +63,24 @@ export function TableOfContents({ items }: Props) {
                     })
                     setActiveId(item.id)
                   }}
-                  className={`group relative block pb-0.5 text-[13px] leading-snug transition-colors hover:text-accent ${
-                    isActive ? "text-accent" : "text-text-muted"
-                  }`}
+                  className="group flex items-center text-[13px] leading-snug"
                 >
-                  {item.text}
-                  {/* Animated underline */}
                   <span
-                    className="absolute bottom-0 left-0 h-px bg-accent transition-all duration-300 ease-out"
-                    style={{ width: isActive ? "100%" : "0%" }}
-                  />
+                    className={`relative transition-colors ${
+                      isActive
+                        ? "text-text-primary"
+                        : "text-text-secondary group-hover:text-text-primary"
+                    }`}
+                  >
+                    {item.text}
+                    <span
+                      className={`absolute -bottom-0.5 left-0 h-px w-full origin-left bg-accent transition-transform ${
+                        isActive
+                          ? "scale-x-100"
+                          : "scale-x-0 group-hover:scale-x-100"
+                      }`}
+                    />
+                  </span>
                 </a>
               </li>
             )
