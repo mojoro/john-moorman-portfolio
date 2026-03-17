@@ -96,7 +96,7 @@ export default function AboutPage() {
           {[
             {
               label: "Primary stack",
-              items: "TypeScript, Next.js 15, React 19, Tailwind CSS",
+              items: "TypeScript, Next.js, React, Tailwind CSS",
             },
             {
               label: "Also comfortable with",

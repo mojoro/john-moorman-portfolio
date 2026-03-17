@@ -8,7 +8,7 @@ import { ContactForm } from "@/components/contact-form"
 const SKILLS = [
   {
     category: "Primary",
-    items: ["TypeScript", "JavaScript (ES6+)", "Next.js 15", "React 19", "Tailwind CSS"],
+    items: ["TypeScript", "JavaScript (ES6+)", "Next.js", "React", "Tailwind CSS"],
   },
   {
     category: "Also Proficient",

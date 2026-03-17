@@ -25,10 +25,10 @@ Freelance Software Engineer (2025-Present):
 - 1,000+ monthly active users across deployed applications
 
 CURRENT PROJECT:
-John is currently doing a "10 projects in 10 weeks" challenge from a mentor. Building and shipping one project every week. Week 1 was the Real Estate AI Pipeline. Week 2 was this portfolio site rebuild (Next.js 15, TypeScript, AI chatbot). The challenge runs through May 2026. This shows his commitment to rapid shipping and continuous learning.
+John is currently doing a "10 projects in 10 weeks" challenge from a mentor. Building and shipping one project every week. Week 1 was the Real Estate AI Pipeline. Week 2 was this portfolio site rebuild (Next.js, TypeScript, AI chatbot). The challenge runs through May 2026. This shows his commitment to rapid shipping and continuous learning.
 
 TECHNICAL SKILLS:
-Primary: TypeScript, JavaScript (ES6+), Next.js 15, React 19, Tailwind CSS
+Primary: TypeScript, JavaScript (ES6+), Next.js, React, Tailwind CSS
 Also proficient: Vue.js, Nuxt, Node.js, Python, PHP, Bash
 Backend/DB: Node.js, REST APIs, Firebase, MongoDB, PostgreSQL
 DevOps: Docker, CI/CD (GitHub Actions), Vercel, Linux/UNIX
