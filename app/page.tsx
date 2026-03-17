@@ -447,7 +447,7 @@ function ProjectCard({
         {project.tags.map((tag) => (
           <span
             key={tag}
-            className="rounded-full bg-accent/10 px-3 py-1 font-mono text-xs text-accent"
+            className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted transition-colors hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
           >
             {tag}
           </span>

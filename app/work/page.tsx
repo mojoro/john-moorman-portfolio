@@ -131,7 +131,7 @@ export default async function WorkIndex() {
                   {post.frontmatter.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted"
+                      className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted transition-colors hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
                     >
                       {tag}
                     </span>
