@@ -29,6 +29,12 @@ function extractText(children: React.ReactNode): string {
 
 const mdxComponents = {
   img: MdxImage,
+  p: ({ children }: { children: React.ReactNode }) => {
+    const hasImage = Array.isArray(children)
+      ? children.some((c) => typeof c === "object" && c !== null && "type" in c && (c as React.ReactElement).type === MdxImage)
+      : typeof children === "object" && children !== null && "type" in children && (children as React.ReactElement).type === MdxImage
+    return hasImage ? <div>{children}</div> : <p>{children}</p>
+  },
   a: (props: React.ComponentProps<"a">) => (
     <a
       {...props}
