@@ -123,6 +123,12 @@ body {
   margin: 2rem 0;
 }
 
+/* Print button shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
 /* Print styles — force light palette so resume looks clean on all browsers/OS */
 @media print {
   :root {
