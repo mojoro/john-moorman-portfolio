@@ -5,85 +5,6 @@ import Link from "next/link"
 import { SectionReveal } from "@/components/section-reveal"
 import { ContactForm } from "@/components/contact-form"
 
-const PROJECTS = [
-  {
-    title: "BOA Automation Suite",
-    summary:
-      "Complete administrative automation for Berlin Opera Academy, replacing manual workflows across the entire student lifecycle.",
-    stats: [
-      { label: "Annual savings", value: "€74K" },
-      { label: "Payment collection", value: "+18%" },
-    ],
-    tags: ["Google Apps Script", "PayPal API", "Gmail API"],
-    href: "/work/boa-automation",
-    featured: true,
-  },
-  {
-    title: "Real Estate AI Pipeline",
-    summary:
-      "Automated property intelligence pipeline that scrapes, structures, and AI-analyzes listings for daily investment recommendations.",
-    stats: [],
-    tags: ["n8n", "Apify", "Gemini", "Airtable"],
-    href: "/work/real-estate-pipeline",
-    featured: true,
-  },
-  {
-    title: "finalflow",
-    summary:
-      "Marketing site and education platform foundation for a music tech startup. Pixel-perfect Figma execution in the client's preferred stack.",
-    stats: [],
-    tags: ["Vue.js", "TypeScript", "Tailwind CSS", "Firebase"],
-    href: "/work/finalflow",
-    featured: false,
-  },
-  {
-    title: "Serenity Retreat",
-    summary:
-      "Frontend rebuild, analytics integration, data pipeline migration, and custom PHP calendar sync plugin.",
-    stats: [],
-    tags: ["PHP", "JavaScript", "Analytics", "REST APIs"],
-    href: "/work/serenity-retreat",
-    featured: false,
-  },
-] as const
-
-const CURRENT_PROJECTS: Array<{
-  week: number
-  title: string
-  status: "shipped" | "in-progress" | "upcoming"
-  href?: string
-}> = [
-  {
-    week: 1,
-    title: "Real Estate AI Pipeline",
-    status: "shipped",
-    href: "/work/real-estate-pipeline",
-  },
-  {
-    week: 2,
-    title: "Portfolio Site Rebuild",
-    status: "shipped",
-    href: "/work/portfolio-site",
-  },
-  {
-    week: 3,
-    title: "Shortlist",
-    status: "shipped",
-    href: "/work/shortlist",
-  },
-  {
-    week: 4,
-    title: "Drop — Open Source",
-    status: "in-progress",
-    href: "/work/drop-oss",
-  },
-  {
-    week: 5,
-    title: "Coming soon",
-    status: "upcoming",
-  },
-]
-
 function SectionHeading({
   number,
   children,
@@ -108,7 +29,30 @@ interface BlogPost {
   href: string
 }
 
-export function HomeClient({ blogPosts }: { blogPosts: BlogPost[] }) {
+interface FeaturedWork {
+  title: string
+  summary: string
+  stats: Array<{ value: string; label: string }>
+  tags: readonly string[]
+  href: string
+}
+
+interface ChallengeWork {
+  week: number
+  title: string
+  status: "shipped" | "in-progress" | "upcoming"
+  href?: string
+}
+
+export function HomeClient({
+  blogPosts,
+  featuredWork,
+  challengeWork,
+}: {
+  blogPosts: BlogPost[]
+  featuredWork: FeaturedWork[]
+  challengeWork: ChallengeWork[]
+}) {
   const shouldReduceMotion = useReducedMotion()
 
   const container = {
@@ -235,14 +179,14 @@ export function HomeClient({ blogPosts }: { blogPosts: BlogPost[] }) {
                 </h3>
               </div>
               <span className="font-mono text-sm text-accent/80">
-                {CURRENT_PROJECTS.filter((p) => p.status === "shipped").length + CURRENT_PROJECTS.filter((p) => p.status === "in-progress").length} of 10 &middot;{" "}
-                {CURRENT_PROJECTS.filter((p) => p.status === "shipped").length} shipped
+                {challengeWork.filter((p) => p.status === "shipped").length + challengeWork.filter((p) => p.status === "in-progress").length} of 10 &middot;{" "}
+                {challengeWork.filter((p) => p.status === "shipped").length} shipped
               </span>
             </div>
             <div className="mt-3 flex gap-1">
               {Array.from({ length: 10 }, (_, i) => {
-                const shipped = CURRENT_PROJECTS.filter((p) => p.status === "shipped").length
-                const inProgress = CURRENT_PROJECTS.filter((p) => p.status === "in-progress").length
+                const shipped = challengeWork.filter((p) => p.status === "shipped").length
+                const inProgress = challengeWork.filter((p) => p.status === "in-progress").length
                 return (
                   <div
                     key={i}
@@ -262,7 +206,7 @@ export function HomeClient({ blogPosts }: { blogPosts: BlogPost[] }) {
 
         {/* Featured projects */}
         <div className="mt-8 space-y-6">
-          {PROJECTS.map((project, i) => (
+          {featuredWork.map((project, i) => (
             <SectionReveal key={project.title} delay={(i + 1) * 0.1}>
               <ProjectCard project={project} />
             </SectionReveal>
@@ -271,8 +215,8 @@ export function HomeClient({ blogPosts }: { blogPosts: BlogPost[] }) {
 
         {/* Current building cards (shipped + in-progress only) */}
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {CURRENT_PROJECTS.filter((p) => p.status !== "upcoming").map((project, i) => (
-            <SectionReveal key={project.week} delay={(i + PROJECTS.length + 1) * 0.1}>
+          {challengeWork.filter((p) => p.status !== "upcoming").map((project, i) => (
+            <SectionReveal key={project.week} delay={(i + featuredWork.length + 1) * 0.1}>
               <CurrentProjectCard project={project} />
             </SectionReveal>
           ))}
@@ -398,7 +342,7 @@ export function HomeClient({ blogPosts }: { blogPosts: BlogPost[] }) {
 function ProjectCard({
   project,
 }: {
-  project: (typeof PROJECTS)[number]
+  project: FeaturedWork
 }) {
   const shouldReduceMotion = useReducedMotion()
 
@@ -414,9 +358,7 @@ function ProjectCard({
       </span>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1">
-          {project.featured && (
-            <p className="mb-2 font-mono text-xs text-accent">Featured</p>
-          )}
+          <p className="mb-2 font-mono text-xs text-accent">Featured</p>
           <h3 className="text-xl font-medium text-text-primary transition-colors group-hover:text-accent">
             {project.title}
           </h3>
@@ -456,7 +398,7 @@ function ProjectCard({
 function CurrentProjectCard({
   project,
 }: {
-  project: (typeof CURRENT_PROJECTS)[number]
+  project: ChallengeWork
 }) {
   const shouldReduceMotion = useReducedMotion()
 

@@ -11,6 +11,8 @@ export interface PostFrontmatter {
   draft?: boolean
   status?: "shipped" | "in-progress" | "upcoming"
   challenge?: string
+  week?: number
+  stats?: Array<{ value: string; label: string }>
 }
 
 export interface Post {
