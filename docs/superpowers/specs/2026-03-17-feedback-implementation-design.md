@@ -44,9 +44,14 @@ Stays at /about but is not in the nav. Linked from homepage hero ("Full story �
 ### Sidebar changes
 
 - Desktop sidebar: update NAV_ITEMS to 4 entries
+- Resume nav item has `hash: null` (links to `/resume`, no homepage section). Scroll-spy skips it.
 - Scroll-spy on homepage watches: `#work`, `#blog`, `#contact` (3 sections instead of 6)
 - Mobile hamburger menu: same 4 items
 - Social links at bottom of sidebar remain unchanged
+
+### Homepage section numbering
+
+New section numbers: 01. Work, 02. Blog, 03. Contact. These match the homepage sections, not the full nav (Resume has no homepage section).
 
 ## 2. /work Page Redesign
 
@@ -75,14 +80,30 @@ Below the banner, all projects appear in a single flat list. Each card has:
 Currently, homepage projects are hardcoded constants and /work pulls from MDX. After this change:
 - /work page continues pulling from MDX via `getPosts("work")`
 - MDX frontmatter gets two new optional fields: `status` ("shipped" | "in-progress" | "upcoming") and `challenge` (string, e.g., "10-in-10")
+- Default for `status` if omitted: `"shipped"`. Default for `challenge` if omitted: `undefined`.
 - Homepage work preview shows a curated subset (featured + latest in-progress), still derived from the same MDX source
-- The 10-in-10 banner stats are computed from the MDX metadata
+- Homepage data stays hardcoded for now (the page is a client component). Keep it manually in sync with MDX. Converting to a Server Component is out of scope.
+
+**MDX migration plan:**
+
+Existing work MDX files need frontmatter updates:
+- `boa-automation.mdx` — add `status: "shipped"`, `challenge: "10-in-10"` (if applicable, otherwise omit)
+- `real-estate-pipeline.mdx` — add `status: "shipped"`
+- `finalflow.mdx` — add `status: "shipped"`
+- `serenity-retreat.mdx` — add `status: "shipped"`
+- `portfolio-site.mdx` — add `status: "shipped"`, `challenge: "10-in-10"` (if applicable)
+
+Items currently only in the hardcoded `CURRENT_PROJECTS` array (e.g., "Job Hunt Web Application") that have no MDX file: create stub MDX files with `draft: true` and `status: "in-progress"` or `status: "upcoming"`. These won't have detail pages yet but will appear in the project list.
+
+**10-in-10 banner stats:**
+
+The banner hardcodes the total (10). Shipped and in-progress counts are derived from MDX files where `challenge: "10-in-10"`. Upcoming count is computed as `10 - shipped - inProgress`. This avoids needing placeholder MDX files for all 10 weeks.
 
 ## 3. Chatbot Trigger Redesign
 
 ### Avatar
 
-Extract the character head from `public/images/hero-vector.svg` (the `#Character` group, roughly viewBox `270 205 65 85`). Crop and export as a standalone SVG. Display it clipped to a circle (52px diameter) as the floating trigger button, replacing the current chat icon + "Ask me anything" text.
+Create a new `public/images/chat-avatar.svg` by manually extracting and cropping the character's head from `public/images/hero-vector.svg`. The source SVG's `#Character` group contains a full-body illustration (viewBox `0 0 500 500`). The head/face paths (hair, eyes, glasses, mouth) need to be isolated, re-centered into a tight viewBox, and saved as a standalone file. This is a manual design task, not an automated crop. Display the result clipped to a circle (52px diameter) as the floating trigger button, replacing the current chat icon + "Ask me anything" text.
 
 The avatar button sits in the bottom-right corner (same position as current trigger). It has:
 - Circular border with accent color (rgba(100, 255, 218, 0.4))
@@ -111,9 +132,19 @@ Messages are stored in localStorage keyed by `chatSessionId`.
 ### Implementation
 
 In `chat-panel.tsx`:
+- Change sessionId initializer from `useState(() => crypto.randomUUID())` to:
+  ```ts
+  const [sessionId] = useState(() => {
+    if (typeof window === 'undefined') return crypto.randomUUID()
+    return localStorage.getItem('chat_session_id') ?? (() => {
+      const id = crypto.randomUUID()
+      localStorage.setItem('chat_session_id', id)
+      return id
+    })()
+  })
+  ```
 - On component mount: check localStorage for existing messages under the current sessionId. If found, hydrate state.
 - On every message update (user sends or assistant responds): write the full messages array to localStorage.
-- SessionId is already generated via `crypto.randomUUID()`. Store it in localStorage too so it persists across navigations.
 - Existing server-side persistence (Neon upsert) continues unchanged.
 
 ### Storage key format
@@ -183,20 +214,20 @@ No changes needed. The prompt in `lib/chatbot-prompt.ts` works with any Claude m
 
 100% Lighthouse accessibility score.
 
+### Pages to audit
+
+Homepage, /about, /work, /work/boa-automation (representative slug page), /blog, /blog/real-estate-ai-tool (representative slug page), /resume.
+
 ### Approach
 
-1. Run Lighthouse audit on all pages
+1. Run Lighthouse audit on all pages listed above
 2. Fix identified issues, likely including:
-   - Contrast ratios on muted text colors (especially `--text-muted: #495670` against `--bg: #0a192f`)
+   - Contrast ratios on muted text colors. `--text-muted: #495670` against `--bg: #0a192f` is approximately 2.3:1, failing WCAG AA. Lighten to approximately `#5a6a8a` (~3.5:1) or similar. This will slightly alter the visual feel of timestamps, dividers, and muted labels but stays within the existing palette feel.
    - Font size minimums (ensure nothing below 12px for body text)
    - Missing ARIA labels on interactive elements (chat trigger, hamburger menu, social links)
    - Focus indicators on all interactive elements
    - Image alt text completeness
 3. Re-run audit to confirm 100%
-
-### Constraint
-
-Fix accessibility issues without changing the visual design language. Increase contrast within the existing palette rather than introducing new colors.
 
 ## 9. Drop Version Numbers
 
@@ -206,15 +237,23 @@ Remove framework/library version numbers from all user-facing content:
 - Homepage skills grid
 - Resume skills section
 - About page
-- Blog post content (where version numbers appear in running text)
 - Chatbot system prompt (references to specific versions)
+
+### Blog/MDX content
+
+Evaluate version numbers in case study MDX individually rather than bulk-removing. Case studies that discuss a specific migration (e.g., portfolio-site.mdx discussing Next.js 15 App Router) should keep version numbers where they're part of the narrative. Remove them only from generic "built with X" lists.
 
 ### Exceptions
 
 Keep version numbers in:
-- `package.json` (obviously)
-- Technical blog posts where the version is the point (e.g., "migrating from Next.js 14 to 15")
+- `package.json`
+- Technical blog posts where the version is the point
 - MDX frontmatter metadata
+- Case study narratives where the version is contextually relevant
+
+### Related
+
+Also update `CLAUDE.md` to remove the specific model reference (`claude-sonnet-4-20250514`) after the Haiku switch, and remove version numbers from the tech stack section where appropriate.
 
 ## 10. Bio Rewrite
 
@@ -239,7 +278,10 @@ Keep the current punchy intro style but ensure the opening sentence/hook is dist
 
 ### Known issues
 
-- "memorising" → "memorizing" (flagged by reviewer)
+- "memorising" → "memorizing" in `app/about/page.tsx` (flagged by reviewer)
+- "rigour" → "rigor" in `app/about/page.tsx`
+- "colour" → "color" in `content/work/finalflow.mdx`
+- "organisation" → "organization" in `content/work/boa-automation.mdx`
 
 ### Approach
 
@@ -265,11 +307,12 @@ These are grouped by dependency, not priority:
 - Bio rewrite (/about page)
 - Accessibility audit + fixes
 
-**Phase 3 — IA restructure:**
+**Phase 3 — IA restructure (deploy as a single unit):**
 - Sidebar nav update (6 → 4 items)
 - Homepage section consolidation
 - /work page redesign (merge Building, add challenge banner)
 - Remove Building and Experience as standalone homepage sections
+- These changes are tightly coupled. Implement on a feature branch and merge as one unit to avoid broken nav/scroll-spy intermediate states.
 
 **Phase 4 — Features:**
 - Chat persistence (localStorage)
