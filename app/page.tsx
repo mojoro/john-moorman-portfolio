@@ -73,6 +73,12 @@ const CURRENT_PROJECTS: Array<{
   },
   {
     week: 4,
+    title: "Drop — Open Source",
+    status: "in-progress",
+    href: "/work/drop-oss",
+  },
+  {
+    week: 5,
     title: "Coming soon",
     status: "upcoming",
   },
