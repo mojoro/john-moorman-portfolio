@@ -62,7 +62,7 @@ async function streamAnthropic(
   // .create() with stream: true is properly async — throws on auth
   // errors, rate limits, or service outages before we return a Response.
   const stream = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: MAX_OUTPUT_TOKENS,
     system: SYSTEM_PROMPT,
     messages: anthropicMessages,
