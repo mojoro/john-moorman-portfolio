@@ -1,14 +1,30 @@
 import { getPosts, getPost } from "@/lib/content"
+import { extractHeadings, slugify } from "@/lib/toc"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { LightboxProvider } from "@/components/lightbox-provider"
 import { MdxImage } from "@/components/mdx-image"
+import { TableOfContents } from "@/components/table-of-contents"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import type React from "react"
 
 function estimateReadTime(content: string): number {
   const words = content.trim().split(/\s+/).length
   return Math.max(1, Math.round(words / 238))
+}
+
+function extractText(children: React.ReactNode): string {
+  if (typeof children === "string") return children
+  if (Array.isArray(children)) return children.map(extractText).join("")
+  if (
+    typeof children === "object" &&
+    children !== null &&
+    "props" in children
+  ) {
+    return extractText((children as React.ReactElement<{ children?: React.ReactNode }>).props.children)
+  }
+  return ""
 }
 
 const mdxComponents = {
@@ -20,6 +36,12 @@ const mdxComponents = {
       target={props.href?.startsWith("http") ? "_blank" : undefined}
       rel={props.href?.startsWith("http") ? "noopener noreferrer" : undefined}
     />
+  ),
+  h2: ({ children }: { children: React.ReactNode }) => (
+    <h2 id={slugify(extractText(children))}>{children}</h2>
+  ),
+  h3: ({ children }: { children: React.ReactNode }) => (
+    <h3 id={slugify(extractText(children))}>{children}</h3>
   ),
 }
 
@@ -48,6 +70,8 @@ export default async function BlogPost({ params }: Props) {
   const post = await getPost("blog", slug)
 
   if (!post) notFound()
+
+  const headings = extractHeadings(post.content)
 
   return (
     <article className="py-20">
@@ -87,11 +111,14 @@ export default async function BlogPost({ params }: Props) {
         )}
       </header>
 
-      <LightboxProvider>
-        <div className="prose-custom mt-12 max-w-[680px]">
-          <MDXRemote source={post.content} components={mdxComponents} />
-        </div>
-      </LightboxProvider>
+      <div className="mt-12 flex items-start gap-12">
+        <LightboxProvider>
+          <div className="prose-custom min-w-0 max-w-[680px] flex-1">
+            <MDXRemote source={post.content} components={mdxComponents} />
+          </div>
+        </LightboxProvider>
+        <TableOfContents items={headings} />
+      </div>
     </article>
   )
 }
