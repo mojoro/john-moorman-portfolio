@@ -6,6 +6,11 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
+function estimateReadTime(content: string): number {
+  const words = content.trim().split(/\s+/).length
+  return Math.max(1, Math.round(words / 238))
+}
+
 const mdxComponents = {
   img: MdxImage,
   a: (props: React.ComponentProps<"a">) => (
@@ -54,13 +59,17 @@ export default async function BlogPost({ params }: Props) {
       </Link>
 
       <header className="mt-8">
-        <time className="font-mono text-xs text-text-muted">
-          {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </time>
+        <div className="flex items-center gap-3 font-mono text-xs text-text-muted">
+          <time>
+            {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
+          <span className="text-border">·</span>
+          <span>{estimateReadTime(post.content)} min read</span>
+        </div>
         <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
           {post.frontmatter.title}
         </h1>
@@ -69,7 +78,7 @@ export default async function BlogPost({ params }: Props) {
             {post.frontmatter.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted"
+                className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted transition-colors duration-200 hover:border-accent hover:text-accent"
               >
                 {tag}
               </span>
