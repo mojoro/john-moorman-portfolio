@@ -5,36 +5,6 @@ import Link from "next/link"
 import { SectionReveal } from "@/components/section-reveal"
 import { ContactForm } from "@/components/contact-form"
 
-const SKILLS = [
-  {
-    category: "Primary",
-    items: ["TypeScript", "JavaScript (ES6+)", "Next.js", "React", "Tailwind CSS"],
-  },
-  {
-    category: "Also Proficient",
-    items: ["Vue.js", "Nuxt", "Node.js", "Python", "PHP", "Bash"],
-  },
-  {
-    category: "Backend & DB",
-    items: ["REST APIs", "Firebase", "MongoDB", "PostgreSQL"],
-  },
-  {
-    category: "DevOps",
-    items: ["Docker", "CI/CD (GitHub Actions)", "Vercel", "Linux/UNIX"],
-  },
-  {
-    category: "AI & Automation",
-    items: [
-      "Anthropic API",
-      "Claude Code",
-      "Cursor",
-      "n8n",
-      "Apify",
-      "Google Apps Script",
-    ],
-  },
-] as const
-
 const PROJECTS = [
   {
     title: "BOA Automation Suite",
@@ -74,33 +44,6 @@ const PROJECTS = [
     tags: ["PHP", "JavaScript", "Analytics", "REST APIs"],
     href: "/work/serenity-retreat",
     featured: false,
-  },
-] as const
-
-const EXPERIENCE = [
-  {
-    role: "Freelance Software Engineer",
-    company: "Self-employed",
-    period: "2025 – Present",
-    location: "Berlin",
-    highlights: [
-      "Full-stack client work with end-to-end ownership, adapting to each project's preferred stack: Vue, PHP, n8n, Next.js",
-      "Built an AI-powered real estate pipeline: automated scraping, AI classification, and daily investment reports for a Berlin client",
-      "CI/CD pipelines via GitHub Actions + Docker, reducing deployment times 30% across projects",
-      "1,000+ monthly active users across deployed applications",
-    ],
-  },
-  {
-    role: "Software Engineer",
-    company: "Berlin Opera Academy",
-    period: "2023 – 2025",
-    location: "Berlin",
-    highlights: [
-      "Enabled two part-time administrators to do the work of four, saving approximately €74K per year",
-      "Built complete automation suite in Google Apps Script: offer letters, payment tracking, PayPal reconciliation, automated emails",
-      "Payment reconciliation with automated follow-ups achieved an 18% increase in collection",
-      "Built production website: 95/100 Lighthouse score, top-3 organic rankings, 8% organic traffic growth",
-    ],
   },
 ] as const
 
@@ -234,6 +177,14 @@ export default function Home() {
             See my work &darr;
           </a>
         </motion.div>
+        <motion.div variants={fadeUp} className="mt-4">
+          <Link
+            href="/about"
+            className="font-mono text-sm text-accent transition-colors hover:underline"
+          >
+            Full story &rarr;
+          </Link>
+        </motion.div>
         <motion.div
           variants={fadeUp}
           className="mt-6 flex flex-wrap items-center gap-5 text-text-muted"
@@ -265,89 +216,68 @@ export default function Home() {
         </motion.div>
       </motion.section>
 
-      {/* ── About ── */}
-      <section id="about" className="py-24">
-        <SectionReveal>
-          <SectionHeading number="01">About</SectionHeading>
-        </SectionReveal>
-
-        <SectionReveal delay={0.1}>
-          <div className="mt-8 max-w-2xl space-y-4 text-text-secondary">
-            <p>
-              I came to software through an unusual door. Five years training as
-              an operatic performer at Boston Conservatory at Berklee taught me
-              precision and discipline. When I started building automation tools
-              at Berlin Opera Academy in 2023, I approached the work the same way
-              I&apos;d approached a new role: understand the system completely,
-              then execute.
-            </p>
-            <p>
-              I taught myself Google Apps Script from scratch, mapped the full
-              student lifecycle workflow, and built tools that replaced two
-              full-time administrative positions. That project convinced me
-              engineering was where I wanted to build my career.
-            </p>
-            <p>
-              Today I work AI-natively. Claude Code and Cursor are core to how I
-              develop. I care about business impact, not just technical elegance.
-            </p>
-          </div>
-        </SectionReveal>
-
-        <SectionReveal delay={0.2}>
-          <div className="mt-12">
-            <h3 className="mb-6 font-mono text-sm text-accent">
-              Technologies I work with
-            </h3>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {SKILLS.map((group) => (
-                <div key={group.category}>
-                  <h4 className="mb-3 text-sm font-medium text-text-primary">
-                    {group.category}
-                  </h4>
-                  <ul className="space-y-1.5">
-                    {group.items.map((skill) => (
-                      <li
-                        key={skill}
-                        className="flex items-center gap-2 font-mono text-sm text-text-secondary"
-                      >
-                        <span className="text-accent">&#9656;</span>
-                        {skill}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </SectionReveal>
-
-        <SectionReveal delay={0.3}>
-          <div className="mt-10">
-            <Link
-              href="/about"
-              className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
-            >
-              Full bio &rarr;
-            </Link>
-          </div>
-        </SectionReveal>
-      </section>
-
       {/* ── Work ── */}
       <section id="work" className="py-24">
         <SectionReveal>
-          <SectionHeading number="02">Work</SectionHeading>
+          <SectionHeading number="01">Work</SectionHeading>
           <p className="mt-4 text-text-secondary">
             Selected projects, each one shipped to production with real users
             and measurable outcomes.
           </p>
         </SectionReveal>
 
-        <div className="mt-10 space-y-6">
+        {/* 10-in-10 challenge callout */}
+        <SectionReveal delay={0.1}>
+          <div className="mt-10 rounded-lg border border-accent/20 bg-accent/5 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="font-mono text-xs uppercase tracking-widest text-accent/70">
+                  Challenge
+                </span>
+                <h3 className="mt-1 text-lg font-semibold text-text-primary">
+                  10 Projects in 10 Weeks
+                </h3>
+              </div>
+              <span className="font-mono text-sm text-accent/80">
+                {CURRENT_PROJECTS.filter((p) => p.status === "shipped").length + CURRENT_PROJECTS.filter((p) => p.status === "in-progress").length} of 10 &middot;{" "}
+                {CURRENT_PROJECTS.filter((p) => p.status === "shipped").length} shipped
+              </span>
+            </div>
+            <div className="mt-3 flex gap-1">
+              {Array.from({ length: 10 }, (_, i) => {
+                const shipped = CURRENT_PROJECTS.filter((p) => p.status === "shipped").length
+                const inProgress = CURRENT_PROJECTS.filter((p) => p.status === "in-progress").length
+                return (
+                  <div
+                    key={i}
+                    className={`h-1 flex-1 rounded-full ${
+                      i < shipped
+                        ? "bg-accent/70"
+                        : i < shipped + inProgress
+                        ? "bg-yellow-400/50"
+                        : "bg-text-muted/20"
+                    }`}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        </SectionReveal>
+
+        {/* Featured projects */}
+        <div className="mt-8 space-y-6">
           {PROJECTS.map((project, i) => (
-            <SectionReveal key={project.title} delay={i * 0.1}>
+            <SectionReveal key={project.title} delay={(i + 1) * 0.1}>
               <ProjectCard project={project} />
+            </SectionReveal>
+          ))}
+        </div>
+
+        {/* Current building cards (shipped + in-progress only) */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {CURRENT_PROJECTS.filter((p) => p.status !== "upcoming").map((project, i) => (
+            <SectionReveal key={project.week} delay={(i + PROJECTS.length + 1) * 0.1}>
+              <CurrentProjectCard project={project} />
             </SectionReveal>
           ))}
         </div>
@@ -364,81 +294,10 @@ export default function Home() {
         </SectionReveal>
       </section>
 
-      {/* ── Currently Building ── */}
-      <section id="building" className="py-24">
-        <SectionReveal>
-          <SectionHeading number="03">Currently Building</SectionHeading>
-          <p className="mt-4 text-text-secondary">
-            10 projects in 10 weeks. A challenge from a mentor: build and ship
-            one project every week for 10 weeks.
-          </p>
-        </SectionReveal>
-
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {CURRENT_PROJECTS.map((project, i) => (
-            <SectionReveal key={project.week} delay={i * 0.1}>
-              <CurrentProjectCard project={project} />
-            </SectionReveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Experience ── */}
-      <section id="experience" className="py-24">
-        <SectionReveal>
-          <SectionHeading number="04">Experience</SectionHeading>
-        </SectionReveal>
-
-        <div className="mt-10 space-y-12">
-          {EXPERIENCE.map((job, i) => (
-            <SectionReveal key={job.company} delay={i * 0.1}>
-              <div>
-                <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
-                  <h3 className="text-lg font-medium text-text-primary">
-                    {job.role}{" "}
-                    <span className="text-accent">@ {job.company}</span>
-                  </h3>
-                  <span className="font-mono text-sm text-text-muted">
-                    {job.period}
-                  </span>
-                </div>
-                <p className="mt-1 font-mono text-xs text-text-muted">
-                  {job.location}
-                </p>
-                <ul className="mt-4 space-y-2">
-                  {job.highlights.map((item) => (
-                    <li
-                      key={item}
-                      className="flex gap-2 text-sm text-text-secondary"
-                    >
-                      <span className="mt-0 shrink-0 text-accent">
-                        &#9656;
-                      </span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </SectionReveal>
-          ))}
-        </div>
-
-        <SectionReveal delay={0.2}>
-          <div className="mt-10">
-            <Link
-              href="/resume"
-              className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
-            >
-              View full resume &rarr;
-            </Link>
-          </div>
-        </SectionReveal>
-      </section>
-
       {/* ── Blog ── */}
       <section id="blog" className="py-24">
         <SectionReveal>
-          <SectionHeading number="05">Blog</SectionHeading>
+          <SectionHeading number="02">Blog</SectionHeading>
           <p className="mt-4 text-text-secondary">
             Writing about what I build and how I build it.
           </p>
@@ -489,7 +348,7 @@ export default function Home() {
       {/* ── Contact ── */}
       <section id="contact" className="py-24">
         <SectionReveal>
-          <SectionHeading number="06">Contact</SectionHeading>
+          <SectionHeading number="03">Contact</SectionHeading>
           <p className="mt-6 max-w-xl text-text-secondary">
             I&apos;m currently looking for mid-level fullstack or frontend roles
             at Berlin startups. Whether you have a specific role in mind or just
