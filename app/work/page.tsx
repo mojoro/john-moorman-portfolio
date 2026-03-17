@@ -116,17 +116,6 @@ export default async function WorkIndex() {
                 {challenge && (
                   <span className="rounded-full bg-yellow-400/10 px-2 py-0.5 font-mono text-[10px] text-yellow-400">
                     10 in 10
-            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-              {post.frontmatter.description}
-            </p>
-            {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {post.frontmatter.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted transition-colors duration-200 hover:border-accent hover:text-accent"
-                  >
-                    {tag}
                   </span>
                 )}
                 {statusBadge(status)}
