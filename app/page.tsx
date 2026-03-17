@@ -550,10 +550,13 @@ function ProjectCard({
   return (
     <motion.a
       href={project.href}
-      className="group block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
+      className="group relative block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
       whileHover={shouldReduceMotion ? {} : { y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
+      <span className="absolute top-4 right-4 text-text-muted text-sm transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+        ↗
+      </span>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1">
           {project.featured && (
@@ -643,10 +646,13 @@ function CurrentProjectCard({
     return (
       <motion.a
         href={project.href}
-        className={`group block rounded-lg border p-4 transition-colors hover:border-accent/40 ${borderClass}`}
+        className={`group relative block rounded-lg border p-4 transition-colors hover:border-accent/40 ${borderClass}`}
         whileHover={shouldReduceMotion ? {} : { y: -4 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
+        <span className="absolute top-3 right-3 text-text-muted text-xs transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+          ↗
+        </span>
         {inner}
       </motion.a>
     )
