@@ -6,12 +6,10 @@ import Link from "next/link"
 import { ThemeToggle } from "./theme-toggle"
 
 const NAV_ITEMS = [
-  { number: "01", label: "About",      hash: "about",      page: "/about" },
-  { number: "02", label: "Work",       hash: "work",        page: "/work" },
-  { number: "03", label: "Building",   hash: "building",    page: null },
-  { number: "04", label: "Experience", hash: "experience",  page: null },
-  { number: "05", label: "Blog",       hash: "blog",        page: "/blog" },
-  { number: "06", label: "Contact",    hash: "contact",     page: null },
+  { number: "01", label: "Work",    hash: "work",    page: "/work" },
+  { number: "02", label: "Blog",    hash: "blog",    page: "/blog" },
+  { number: "03", label: "Resume",  hash: null,      page: "/resume" },
+  { number: "04", label: "Contact", hash: "contact", page: null },
 ] as const
 
 const SOCIAL_LINKS = [
@@ -91,7 +89,7 @@ export function Sidebar() {
   useEffect(() => {
     if (!isHomePage) return
 
-    const sectionIds = NAV_ITEMS.map((item) => item.hash)
+    const sectionIds = NAV_ITEMS.flatMap((item) => item.hash ? [item.hash] : [])
     const observers: IntersectionObserver[] = []
 
     for (const id of sectionIds) {
@@ -121,17 +119,23 @@ export function Sidebar() {
   }, [mobileMenuOpen])
 
   const handleNavClick = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>, hash: string, page: string | null) => {
+    (e: React.MouseEvent<HTMLAnchorElement>, hash: string | null, page: string | null) => {
       e.preventDefault()
       setMobileMenuOpen(false)
 
-      if (isHomePage) {
+      // Items with no hash (e.g. Resume) always navigate to their page
+      if (!hash && page) {
+        router.push(page)
+        return
+      }
+
+      if (isHomePage && hash) {
         // Smooth scroll to section on homepage
         document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" })
       } else if (page) {
         // Navigate to dedicated page
         router.push(page)
-      } else {
+      } else if (hash) {
         // No dedicated page, go home to the section
         router.push(`/#${hash}`)
       }
@@ -146,6 +150,7 @@ export function Sidebar() {
   }
 
   const getHref = (item: typeof NAV_ITEMS[number]) => {
+    if (!item.hash && item.page) return item.page
     if (isHomePage) return `#${item.hash}`
     return item.page ?? `/#${item.hash}`
   }
@@ -169,7 +174,7 @@ export function Sidebar() {
           <nav className="mt-16">
             <ul className="flex flex-col gap-6">
               {NAV_ITEMS.map((item) => (
-                <li key={item.hash}>
+                <li key={item.label}>
                   <a
                     href={getHref(item)}
                     onClick={(e) => handleNavClick(e, item.hash, item.page)}
@@ -265,7 +270,7 @@ export function Sidebar() {
           <nav className="w-full">
             <ul className="flex w-full flex-col pt-24">
               {NAV_ITEMS.map((item) => (
-                <li key={item.hash} className="w-full">
+                <li key={item.label} className="w-full">
                   <a
                     href={getHref(item)}
                     onClick={(e) => handleNavClick(e, item.hash, item.page)}

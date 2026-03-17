@@ -39,7 +39,7 @@ const EXPERIENCE = [
 ]
 
 const SKILLS = [
-  { label: "Primary", value: "TypeScript, JavaScript (ES6+), Next.js 15, React 19, Tailwind CSS" },
+  { label: "Primary", value: "TypeScript, JavaScript (ES6+), Next.js, React, Tailwind CSS" },
   { label: "Also proficient", value: "Vue.js, Nuxt, Node.js, Python, PHP, Bash" },
   { label: "Backend & DB", value: "REST APIs, Firebase, MongoDB, PostgreSQL, Neon" },
   { label: "DevOps", value: "Docker, CI/CD (GitHub Actions), Vercel, Linux/UNIX" },

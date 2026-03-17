@@ -9,6 +9,8 @@ export interface PostFrontmatter {
   tags?: string[]
   featured?: boolean
   draft?: boolean
+  status?: "shipped" | "in-progress" | "upcoming"
+  challenge?: string
 }
 
 export interface Post {

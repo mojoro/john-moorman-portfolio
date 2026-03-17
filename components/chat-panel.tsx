@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import Image from "next/image"
 import ReactMarkdown from "react-markdown"
 import type { Components } from "react-markdown"
 
@@ -46,13 +47,70 @@ export function ChatPanel() {
   const [error, setError] = useState<string | null>(null)
   const [honeypot, setHoneypot] = useState("")
   const [pageLoadedAt] = useState(() => Date.now())
-  const [sessionId] = useState(() => crypto.randomUUID())
+  const [sessionId] = useState(() => {
+    if (typeof window === "undefined") return crypto.randomUUID()
+    const stored = localStorage.getItem("chat_session_id")
+    if (stored) return stored
+    const id = crypto.randomUUID()
+    localStorage.setItem("chat_session_id", id)
+    return id
+  })
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const shouldReduceMotion = useReducedMotion()
 
   const turnCount = messages.filter((m) => m.role === "user").length
   const limitReached = turnCount >= MAX_TURNS
+  const [showGreeting, setShowGreeting] = useState(false)
+
+  // Auto-greeting bubble (once per visitor)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (localStorage.getItem("chatGreetingDismissed")) return
+    const timer = setTimeout(() => setShowGreeting(true), 2000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!showGreeting) return
+    const dismiss = () => {
+      setShowGreeting(false)
+      localStorage.setItem("chatGreetingDismissed", "true")
+    }
+    const scrollHandler = () => dismiss()
+    const timer = setTimeout(dismiss, 5000)
+    window.addEventListener("scroll", scrollHandler, { once: true })
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener("scroll", scrollHandler)
+    }
+  }, [showGreeting])
+
+  // Hydrate messages from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("chat_messages")
+      if (stored) {
+        const parsed = JSON.parse(stored) as Message[]
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed)
+        }
+      }
+    } catch {
+      // Corrupted storage, start fresh
+    }
+  }, [])
+
+  // Persist messages to localStorage on every update
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        localStorage.setItem("chat_messages", JSON.stringify(messages))
+      } catch {
+        // Storage full or unavailable
+      }
+    }
+  }, [messages])
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -154,17 +212,46 @@ export function ChatPanel() {
 
   return (
     <>
-      {/* Floating trigger button */}
-      <button
+      {/* Greeting speech bubble */}
+      <AnimatePresence>
+        {showGreeting && !open && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed bottom-20 right-6 z-40 max-w-[260px] cursor-pointer rounded-xl rounded-br-sm border border-accent/25 bg-accent/10 px-4 py-3 text-sm text-text-primary shadow-lg print:hidden"
+            onClick={() => {
+              setShowGreeting(false)
+              localStorage.setItem("chatGreetingDismissed", "true")
+              setOpen(true)
+            }}
+          >
+            Hi! I&apos;m John&apos;s AI assistant. Ask me anything about his work.
+            <span className="mt-1.5 block text-xs text-text-secondary">Click to chat &rarr;</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating avatar trigger */}
+      <motion.button
         onClick={() => setOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-accent bg-bg px-5 py-3 font-mono text-sm text-accent shadow-lg transition-colors hover:bg-accent/10 print:hidden ${
+        className={`fixed bottom-6 right-6 z-40 flex items-center justify-center w-[52px] h-[52px] rounded-full border-2 border-accent/40 bg-bg-surface shadow-lg shadow-black/30 transition-colors hover:border-accent/60 print:hidden ${
           open ? "hidden" : ""
         }`}
-        aria-label="Open chat"
+        whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        aria-label="Open chat with John's AI assistant"
       >
-        <ChatIcon />
-        Ask me anything
-      </button>
+        <Image
+          src="/images/chat-avatar.svg"
+          alt=""
+          width={36}
+          height={36}
+          className="rounded-full"
+        />
+        <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-bg bg-accent" />
+      </motion.button>
 
       {/* Backdrop */}
       <AnimatePresence>
