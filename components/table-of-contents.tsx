@@ -31,7 +31,19 @@ export function TableOfContents({ items }: Props) {
     )
 
     headingEls.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
+
+    const lastId = items[items.length - 1]?.id
+    function onScroll() {
+      const atBottom =
+        window.innerHeight + window.scrollY >= document.body.scrollHeight - 50
+      if (atBottom && lastId) setActiveId(lastId)
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener("scroll", onScroll)
+    }
   }, [items])
 
   if (items.length === 0) return null
