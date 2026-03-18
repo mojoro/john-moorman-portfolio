@@ -65,52 +65,57 @@ export default function PalettePage() {
   const [saving, setSaving] = useState(false)
   const { show } = useToast()
 
-  // Read current computed tokens on mount
+  // Read tokens from stylesheet rules (not computed styles) to avoid conflicts
   useEffect(() => {
-    // Read dark mode tokens (default)
-    document.documentElement.removeAttribute("data-theme")
-    // Small delay to let styles recompute
-    requestAnimationFrame(() => {
-      const darkTokens: Record<string, string> = {}
-      for (const key of EDITABLE_TOKENS) {
-        darkTokens[key] = resolveToHex(
-          getComputedStyle(document.documentElement).getPropertyValue(`--${key}`).trim()
-        )
-      }
-      setDark(darkTokens)
-      setInitialDark(darkTokens)
-
-      // Read light mode tokens
-      document.documentElement.setAttribute("data-theme", "light")
-      requestAnimationFrame(() => {
-        const lightTokens: Record<string, string> = {}
-        for (const key of EDITABLE_TOKENS) {
-          lightTokens[key] = resolveToHex(
-            getComputedStyle(document.documentElement).getPropertyValue(`--${key}`).trim()
-          )
+    function readTokensFromStylesheet(selector: string): Record<string, string> {
+      const tokens: Record<string, string> = {}
+      for (const sheet of document.styleSheets) {
+        try {
+          for (const rule of sheet.cssRules) {
+            if (rule instanceof CSSStyleRule && rule.selectorText === selector) {
+              for (const key of EDITABLE_TOKENS) {
+                const val = rule.style.getPropertyValue(`--${key}`).trim()
+                if (val) tokens[key] = resolveToHex(val)
+              }
+            }
+          }
+        } catch {
+          // Cross-origin stylesheets throw, skip them
         }
-        setLight(lightTokens)
-        setInitialLight(lightTokens)
+      }
+      return tokens
+    }
 
-        // Restore to dark
-        document.documentElement.removeAttribute("data-theme")
-      })
-    })
+    const darkTokens = readTokensFromStylesheet(":root")
+    const lightTokens = readTokensFromStylesheet('[data-theme="light"]')
+
+    setDark(darkTokens)
+    setInitialDark(darkTokens)
+    setLight(lightTokens)
+    setInitialLight(lightTokens)
   }, [])
 
   // Live preview: apply current palette to CSS vars
   useEffect(() => {
-    const tokens = activeMode === "dark" ? dark : light
+    // Clear all inline overrides first so the stylesheet values take effect
+    for (const key of EDITABLE_TOKENS) {
+      document.documentElement.style.removeProperty(`--${key}`)
+    }
+
+    // Set the theme attribute
     if (activeMode === "light") {
       document.documentElement.setAttribute("data-theme", "light")
     } else {
       document.documentElement.removeAttribute("data-theme")
     }
+
+    // Apply the current mode's tokens as inline overrides
+    const tokens = activeMode === "dark" ? dark : light
     for (const [key, value] of Object.entries(tokens)) {
-      document.documentElement.style.setProperty(`--${key}`, value)
+      if (value) document.documentElement.style.setProperty(`--${key}`, value)
     }
+
     return () => {
-      // Clean up inline styles on unmount
       for (const key of EDITABLE_TOKENS) {
         document.documentElement.style.removeProperty(`--${key}`)
       }
