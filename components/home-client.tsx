@@ -285,10 +285,51 @@ export function HomeClient({
         </SectionReveal>
       </section>
 
+      {/* ── Resume ── */}
+      <section id="resume" className="py-24">
+        <SectionReveal>
+          <SectionHeading number="03">Resume</SectionHeading>
+          <p className="mt-4 text-text-secondary">
+            The highlights, on one page.
+          </p>
+        </SectionReveal>
+
+        <SectionReveal delay={0.1}>
+          <Link
+            href="/resume"
+            className="group mt-8 block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium text-text-primary transition-colors group-hover:text-accent">
+                  John Moorman
+                </p>
+                <p className="mt-1 text-sm text-text-secondary">
+                  Software Engineer &middot; Berlin
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {["Next.js", "TypeScript", "React", "Tailwind", "Node.js", "AI"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <span className="font-mono text-sm text-accent transition-colors">
+                View full resume &rarr;
+              </span>
+            </div>
+          </Link>
+        </SectionReveal>
+      </section>
+
       {/* ── Contact ── */}
       <section id="contact" className="py-24">
         <SectionReveal>
-          <SectionHeading number="03">Contact</SectionHeading>
+          <SectionHeading number="04">Contact</SectionHeading>
           <p className="mt-6 max-w-xl text-text-secondary">
             I&apos;m currently looking for mid-level fullstack or frontend roles
             at Berlin startups. Whether you have a specific role in mind or just

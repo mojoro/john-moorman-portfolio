@@ -8,7 +8,7 @@ import { ThemeToggle } from "./theme-toggle"
 const NAV_ITEMS = [
   { number: "01", label: "Work",    hash: "work",    page: "/work" },
   { number: "02", label: "Blog",    hash: "blog",    page: "/blog" },
-  { number: "03", label: "Resume",  hash: null,      page: "/resume" },
+  { number: "03", label: "Resume",  hash: "resume",  page: "/resume" },
   { number: "04", label: "Contact", hash: "contact", page: null },
 ] as const
 
@@ -123,20 +123,11 @@ export function Sidebar() {
       e.preventDefault()
       setMobileMenuOpen(false)
 
-      // Items with no hash (e.g. Resume) always navigate to their page
-      if (!hash && page) {
-        router.push(page)
-        return
-      }
-
       if (isHomePage && hash) {
-        // Smooth scroll to section on homepage
         document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" })
       } else if (page) {
-        // Navigate to dedicated page
         router.push(page)
       } else if (hash) {
-        // No dedicated page, go home to the section
         router.push(`/#${hash}`)
       }
     },
@@ -150,7 +141,6 @@ export function Sidebar() {
   }
 
   const getHref = (item: typeof NAV_ITEMS[number]) => {
-    if (!item.hash && item.page) return item.page
     if (isHomePage) return `#${item.hash}`
     return item.page ?? `/#${item.hash}`
   }
