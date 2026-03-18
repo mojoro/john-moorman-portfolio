@@ -8,6 +8,10 @@ export const metadata: Metadata = {
     "John Moorman | Software Engineer based in Berlin. Next.js, TypeScript, AI-native development.",
 }
 
+const b = (text: string) => (
+  <strong className="font-semibold text-text-primary">{text}</strong>
+)
+
 const EXPERIENCE = [
   {
     role: "Freelance Software Engineer",
@@ -15,12 +19,13 @@ const EXPERIENCE = [
     period: "2025 – Present",
     location: "Berlin, Germany",
     highlights: [
-      "Full-stack development across multiple client engagements with end-to-end ownership",
-      "Built an AI-powered real estate data pipeline using n8n, Apify, and Gemini: automated daily investment recommendations for a Berlin-based client",
-      "Rebuilt frontend, implemented analytics, and migrated data pipelines for Serenity Retreat; built custom PHP calendar sync plugin",
-      "Built finalflow's marketing site as a pixel-perfect SPA: Vue, TypeScript, Tailwind, Firebase Authentication",
-      "CI/CD pipelines via GitHub Actions + Docker, reducing deployment times 30% across projects",
-      "1,000+ monthly active users across deployed applications",
+      <>{b("Fullstack development")} across multiple client engagements with end-to-end ownership</>,
+      <>Shipped {b("Shortlist")} in 7 days (8K LOC): AI job-matching SaaS with {b("Next.js, TypeScript, Tailwind, Prisma, Neon Postgres")}, Clerk auth, streaming AI responses, and Kanban pipeline</>,
+      <>Built an {b("AI-powered real estate data pipeline")} using {b("n8n")}, Apify, and Gemini. Automated daily investment recommendations for a Berlin-based client</>,
+      <>Rebuilt frontend, implemented {b("analytics")}, and migrated {b("data pipelines")} for Serenity Retreat; built custom PHP calendar sync plugin</>,
+      <>Built finalflow&apos;s marketing site as a pixel-perfect SPA: {b("Vue, TypeScript, Tailwind")}, Firebase Authentication</>,
+      <>{b("CI/CD pipelines")} via GitHub Actions + Docker, reducing deployment times {b("30%")} across projects</>,
+      <>{b("1,000+ monthly active users")} across deployed applications</>,
     ],
   },
   {
@@ -29,11 +34,11 @@ const EXPERIENCE = [
     period: "2023 – 2025",
     location: "Berlin, Germany",
     highlights: [
-      "Identified that the administrative function consumed 4 full salaries for entirely rule-based work. Built an automation suite to replace it",
-      "Automated the complete student lifecycle: offer letters, payment tracking, PayPal reconciliation, confirmation/reminder/cancellation emails",
-      "Enabled two part-time administrators to do the work of four, approximately €74,000 in annual overhead savings",
-      "Payment reconciliation system with automated follow-ups achieved an 18% increase in payment collection rate",
-      "Built the production website from scratch: 95/100 Lighthouse score, top-3 organic rankings on key terms, 8% organic traffic growth",
+      <>Identified that the administrative function consumed 4 full salaries for entirely rule-based work; built an {b("automation suite")} to replace it</>,
+      <>Automated the {b("complete student lifecycle")}: offer letters, payment tracking, PayPal reconciliation, confirmation/reminder/cancellation emails</>,
+      <>Enabled two part-time administrators to do the work of four — {b("~€74,000 in annual overhead savings")}</>,
+      <>{b("Payment reconciliation system")} with automated follow-ups: {b("18% increase")} in payment collection rate</>,
+      <>Built the production website from scratch: {b("95/100 Lighthouse score")}, top-3 organic rankings, {b("8% organic traffic growth")}</>,
     ],
   },
 ]
@@ -128,8 +133,8 @@ export default function ResumePage() {
                   {job.location}
                 </p>
                 <ul className="mt-3 space-y-1.5">
-                  {job.highlights.map((item) => (
-                    <li key={item} className="flex gap-2 text-sm text-text-secondary">
+                  {job.highlights.map((item, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-text-secondary">
                       <span className="mt-0 shrink-0 text-accent">&#9656;</span>
                       <span>{item}</span>
                     </li>
