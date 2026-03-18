@@ -7,6 +7,7 @@ import { CursorGlow } from "@/components/cursor-glow"
 import { Analytics } from "@vercel/analytics/react"
 import { PrefetchRoutes } from "@/components/prefetch-routes"
 import { getPosts } from "@/lib/content"
+import { headers } from "next/headers"
 import "./globals.css"
 
 const syne = Syne({
@@ -85,20 +86,27 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const [blogPosts, workPosts] = await Promise.all([
-    getPosts("blog"),
-    getPosts("work"),
-  ])
+  const headerList = await headers()
+  const pathname = headerList.get("x-pathname") ?? ""
+  const isAdmin = pathname.startsWith("/admin")
 
-  const allRoutes = [
-    "/",
-    "/about",
-    "/work",
-    "/blog",
-    "/resume",
-    ...blogPosts.map((p) => `/blog/${p.slug}`),
-    ...workPosts.map((p) => `/work/${p.slug}`),
-  ]
+  let allRoutes: string[] = []
+  if (!isAdmin) {
+    const [blogPosts, workPosts] = await Promise.all([
+      getPosts("blog"),
+      getPosts("work"),
+    ])
+    allRoutes = [
+      "/",
+      "/about",
+      "/work",
+      "/blog",
+      "/resume",
+      ...blogPosts.map((p) => `/blog/${p.slug}`),
+      ...workPosts.map((p) => `/work/${p.slug}`),
+    ]
+  }
+
   return (
     <html
       lang="en"
@@ -107,22 +115,30 @@ export default async function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        {!isAdmin && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+        )}
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <CursorGlow />
-          <Sidebar />
-          <div className="pt-14 md:ml-60 md:pt-0 print:ml-0 print:pt-0">
-            <div className="mx-auto max-w-[900px] px-6 md:px-12">
-              {children}
-            </div>
-          </div>
-          <ChatPanelLazy />
-          <PrefetchRoutes routes={allRoutes} />
+          {isAdmin ? (
+            <>{children}</>
+          ) : (
+            <>
+              <CursorGlow />
+              <Sidebar />
+              <div className="pt-14 md:ml-60 md:pt-0 print:ml-0 print:pt-0">
+                <div className="mx-auto max-w-[900px] px-6 md:px-12">
+                  {children}
+                </div>
+              </div>
+              <ChatPanelLazy />
+              <PrefetchRoutes routes={allRoutes} />
+            </>
+          )}
           <Analytics />
         </ThemeProvider>
       </body>
