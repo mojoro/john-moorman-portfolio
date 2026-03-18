@@ -304,7 +304,7 @@ export function HomeClient({
                   Software Engineer &middot; Berlin
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {["Next.js", "TypeScript", "React", "Tailwind", "Node.js", "AI"].map((tag) => (
+                  {["Next.js", "TypeScript", "PostgreSQL", "Node.js", "Docker", "AI"].map((tag) => (
                     <TagPill key={tag}>{tag}</TagPill>
                   ))}
                 </div>
