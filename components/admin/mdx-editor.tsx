@@ -48,7 +48,7 @@ export function MdxEditor({ content, onChange }: MdxEditorProps) {
           rows={20}
         />
       ) : (
-        <div className="prose prose-invert mt-4 max-w-none rounded-lg border border-border bg-bg-surface px-6 py-4 text-sm text-text-primary">
+        <div className="prose-custom mt-4 max-w-none rounded-lg border border-border bg-bg-surface px-6 py-4">
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
       )}
