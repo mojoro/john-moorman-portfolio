@@ -47,23 +47,28 @@ export default async function AdminDashboardPage() {
           ) : (
             <ul className="space-y-3">
               {recentComments.map((comment) => (
-                <li key={comment.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-medium text-text-primary">
-                      {comment.author}
+                <li key={comment.id}>
+                  <Link
+                    href={`/blog/${comment.post_slug}`}
+                    className="block border-b border-border pb-3 transition-colors last:border-0 last:pb-0 hover:bg-bg-elevated/30 -mx-2 px-2 rounded"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-medium text-text-primary">
+                        {comment.author}
+                      </span>
+                      <span className="font-mono text-xs text-text-muted">
+                        {new Date(comment.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-text-secondary">
+                      {comment.body.length > 80
+                        ? comment.body.slice(0, 80) + "..."
+                        : comment.body}
+                    </p>
+                    <span className="mt-1 inline-block font-mono text-xs text-text-muted">
+                      on {comment.post_slug}
                     </span>
-                    <span className="font-mono text-xs text-text-muted">
-                      {new Date(comment.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-text-secondary">
-                    {comment.body.length > 80
-                      ? comment.body.slice(0, 80) + "..."
-                      : comment.body}
-                  </p>
-                  <span className="mt-1 inline-block font-mono text-xs text-text-muted">
-                    on {comment.post_slug}
-                  </span>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -96,21 +101,26 @@ export default async function AdminDashboardPage() {
                     : chat.first_message
                   : "No messages"
                 return (
-                  <li key={chat.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                    <p className="text-sm text-text-secondary line-clamp-1">
-                      {preview}
-                    </p>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-2 font-mono text-xs text-text-muted">
-                      <span>{chat.message_count} msgs</span>
-                      {location && (
-                        <>
-                          <span className="text-border">·</span>
-                          <span>{location}</span>
-                        </>
-                      )}
-                      <span className="text-border">·</span>
-                      <span>{new Date(chat.updated_at).toLocaleDateString()}</span>
-                    </div>
+                  <li key={chat.id}>
+                    <Link
+                      href={`/admin/chats/${chat.id}`}
+                      className="block border-b border-border pb-3 transition-colors last:border-0 last:pb-0 hover:bg-bg-elevated/30 -mx-2 px-2 rounded"
+                    >
+                      <p className="text-sm text-text-secondary line-clamp-1">
+                        {preview}
+                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 font-mono text-xs text-text-muted">
+                        <span>{chat.message_count} msgs</span>
+                        {location && (
+                          <>
+                            <span className="text-border">·</span>
+                            <span>{location}</span>
+                          </>
+                        )}
+                        <span className="text-border">·</span>
+                        <span>{new Date(chat.updated_at).toLocaleDateString()}</span>
+                      </div>
+                    </Link>
                   </li>
                 )
               })}
