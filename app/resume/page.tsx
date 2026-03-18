@@ -20,7 +20,7 @@ const EXPERIENCE = [
     location: "Berlin, Germany",
     highlights: [
       <>{b("Fullstack development")} across multiple client engagements with end-to-end ownership</>,
-      <>Shipped {b("Shortlist")} in 7 days (8K LOC): AI job-matching SaaS with {b("Next.js, TypeScript, Tailwind, Prisma, Neon Postgres")}, Clerk auth, streaming AI responses, and Kanban pipeline</>,
+      <>Shipped {b("Shortlist")} in 7 days (16K LOC): AI job-matching SaaS with {b("Next.js, TypeScript, Tailwind, Prisma, Neon Postgres")}, Clerk auth, streaming AI responses, and Kanban pipeline</>,
       <>Built an {b("AI-powered real estate data pipeline")} using {b("n8n")}, Apify, and Gemini. Automated daily investment recommendations for a Berlin-based client</>,
       <>Rebuilt frontend, implemented {b("analytics")}, and migrated {b("data pipelines")} for Serenity Retreat; built custom PHP calendar sync plugin</>,
       <>Built finalflow&apos;s marketing site as a pixel-perfect SPA: {b("Vue, TypeScript, Tailwind")}, Firebase Authentication</>,
