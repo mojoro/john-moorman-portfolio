@@ -5,7 +5,10 @@ import { LightboxProvider } from "@/components/lightbox-provider"
 import { MdxImage } from "@/components/mdx-image"
 import { TableOfContents } from "@/components/table-of-contents"
 import { TagPill } from "@/components/tag-pill"
+import { CommentList } from "@/components/comment-list"
+import { CommentForm } from "@/components/comment-form"
 import Link from "next/link"
+import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import type React from "react"
@@ -79,48 +82,74 @@ export default async function BlogPost({ params }: Props) {
   if (!post) notFound()
 
   const headings = extractHeadings(post.content)
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""
 
   return (
-    <article className="py-20 mx-auto max-w-[680px]">
-      <Link
-        href="/blog"
-        className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
-      >
-        &larr; Back to blog
-      </Link>
+    <>
+      <article className="py-20 mx-auto max-w-[680px]">
+        <Link
+          href="/blog"
+          className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
+        >
+          &larr; Back to blog
+        </Link>
 
-      <header className="mt-8">
-        <div className="flex items-center gap-3 font-mono text-xs text-text-muted">
-          <time>
-            {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </time>
-          <span className="text-border">·</span>
-          <span>{estimateReadTime(post.content)} min read</span>
+        <header className="mt-8">
+          <div className="flex items-center gap-3 font-mono text-xs text-text-muted">
+            <time>
+              {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </time>
+            <span className="text-border">·</span>
+            <span>{estimateReadTime(post.content)} min read</span>
+          </div>
+          <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            {post.frontmatter.title}
+          </h1>
+          {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {post.frontmatter.tags.map((tag) => (
+                <TagPill key={tag}>{tag}</TagPill>
+              ))}
+            </div>
+          )}
+        </header>
+
+        <div className="relative mt-12">
+          <TableOfContents items={headings} />
+          <LightboxProvider>
+            <div className="prose-custom">
+              <MDXRemote source={post.content} components={mdxComponents} />
+            </div>
+          </LightboxProvider>
         </div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          {post.frontmatter.title}
-        </h1>
-        {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {post.frontmatter.tags.map((tag) => (
-              <TagPill key={tag}>{tag}</TagPill>
-            ))}
-          </div>
-        )}
-      </header>
+      </article>
 
-      <div className="relative mt-12">
-        <TableOfContents items={headings} />
-        <LightboxProvider>
-          <div className="prose-custom">
-            <MDXRemote source={post.content} components={mdxComponents} />
-          </div>
-        </LightboxProvider>
-      </div>
-    </article>
+      <section className="mx-auto max-w-[680px] border-t border-border pb-20">
+        <h2 className="mt-12 font-display text-xl font-semibold text-text-primary">
+          Comments
+        </h2>
+
+        <div className="mt-6">
+          <Suspense
+            fallback={
+              <p className="text-sm text-text-muted">Loading comments...</p>
+            }
+          >
+            <CommentList postSlug={slug} />
+          </Suspense>
+        </div>
+
+        <div className="mt-10">
+          <h3 className="mb-4 font-display text-base font-semibold text-text-primary">
+            Leave a comment
+          </h3>
+          <CommentForm postSlug={slug} turnstileSiteKey={turnstileSiteKey} />
+        </div>
+      </section>
+    </>
   )
 }
