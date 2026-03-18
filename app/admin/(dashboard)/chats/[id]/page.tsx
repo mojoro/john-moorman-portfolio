@@ -55,22 +55,38 @@ export default async function ChatDetailPage({
       </div>
 
       {/* Message thread */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {chat.messages.map((message, index) => (
           <div
             key={index}
             className={
               message.role === "user"
-                ? "ml-8 rounded-lg bg-bg-elevated p-3"
-                : "mr-8 rounded-lg border border-border bg-bg-surface p-3"
+                ? "flex justify-end"
+                : "flex justify-start"
             }
           >
-            <span className="mb-1 block font-mono text-xs text-text-muted">
-              {message.role === "user" ? "User" : "Assistant"}
-            </span>
-            <p className="whitespace-pre-wrap text-sm text-text-secondary">
-              {message.content}
-            </p>
+            <div
+              className={
+                message.role === "user"
+                  ? "max-w-[80%] rounded-2xl rounded-tr-sm border border-accent/20 bg-accent/5 px-4 py-3"
+                  : "max-w-[80%] rounded-2xl rounded-tl-sm border border-border bg-bg-surface px-4 py-3"
+              }
+            >
+              <span
+                className={`mb-1.5 block font-mono text-[10px] uppercase tracking-wider ${
+                  message.role === "user" ? "text-accent/60" : "text-text-muted"
+                }`}
+              >
+                {message.role === "user" ? "Visitor" : "Ask John"}
+              </span>
+              <p
+                className={`whitespace-pre-wrap text-sm leading-relaxed ${
+                  message.role === "user" ? "text-text-primary" : "text-text-secondary"
+                }`}
+              >
+                {message.content}
+              </p>
+            </div>
           </div>
         ))}
       </div>
