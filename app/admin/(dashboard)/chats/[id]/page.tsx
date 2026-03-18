@@ -69,19 +69,19 @@ export default async function ChatDetailPage({
               className={
                 message.role === "user"
                   ? "max-w-[80%] rounded-2xl rounded-tr-sm border border-accent/20 bg-accent/5 px-4 py-3"
-                  : "max-w-[80%] rounded-2xl rounded-tl-sm border border-border bg-bg-surface px-4 py-3"
+                  : "max-w-[80%] rounded-2xl rounded-tl-sm border border-yellow-400/15 bg-yellow-400/5 px-4 py-3"
               }
             >
               <span
                 className={`mb-1.5 block font-mono text-[10px] uppercase tracking-wider ${
-                  message.role === "user" ? "text-accent/60" : "text-text-muted"
+                  message.role === "user" ? "text-accent/60" : "text-yellow-400/70"
                 }`}
               >
                 {message.role === "user" ? "Visitor" : "Ask John"}
               </span>
               <p
                 className={`whitespace-pre-wrap text-sm leading-relaxed ${
-                  message.role === "user" ? "text-text-primary" : "text-text-secondary"
+                  message.role === "user" ? "text-text-primary" : "text-text-primary"
                 }`}
               >
                 {message.content}
