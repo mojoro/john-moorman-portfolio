@@ -23,7 +23,7 @@ export interface Post {
 
 const contentDir = path.join(process.cwd(), "content")
 
-export async function getPosts(type: "blog" | "work"): Promise<Post[]> {
+export async function getPosts(type: "blog" | "work", includeDrafts = false): Promise<Post[]> {
   const dir = path.join(contentDir, type)
 
   let files: string[]
@@ -42,7 +42,7 @@ export async function getPosts(type: "blog" | "work"): Promise<Post[]> {
         const { data, content } = matter(raw)
 
         // Filter out drafts in production
-        if (data.draft && process.env.NODE_ENV === "production") {
+        if (data.draft && process.env.NODE_ENV === "production" && !includeDrafts) {
           return null
         }
 
