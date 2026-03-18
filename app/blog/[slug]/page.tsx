@@ -4,6 +4,7 @@ import { MDXRemote } from "next-mdx-remote/rsc"
 import { LightboxProvider } from "@/components/lightbox-provider"
 import { MdxImage } from "@/components/mdx-image"
 import { TableOfContents } from "@/components/table-of-contents"
+import { TagPill } from "@/components/tag-pill"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -106,12 +107,7 @@ export default async function BlogPost({ params }: Props) {
         {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
             {post.frontmatter.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted transition-colors duration-200 hover:border-accent hover:text-accent"
-              >
-                {tag}
-              </span>
+              <TagPill key={tag}>{tag}</TagPill>
             ))}
           </div>
         )}

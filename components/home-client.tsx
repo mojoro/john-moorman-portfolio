@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion"
 import Link from "next/link"
 import { SectionReveal } from "@/components/section-reveal"
 import { ContactForm } from "@/components/contact-form"
+import { TagPill } from "@/components/tag-pill"
 
 function SectionHeading({
   number,
@@ -260,12 +261,7 @@ export function HomeClient({
                 <p className="mt-2 text-text-secondary">{post.description}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-accent/10 px-3 py-1 font-mono text-xs text-accent"
-                    >
-                      {tag}
-                    </span>
+                    <TagPill key={tag}>{tag}</TagPill>
                   ))}
                 </div>
               </a>
@@ -309,12 +305,7 @@ export function HomeClient({
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {["Next.js", "TypeScript", "React", "Tailwind", "Node.js", "AI"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted"
-                    >
-                      {tag}
-                    </span>
+                    <TagPill key={tag}>{tag}</TagPill>
                   ))}
                 </div>
               </div>
@@ -424,12 +415,7 @@ function ProjectCard({
 
       <div className="mt-4 flex flex-wrap gap-2">
         {project.tags.map((tag) => (
-          <span
-            key={tag}
-            className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-text-muted transition-colors hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
-          >
-            {tag}
-          </span>
+          <TagPill key={tag}>{tag}</TagPill>
         ))}
       </div>
     </motion.a>
