@@ -73,6 +73,52 @@ export async function saveContent(input: SaveContentInput): Promise<ActionResult
   return { success: true }
 }
 
+interface CreateContentInput {
+  type: "blog" | "work"
+  slug: string
+  title: string
+}
+
+export async function createContent(input: CreateContentInput): Promise<ActionResult> {
+  const authError = await requireAuth()
+  if (authError) return authError
+
+  const slug = input.slug
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+
+  if (!slug) return { success: false, error: "Invalid slug." }
+
+  const filePath = path.join(process.cwd(), "content", input.type, `${slug}.mdx`)
+
+  try {
+    await fs.access(filePath)
+    return { success: false, error: `A ${input.type} post with slug "${slug}" already exists.` }
+  } catch {
+    // File doesn't exist, good
+  }
+
+  const today = new Date().toISOString().slice(0, 10)
+  const frontmatter: Record<string, unknown> = {
+    title: input.title || "Untitled",
+    date: today,
+    description: "",
+    tags: [],
+    draft: true,
+  }
+
+  try {
+    const mdxContent = matter.stringify("\nYour content here.\n", frontmatter)
+    await fs.writeFile(filePath, mdxContent, "utf-8")
+  } catch {
+    return { success: false, error: "Failed to create file. Only available in development." }
+  }
+
+  revalidatePath(`/${input.type}`)
+  return { success: true }
+}
+
 // ── Comments ──
 
 import { deleteComment } from "@/lib/db"

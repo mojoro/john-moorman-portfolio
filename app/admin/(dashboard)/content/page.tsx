@@ -1,5 +1,6 @@
 import { getPosts } from "@/lib/content"
 import { ContentTable } from "@/components/admin/content-table"
+import { NewPostForm } from "@/components/admin/new-post-form"
 
 export default async function ContentPage() {
   const [blogPosts, workPosts] = await Promise.all([
@@ -27,11 +28,14 @@ export default async function ContentPage() {
   ]
 
   return (
-    <>
-      <h1 className="mb-6 font-display text-2xl font-semibold text-text-primary">
-        Content
-      </h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-2xl font-semibold text-text-primary">
+          Content
+        </h1>
+        <NewPostForm />
+      </div>
       <ContentTable posts={rows} />
-    </>
+    </div>
   )
 }
