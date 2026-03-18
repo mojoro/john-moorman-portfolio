@@ -5,6 +5,8 @@ import { Sidebar } from "@/components/sidebar"
 import { ChatPanelLazy } from "@/components/chat-panel-lazy"
 import { CursorGlow } from "@/components/cursor-glow"
 import { Analytics } from "@vercel/analytics/react"
+import { PrefetchRoutes } from "@/components/prefetch-routes"
+import { getPosts } from "@/lib/content"
 import "./globals.css"
 
 const syne = Syne({
@@ -78,11 +80,25 @@ const themeScript = `
   })();
 `
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const [blogPosts, workPosts] = await Promise.all([
+    getPosts("blog"),
+    getPosts("work"),
+  ])
+
+  const allRoutes = [
+    "/",
+    "/about",
+    "/work",
+    "/blog",
+    "/resume",
+    ...blogPosts.map((p) => `/blog/${p.slug}`),
+    ...workPosts.map((p) => `/work/${p.slug}`),
+  ]
   return (
     <html
       lang="en"
@@ -106,6 +122,7 @@ export default function RootLayout({
             </div>
           </div>
           <ChatPanelLazy />
+          <PrefetchRoutes routes={allRoutes} />
           <Analytics />
         </ThemeProvider>
       </body>
