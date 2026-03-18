@@ -1,7 +1,6 @@
 import { cookies } from "next/headers"
 import crypto from "crypto"
-
-export const COOKIE_NAME = "admin_session"
+import { COOKIE_NAME } from "./constants"
 const MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
 function getSecret(): string {
