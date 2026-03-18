@@ -13,37 +13,30 @@ export function TableOfContents({ items }: Props) {
   useEffect(() => {
     if (items.length === 0) return
 
-    const headingEls = items
-      .map((item) => document.getElementById(item.id))
-      .filter(Boolean) as HTMLElement[]
+    const OFFSET = 100
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .map((e) => e.target.id)
-        if (visible.length > 0) {
-          const first = items.find((item) => visible.includes(item.id))
-          if (first) setActiveId(first.id)
-        }
-      },
-      { rootMargin: "-80px 0px -70% 0px" }
-    )
-
-    headingEls.forEach((el) => observer.observe(el))
-
-    const lastId = items[items.length - 1]?.id
     function onScroll() {
-      const atBottom =
-        window.innerHeight + window.scrollY >= document.body.scrollHeight - 50
-      if (atBottom && lastId) setActiveId(lastId)
-    }
-    window.addEventListener("scroll", onScroll, { passive: true })
+      // At bottom of page: activate last heading
+      if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 50) {
+        setActiveId(items[items.length - 1].id)
+        return
+      }
 
-    return () => {
-      observer.disconnect()
-      window.removeEventListener("scroll", onScroll)
+      // Find the last heading that has scrolled past the offset
+      let current = items[0]?.id ?? ""
+      for (const item of items) {
+        const el = document.getElementById(item.id)
+        if (el && el.getBoundingClientRect().top <= OFFSET) {
+          current = item.id
+        }
+      }
+      setActiveId(current)
     }
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    onScroll()
+
+    return () => window.removeEventListener("scroll", onScroll)
   }, [items])
 
   if (items.length === 0) return null
