@@ -18,6 +18,7 @@ export interface Comment {
 }
 
 export async function getComments(postSlug: string): Promise<Comment[]> {
+  if (!process.env.DATABASE_URL) return []
   const sql = getDb()
   const rows = await sql`
     SELECT id, post_slug, author, body, created_at
