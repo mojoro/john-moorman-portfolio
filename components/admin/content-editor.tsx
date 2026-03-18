@@ -78,15 +78,16 @@ export function ContentEditor({
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/admin/content"
-            className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
-          >
-            ← Back
-          </Link>
+      <Link
+        href="/admin/content"
+        className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
+      >
+        &larr; Back
+      </Link>
+
+      {/* Title + save */}
+      <div className="mt-3 mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <h1 className="font-display text-2xl font-semibold text-text-primary">
             {(frontmatter.title as string) || slug}
           </h1>
