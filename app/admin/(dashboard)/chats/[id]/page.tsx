@@ -13,6 +13,8 @@ export default async function ChatDetailPage({
 
   if (!chat) notFound()
 
+  const location = [chat.city, chat.country].filter(Boolean).join(", ")
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -22,7 +24,7 @@ export default async function ChatDetailPage({
             href="/admin/chats"
             className="font-mono text-xs text-accent transition-colors hover:text-accent/80"
           >
-            ← Back
+            &larr; Back
           </Link>
           <h1 className="font-display text-2xl font-bold text-text-primary">
             Chat Session
@@ -32,33 +34,24 @@ export default async function ChatDetailPage({
       </div>
 
       {/* Metadata */}
-      <div className="rounded-lg border border-border bg-bg-surface p-4">
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
-          <div>
-            <dt className="font-mono text-xs text-text-muted">Session ID</dt>
-            <dd className="mt-0.5 font-mono text-xs text-text-primary">
-              {chat.id}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-mono text-xs text-text-muted">IP Hash</dt>
-            <dd className="mt-0.5 font-mono text-xs text-text-primary">
-              {chat.ip_hash}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-mono text-xs text-text-muted">Messages</dt>
-            <dd className="mt-0.5 font-mono text-xs text-text-primary">
-              {chat.message_count}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-mono text-xs text-text-muted">Last Updated</dt>
-            <dd className="mt-0.5 font-mono text-xs text-text-primary">
-              {new Date(chat.updated_at).toLocaleString()}
-            </dd>
-          </div>
-        </dl>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs text-text-muted">
+        <span>{chat.message_count} messages</span>
+        {location && (
+          <>
+            <span className="text-border">·</span>
+            <span className="text-text-secondary">{location}</span>
+          </>
+        )}
+        <span className="text-border">·</span>
+        <span>
+          {new Date(chat.updated_at).toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          })}
+        </span>
       </div>
 
       {/* Message thread */}
@@ -81,6 +74,17 @@ export default async function ChatDetailPage({
           </div>
         ))}
       </div>
+
+      {/* Collapsible metadata */}
+      <details className="text-text-muted">
+        <summary className="cursor-pointer font-mono text-xs hover:text-text-secondary">
+          Technical details
+        </summary>
+        <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs">
+          <span>Session: {chat.id}</span>
+          <span>IP hash: {chat.ip_hash}</span>
+        </div>
+      </details>
     </div>
   )
 }

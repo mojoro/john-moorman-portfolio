@@ -88,21 +88,32 @@ export default async function AdminDashboardPage() {
             <p className="font-mono text-xs text-text-muted">No chat sessions yet.</p>
           ) : (
             <ul className="space-y-3">
-              {recentChats.map((chat) => (
-                <li key={chat.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-medium text-text-primary">
-                      {chat.id.slice(0, 8)}...
-                    </span>
-                    <span className="font-mono text-xs text-text-muted">
-                      {new Date(chat.updated_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="mt-1 font-mono text-xs text-text-secondary">
-                    {chat.message_count} message{chat.message_count !== 1 ? "s" : ""}
-                  </p>
-                </li>
-              ))}
+              {recentChats.map((chat) => {
+                const location = [chat.city, chat.country].filter(Boolean).join(", ")
+                const preview = chat.first_message
+                  ? chat.first_message.length > 80
+                    ? chat.first_message.slice(0, 80) + "..."
+                    : chat.first_message
+                  : "No messages"
+                return (
+                  <li key={chat.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
+                    <p className="text-sm text-text-secondary line-clamp-1">
+                      {preview}
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 font-mono text-xs text-text-muted">
+                      <span>{chat.message_count} msgs</span>
+                      {location && (
+                        <>
+                          <span className="text-border">·</span>
+                          <span>{location}</span>
+                        </>
+                      )}
+                      <span className="text-border">·</span>
+                      <span>{new Date(chat.updated_at).toLocaleDateString()}</span>
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>
