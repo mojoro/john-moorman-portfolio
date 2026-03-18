@@ -9,6 +9,39 @@ function getDb() {
   return neon(process.env.DATABASE_URL)
 }
 
+export interface Comment {
+  id: number
+  post_slug: string
+  author: string
+  body: string
+  created_at: string
+}
+
+export async function getComments(postSlug: string): Promise<Comment[]> {
+  const sql = getDb()
+  const rows = await sql`
+    SELECT id, post_slug, author, body, created_at
+    FROM comments
+    WHERE post_slug = ${postSlug}
+    ORDER BY created_at ASC
+  `
+  return rows as Comment[]
+}
+
+export async function insertComment(
+  postSlug: string,
+  author: string,
+  body: string
+): Promise<Comment> {
+  const sql = getDb()
+  const rows = await sql`
+    INSERT INTO comments (post_slug, author, body)
+    VALUES (${postSlug}, ${author}, ${body})
+    RETURNING id, post_slug, author, body, created_at
+  `
+  return rows[0] as Comment
+}
+
 export interface StoredMessage {
   role: "user" | "assistant"
   content: string
