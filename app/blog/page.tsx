@@ -29,9 +29,9 @@ export default async function BlogIndex() {
         occasional deep dive into a technical problem.
       </p>
 
-      <div className="mt-12 space-y-10">
+      <div className="mt-12 divide-y divide-accent/15 space-y-10">
         {posts.map((post) => (
-          <article key={post.slug}>
+          <article key={post.slug} className="pt-10 first:pt-0">
             <Link
               href={`/blog/${post.slug}`}
               className="group block"
