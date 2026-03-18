@@ -117,3 +117,49 @@ export async function savePrompt(content: string): Promise<ActionResult> {
   revalidatePath("/api/chat")
   return { success: true }
 }
+
+// ── Palette ──
+
+export interface PaletteColors {
+  dark: Record<string, string>
+  light: Record<string, string>
+}
+
+export async function savePalette(colors: PaletteColors): Promise<ActionResult> {
+  const authError = await requireAuth()
+  if (authError) return authError
+
+  const cssPath = path.join(process.cwd(), "app", "globals.css")
+
+  try {
+    let css = await fs.readFile(cssPath, "utf-8")
+
+    // Replace :root block values
+    for (const [key, value] of Object.entries(colors.dark)) {
+      const varName = `--${key}`
+      const regex = new RegExp(`(${varName}:\\s*)([^;]+)(;)`)
+      css = css.replace(regex, `$1${value}$3`)
+    }
+
+    // Replace [data-theme="light"] block values
+    for (const [key, value] of Object.entries(colors.light)) {
+      const varName = `--${key}`
+      // Match inside [data-theme="light"] block specifically
+      const lightBlock = css.match(/\[data-theme="light"\]\s*\{([^}]+)\}/)
+      if (lightBlock) {
+        const updatedBlock = lightBlock[1].replace(
+          new RegExp(`(${varName}:\\s*)([^;]+)(;)`),
+          `$1${value}$3`
+        )
+        css = css.replace(lightBlock[1], updatedBlock)
+      }
+    }
+
+    await fs.writeFile(cssPath, css, "utf-8")
+  } catch {
+    return { success: false, error: "Failed to write file. Palette editing is only available in development." }
+  }
+
+  revalidatePath("/")
+  return { success: true }
+}

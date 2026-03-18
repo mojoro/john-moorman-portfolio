@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { label: "Comments", href: "/admin/comments" },
   { label: "Chats", href: "/admin/chats" },
   { label: "Prompt", href: "/admin/prompt" },
+  { label: "Palette", href: "/admin/palette" },
 ] as const
 
 export function AdminNav() {
