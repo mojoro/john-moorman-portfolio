@@ -93,3 +93,71 @@ export async function upsertConversation(
       updated_at    = NOW()
   `
 }
+
+export interface ChatSession {
+  id: string
+  ip_hash: string
+  messages: StoredMessage[]
+  message_count: number
+  updated_at: string
+}
+
+export async function getCommentCount(): Promise<number> {
+  if (!process.env.DATABASE_URL) return 0
+  const sql = getDb()
+  const rows = await sql`SELECT COUNT(*)::int AS count FROM comments`
+  return rows[0].count
+}
+
+export async function getChatCount(): Promise<number> {
+  if (!process.env.DATABASE_URL) return 0
+  const sql = getDb()
+  const rows = await sql`SELECT COUNT(*)::int AS count FROM conversations`
+  return rows[0].count
+}
+
+export async function getAllComments(): Promise<Comment[]> {
+  if (!process.env.DATABASE_URL) return []
+  const sql = getDb()
+  const rows = await sql`SELECT id, post_slug, author, body, created_at FROM comments ORDER BY created_at DESC`
+  return rows as Comment[]
+}
+
+export async function getRecentComments(limit: number): Promise<Comment[]> {
+  if (!process.env.DATABASE_URL) return []
+  const sql = getDb()
+  const rows = await sql`SELECT id, post_slug, author, body, created_at FROM comments ORDER BY created_at DESC LIMIT ${limit}`
+  return rows as Comment[]
+}
+
+export async function getAllChats(): Promise<Omit<ChatSession, "messages">[]> {
+  if (!process.env.DATABASE_URL) return []
+  const sql = getDb()
+  const rows = await sql`SELECT id, ip_hash, message_count, updated_at FROM conversations ORDER BY updated_at DESC`
+  return rows as Omit<ChatSession, "messages">[]
+}
+
+export async function getRecentChats(limit: number): Promise<Omit<ChatSession, "messages">[]> {
+  if (!process.env.DATABASE_URL) return []
+  const sql = getDb()
+  const rows = await sql`SELECT id, ip_hash, message_count, updated_at FROM conversations ORDER BY updated_at DESC LIMIT ${limit}`
+  return rows as Omit<ChatSession, "messages">[]
+}
+
+export async function getChatSession(id: string): Promise<ChatSession | null> {
+  if (!process.env.DATABASE_URL) return null
+  const sql = getDb()
+  const rows = await sql`SELECT id, ip_hash, messages, message_count, updated_at FROM conversations WHERE id = ${id}`
+  if (rows.length === 0) return null
+  return rows[0] as ChatSession
+}
+
+export async function deleteComment(id: number): Promise<void> {
+  const sql = getDb()
+  await sql`DELETE FROM comments WHERE id = ${id}`
+}
+
+export async function deleteChat(id: string): Promise<void> {
+  const sql = getDb()
+  await sql`DELETE FROM conversations WHERE id = ${id}`
+}
