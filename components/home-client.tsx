@@ -204,20 +204,20 @@ export function HomeClient({
           </div>
         </SectionReveal>
 
-        {/* Featured projects */}
-        <div className="mt-8 space-y-6">
-          {featuredWork.map((project, i) => (
-            <SectionReveal key={project.title} delay={(i + 1) * 0.1}>
-              <ProjectCard project={project} />
+        {/* Current building cards (shipped + in-progress only) */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {challengeWork.filter((p) => p.status !== "upcoming").map((project, i) => (
+            <SectionReveal key={project.week} delay={(i + 1) * 0.1}>
+              <CurrentProjectCard project={project} />
             </SectionReveal>
           ))}
         </div>
 
-        {/* Current building cards (shipped + in-progress only) */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {challengeWork.filter((p) => p.status !== "upcoming").map((project, i) => (
-            <SectionReveal key={project.week} delay={(i + featuredWork.length + 1) * 0.1}>
-              <CurrentProjectCard project={project} />
+        {/* Featured projects */}
+        <div className="mt-8 space-y-6">
+          {featuredWork.map((project, i) => (
+            <SectionReveal key={project.title} delay={(i + challengeWork.filter((p) => p.status !== "upcoming").length + 1) * 0.1}>
+              <ProjectCard project={project} />
             </SectionReveal>
           ))}
         </div>
