@@ -59,7 +59,10 @@ export function CircuitBg() {
     let traceColor = ""
     let padColor = ""
 
+    let isLightMode = false
+
     function updateColors() {
+      isLightMode = document.documentElement.getAttribute("data-theme") === "light"
       const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#64ffda"
       const s = accent.startsWith("#") ? accent.slice(1) : ""
       if (s.length >= 6) {
@@ -71,8 +74,11 @@ export function CircuitBg() {
         cachedG = parseInt(s[1] + s[1], 16)
         cachedB = parseInt(s[2] + s[2], 16)
       }
-      traceColor = `rgba(${cachedR},${cachedG},${cachedB},0.13)`
-      padColor = `rgba(${cachedR},${cachedG},${cachedB},0.14)`
+      // Light mode needs much higher opacity to be visible on light backgrounds
+      const traceAlpha = isLightMode ? 0.18 : 0.13
+      const padAlpha = isLightMode ? 0.22 : 0.14
+      traceColor = `rgba(${cachedR},${cachedG},${cachedB},${traceAlpha})`
+      padColor = `rgba(${cachedR},${cachedG},${cachedB},${padAlpha})`
     }
 
     // Direction vectors
@@ -395,18 +401,19 @@ export function CircuitBg() {
       // ── Glows ──
       const t = time * 0.001
       const r = cachedR, g = cachedG, b = cachedB
+      const glowMult = isLightMode ? 1.8 : 1.0 // Boost glow visibility in light mode
       for (let i = 0; i < glowCount; i++) {
         const pulse = reducedMotion ? 0.6 : 0.4 + Math.sin(t * glowSp[i] + glowPh[i]) * 0.3
         const radius = glowR[i] * 5
         const gr = ctx.createRadialGradient(glowX[i], glowY[i], 0, glowX[i], glowY[i], radius)
-        gr.addColorStop(0, `rgba(${r},${g},${b},${(0.2 * pulse).toFixed(3)})`)
-        gr.addColorStop(0.5, `rgba(${r},${g},${b},${(0.06 * pulse).toFixed(3)})`)
+        gr.addColorStop(0, `rgba(${r},${g},${b},${(0.2 * pulse * glowMult).toFixed(3)})`)
+        gr.addColorStop(0.5, `rgba(${r},${g},${b},${(0.06 * pulse * glowMult).toFixed(3)})`)
         gr.addColorStop(1, `rgba(${r},${g},${b},0)`)
         ctx.fillStyle = gr
         ctx.beginPath()
         ctx.arc(glowX[i], glowY[i], radius, 0, 6.2832)
         ctx.fill()
-        ctx.fillStyle = `rgba(${r},${g},${b},${(0.4 * pulse).toFixed(3)})`
+        ctx.fillStyle = `rgba(${r},${g},${b},${(0.4 * pulse * glowMult).toFixed(3)})`
         ctx.beginPath()
         ctx.arc(glowX[i], glowY[i], glowR[i] * 0.5, 0, 6.2832)
         ctx.fill()
@@ -440,6 +447,7 @@ export function CircuitBg() {
           }
 
           // Draw gradient tail
+          const pulseMult = isLightMode ? 1.6 : 1.0
           ctx.lineCap = "round"
           for (let s = 0; s < 8; s++) {
             const f = s / 8
@@ -448,16 +456,17 @@ export function CircuitBg() {
             ctx.beginPath()
             ctx.moveTo(x1, y1)
             ctx.lineTo(x2, y2)
-            ctx.strokeStyle = `rgba(${r},${g},${b},${(f * f * 0.5).toFixed(3)})`
+            ctx.strokeStyle = `rgba(${r},${g},${b},${(f * f * 0.5 * pulseMult).toFixed(3)})`
             ctx.lineWidth = pl.w + 2
             ctx.stroke()
           }
 
-          // Head glow (soft radial gradient instead of expensive shadowBlur)
+          // Head glow
           const [hx, hy] = ptAt(hd)
+          const headAlpha = isLightMode ? 1.0 : 0.8
           const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 8)
-          headGrad.addColorStop(0, `rgba(${r},${g},${b},0.8)`)
-          headGrad.addColorStop(0.3, `rgba(${r},${g},${b},0.3)`)
+          headGrad.addColorStop(0, `rgba(${r},${g},${b},${headAlpha})`)
+          headGrad.addColorStop(0.3, `rgba(${r},${g},${b},${headAlpha * 0.4})`)
           headGrad.addColorStop(1, `rgba(${r},${g},${b},0)`)
           ctx.fillStyle = headGrad
           ctx.beginPath()
