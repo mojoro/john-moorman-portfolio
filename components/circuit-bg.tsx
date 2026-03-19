@@ -12,10 +12,9 @@ export function CircuitBg() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
+    const canvas = canvasRef.current!
+    const ctx = canvas.getContext("2d")!
+    if (!canvas || !ctx) return
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -74,9 +73,8 @@ export function CircuitBg() {
         cachedG = parseInt(s[1] + s[1], 16)
         cachedB = parseInt(s[2] + s[2], 16)
       }
-      // Light mode needs much higher opacity to be visible on light backgrounds
-      const traceAlpha = isLightMode ? 0.18 : 0.13
-      const padAlpha = isLightMode ? 0.22 : 0.14
+      const traceAlpha = isLightMode ? 0.11 : 0.06
+      const padAlpha = isLightMode ? 0.13 : 0.07
       traceColor = `rgba(${cachedR},${cachedG},${cachedB},${traceAlpha})`
       padColor = `rgba(${cachedR},${cachedG},${cachedB},${padAlpha})`
     }
@@ -196,17 +194,8 @@ export function CircuitBg() {
 
           let newDir = pdir[pi]
           if (Math.random() > STRAIGHTNESS) {
-            if (newDir < 4) {
-              if (Math.random() < 0.6) {
-                newDir = (newDir + (Math.random() < 0.5 ? 1 : 3)) % 4
-              } else {
-                newDir = (newDir + (Math.random() < 0.5 ? 1 : 7)) % 8
-              }
-            } else {
-              const cardinals = [[0, 1], [1, 2], [2, 3], [3, 0]]
-              const opts = cardinals[newDir - 4]
-              newDir = opts[Math.floor(Math.random() * 2)]
-            }
+            // Cardinal turns only — orthogonal traces like real PCBs
+            newDir = (newDir + (Math.random() < 0.5 ? 1 : 3)) % 4
           }
 
           const nx = px[pi] + DX[newDir]
@@ -327,7 +316,7 @@ export function CircuitBg() {
       // Pulses — pre-compute segment lengths and total length
       pulseData = []
       if (!reducedMotion && traceCount > 0) {
-        const pc = Math.min(Math.floor(traceCount / 8), 8)
+        const pc = Math.min(Math.floor(traceCount / 4), 24)
         for (let i = 0; i < pc; i++) {
           const ti = Math.floor(Math.random() * traceCount)
           const startIdx = traceMeta[ti * 3]
@@ -349,11 +338,19 @@ export function CircuitBg() {
 
           if (totalLen < 10) continue
 
+          // Variable speeds: mix of slow, medium, and fast pulses
+          const speedTier = Math.random()
+          const sp = speedTier < 0.3
+            ? 0.0008 + Math.random() * 0.0007   // slow
+            : speedTier < 0.7
+            ? 0.002 + Math.random() * 0.002      // medium
+            : 0.005 + Math.random() * 0.004       // fast
+
           pulseData.push({
             pts, segLens, totalLen,
-            pr: 0, // Start at beginning — no teleporting
-            sp: 0.0005 + Math.random() * 0.001,
-            ln: 0.04 + Math.random() * 0.04,
+            pr: Math.random() * (1.0 + sp * 200), // Stagger across lifecycle
+            sp,
+            ln: 0.04 + Math.random() * 0.06,
             w: traceMeta[ti * 3 + 2],
           })
         }
@@ -401,7 +398,7 @@ export function CircuitBg() {
       // ── Glows ──
       const t = time * 0.001
       const r = cachedR, g = cachedG, b = cachedB
-      const glowMult = isLightMode ? 1.8 : 1.0 // Boost glow visibility in light mode
+      const glowMult = isLightMode ? 1.0 : 0.8
       for (let i = 0; i < glowCount; i++) {
         const pulse = reducedMotion ? 0.6 : 0.4 + Math.sin(t * glowSp[i] + glowPh[i]) * 0.3
         const radius = glowR[i] * 5
@@ -419,14 +416,24 @@ export function CircuitBg() {
         ctx.fill()
       }
 
-      // ── Pulses (pre-computed segment lengths, no teleporting) ──
+      // ── Pulses (gradual grow-in / shrink-out lifecycle) ──
       if (!reducedMotion) {
         for (const pl of pulseData) {
-          // Skip if pulse hasn't entered the trace yet
-          if (pl.pr < 0) { pl.pr += pl.sp; continue }
+          // Lifecycle: grow tail in → full length → shrink tail out → restart
+          const life = pl.pr < pl.ln
+            ? pl.pr / pl.ln                              // growing in: 0→1
+            : pl.pr > 1.0
+            ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)   // shrinking out: 1→0
+            : 1.0                                         // full length
 
-          const hd = pl.pr * pl.totalLen
-          const td = Math.max(0, hd - pl.ln * pl.totalLen)
+          // Advance and reset when fully exited
+          pl.pr += pl.sp
+          if (life <= 0) { pl.pr = 0; continue }
+
+          // Head clamped to trace end, tail clamped to trace start
+          const hd = Math.min(pl.pr, 1.0) * pl.totalLen
+          const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
+          if (hd - td < 1) continue
 
           // Interpolate point at distance along pre-computed segments
           function ptAt(d: number): [number, number] {
@@ -446,8 +453,8 @@ export function CircuitBg() {
             return [pl.pts[last], pl.pts[last + 1]]
           }
 
-          // Draw gradient tail
-          const pulseMult = isLightMode ? 1.6 : 1.0
+          // Draw gradient tail — opacity scaled by lifecycle
+          const pulseMult = (isLightMode ? 0.8 : 0.7) * life
           ctx.lineCap = "round"
           for (let s = 0; s < 8; s++) {
             const f = s / 8
@@ -461,23 +468,46 @@ export function CircuitBg() {
             ctx.stroke()
           }
 
-          // Head glow
+          // Head glow — also scaled by lifecycle
           const [hx, hy] = ptAt(hd)
-          const headAlpha = isLightMode ? 1.0 : 0.8
+          const headAlpha = 0.5 * life
           const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 8)
           headGrad.addColorStop(0, `rgba(${r},${g},${b},${headAlpha})`)
-          headGrad.addColorStop(0.3, `rgba(${r},${g},${b},${headAlpha * 0.4})`)
+          headGrad.addColorStop(0.3, `rgba(${r},${g},${b},${(headAlpha * 0.4).toFixed(3)})`)
           headGrad.addColorStop(1, `rgba(${r},${g},${b},0)`)
           ctx.fillStyle = headGrad
           ctx.beginPath()
           ctx.arc(hx, hy, 8, 0, 6.2832)
           ctx.fill()
-
-          // Advance pulse
-          pl.pr += pl.sp
-          if (pl.pr > 1.05) { pl.pr = -pl.ln * 0.5 } // Brief invisible gap before restart
         }
       }
+
+      // ── Content readability vignette ──
+      // Full brilliance at all 4 screen edges, sharp fade into the
+      // center content column so text stays readable.
+      // Light mode uses a gentler fade to keep traces visible in the center.
+      const isMobile = w < 768
+      const fadeStrength = isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65
+      const fadeEdge = isLightMode ? (isMobile ? 0.45 : 0.25) : 0.6
+      ctx.globalCompositeOperation = "destination-out"
+      const bandFade = ctx.createLinearGradient(0, 0, w, 0)
+      if (isLightMode && isMobile) {
+        // Light mobile: fade from edges inward, no full-glory zone
+        bandFade.addColorStop(0, `rgba(0,0,0,${fadeEdge})`)
+        bandFade.addColorStop(0.5, `rgba(0,0,0,${fadeStrength})`)
+        bandFade.addColorStop(1, `rgba(0,0,0,${fadeEdge})`)
+      } else {
+        bandFade.addColorStop(0, "rgba(0,0,0,0)")
+        bandFade.addColorStop(0.1, "rgba(0,0,0,0)")
+        bandFade.addColorStop(0.18, `rgba(0,0,0,${fadeEdge})`)
+        bandFade.addColorStop(0.5, `rgba(0,0,0,${fadeStrength})`)
+        bandFade.addColorStop(0.82, `rgba(0,0,0,${fadeEdge})`)
+        bandFade.addColorStop(0.9, "rgba(0,0,0,0)")
+        bandFade.addColorStop(1, "rgba(0,0,0,0)")
+      }
+      ctx.fillStyle = bandFade
+      ctx.fillRect(0, 0, w, h)
+      ctx.globalCompositeOperation = "source-over"
     }
 
     // ── Lifecycle ──

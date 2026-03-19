@@ -133,7 +133,7 @@ export default async function RootLayout({
               <Sidebar />
               <div className="relative pt-14 md:ml-60 md:pt-0 print:ml-0 print:pt-0">
                 <CircuitBg />
-                <div className="mx-auto max-w-[900px] px-6 md:px-12">
+                <div className="relative mx-auto max-w-[900px] px-6 md:px-12">
                   {children}
                 </div>
               </div>
