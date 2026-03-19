@@ -3,9 +3,9 @@
 import { useEffect, useRef } from "react"
 
 /**
- * PCB circuit board background — optimized.
+ * PCB circuit board background.
  *
- * Generation: round-robin multi-path growth on occupancy grid.
+ * Generation runs in a Web Worker (zero main-thread blocking).
  * Rendering: batched canvas draws, cached colors, pre-computed pulse geometry.
  */
 export function CircuitBg() {
@@ -19,29 +19,26 @@ export function CircuitBg() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
 
-    // ── Pre-computed data (set once per generate, reused every frame) ──
+    // ── Render data (received from worker) ──
 
-    // Flat arrays instead of object arrays for traces
-    // Each trace: startIdx into pts array, length, width
-    let traceMeta: Float32Array = new Float32Array(0) // [startIdx, ptCount, width] per trace
-    let tracePts: Float32Array = new Float32Array(0)  // [x, y] flat pairs
+    let traceMeta = new Float32Array(0)
+    let tracePts = new Float32Array(0)
     let traceCount = 0
 
-    let padX: Float32Array = new Float32Array(0)
-    let padY: Float32Array = new Float32Array(0)
-    let padR: Float32Array = new Float32Array(0)
+    let padX = new Float32Array(0)
+    let padY = new Float32Array(0)
+    let padR = new Float32Array(0)
     let padCount = 0
 
-    let glowX: Float32Array = new Float32Array(0)
-    let glowY: Float32Array = new Float32Array(0)
-    let glowR: Float32Array = new Float32Array(0)
-    let glowPh: Float32Array = new Float32Array(0)
-    let glowSp: Float32Array = new Float32Array(0)
+    let glowX = new Float32Array(0)
+    let glowY = new Float32Array(0)
+    let glowR = new Float32Array(0)
+    let glowPh = new Float32Array(0)
+    let glowSp = new Float32Array(0)
     let glowCount = 0
 
-    // Pulses with pre-computed segment lengths
     interface PulseData {
-      pts: Float32Array   // [x,y] pairs
+      pts: Float32Array
       segLens: Float32Array
       totalLen: number
       pr: number
@@ -52,12 +49,13 @@ export function CircuitBg() {
     let pulseData: PulseData[] = []
 
     let w = 0, h = 0
+    let ready = false
 
     // ── Cached color state ──
+
     let cachedR = 100, cachedG = 255, cachedB = 218
     let traceColor = ""
     let padColor = ""
-
     let isLightMode = false
 
     function updateColors() {
@@ -79,297 +77,43 @@ export function CircuitBg() {
       padColor = `rgba(${cachedR},${cachedG},${cachedB},${padAlpha})`
     }
 
-    // Direction vectors
-    const DX = [1, 0, -1, 0, 1, -1, -1, 1]
-    const DY = [0, 1, 0, -1, 1, 1, -1, -1]
+    // ── Worker ──
 
-    function generate() {
-      const gridSize = 10
-      const cols = Math.ceil(w / gridSize)
-      const rows = Math.ceil(h / gridSize)
-      const grid = new Uint8Array(cols * rows)
+    const worker = new Worker(
+      new URL("../workers/circuit-generate.ts", import.meta.url)
+    )
 
-      const at = (x: number, y: number) => y * cols + x
-      const inBounds = (x: number, y: number) => x >= 0 && x < cols && y >= 0 && y < rows
-      const canPlace = (x: number, y: number) => inBounds(x, y) && grid[at(x, y)] === 0
+    let genId = 0
 
-      function occupy(x: number, y: number) {
-        if (inBounds(x, y)) grid[at(x, y)] = 1
-      }
-
-      // Path storage — use flat arrays to reduce GC pressure
-      const MAX_PATHS = 2000
-      const MAX_HISTORY = 100
-      // Per-path state
-      const px = new Int16Array(MAX_PATHS)
-      const py = new Int16Array(MAX_PATHS)
-      const pdir = new Uint8Array(MAX_PATHS)
-      const phistX = new Int16Array(MAX_PATHS * MAX_HISTORY)
-      const phistY = new Int16Array(MAX_PATHS * MAX_HISTORY)
-      const phistLen = new Uint16Array(MAX_PATHS)
-      const pmaxLen = new Uint16Array(MAX_PATHS)
-      const palive = new Uint8Array(MAX_PATHS)
-      const pwidth = new Float32Array(MAX_PATHS)
-      const pblocked = new Uint8Array(MAX_PATHS)
-      let pathCount = 0
-
-      function seedPath(x: number, y: number, dir: number, maxLen: number, width: number) {
-        if (pathCount >= MAX_PATHS || !canPlace(x, y)) return
-        occupy(x, y)
-        const i = pathCount++
-        px[i] = x; py[i] = y; pdir[i] = dir
-        phistX[i * MAX_HISTORY] = x; phistY[i * MAX_HISTORY] = y
-        phistLen[i] = 1; pmaxLen[i] = Math.min(maxLen, MAX_HISTORY)
-        palive[i] = 1; pwidth[i] = width; pblocked[i] = 0
-      }
-
-      function seedBundle(startX: number, startY: number, dir: number, perpDx: number, perpDy: number) {
-        const bundleSize = 3 + Math.floor(Math.random() * 5)
-        const pathLen = 40 + Math.floor(Math.random() * 50)
-        const bw = 0.6 + Math.random() * 0.5
-        for (let i = 0; i < bundleSize; i++) {
-          seedPath(startX + perpDx * i, startY + perpDy * i, dir, pathLen, bw)
-        }
-      }
-
-      // Seed from edges
-      for (let x = 3; x < cols - 10; x += 6 + Math.floor(Math.random() * 6)) seedBundle(x, 0, 1, 1, 0)
-      for (let x = 3; x < cols - 10; x += 6 + Math.floor(Math.random() * 6)) seedBundle(x, rows - 1, 3, 1, 0)
-      for (let y = 3; y < rows - 10; y += 6 + Math.floor(Math.random() * 6)) seedBundle(0, y, 0, 0, 1)
-      for (let y = 3; y < rows - 10; y += 6 + Math.floor(Math.random() * 6)) seedBundle(cols - 1, y, 2, 0, 1)
-
-      // Single edge fills
-      for (let x = 2; x < cols - 2; x += 4 + Math.floor(Math.random() * 3)) {
-        seedPath(x, 0, 1, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
-        seedPath(x, rows - 1, 3, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
-      }
-      for (let y = 2; y < rows - 2; y += 4 + Math.floor(Math.random() * 3)) {
-        seedPath(0, y, 0, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
-        seedPath(cols - 1, y, 2, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
-      }
-
-      // Interior bundles
-      const intBundles = Math.floor((cols * rows) / 800) + 8
-      for (let i = 0; i < intBundles; i++) {
-        const x = 5 + Math.floor(Math.random() * (cols - 10))
-        const y = 5 + Math.floor(Math.random() * (rows - 10))
-        const dir = Math.floor(Math.random() * 4)
-        const perpDx = dir === 1 || dir === 3 ? 1 : 0
-        const perpDy = dir === 0 || dir === 2 ? 1 : 0
-        seedBundle(x, y, dir, perpDx, perpDy)
-      }
-
-      // Interior singles
-      const intSeeds = Math.floor((cols * rows) / 250) + 15
-      for (let i = 0; i < intSeeds; i++) {
-        const x = 3 + Math.floor(Math.random() * (cols - 6))
-        const y = 3 + Math.floor(Math.random() * (rows - 6))
-        seedPath(x, y, Math.floor(Math.random() * 4), 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.8)
-      }
-
-      // ── Round-robin growth ──
-      const STRAIGHTNESS = 0.93
-      const maxSteps = 80
-
-      // Reusable shuffle array
-      const shuffleArr = new Uint16Array(MAX_PATHS)
-
-      for (let step = 0; step < maxSteps; step++) {
-        const n = pathCount
-        for (let i = 0; i < n; i++) shuffleArr[i] = i
-        // Fisher-Yates in-place
-        for (let i = n - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1))
-          const tmp = shuffleArr[i]; shuffleArr[i] = shuffleArr[j]; shuffleArr[j] = tmp
-        }
-
-        let anyAlive = false
-
-        for (let si = 0; si < n; si++) {
-          const pi = shuffleArr[si]
-          if (!palive[pi]) continue
-          if (phistLen[pi] >= pmaxLen[pi]) { palive[pi] = 0; continue }
-
-          anyAlive = true
-
-          let newDir = pdir[pi]
-          if (Math.random() > STRAIGHTNESS) {
-            // Cardinal turns only — orthogonal traces like real PCBs
-            newDir = (newDir + (Math.random() < 0.5 ? 1 : 3)) % 4
-          }
-
-          const nx = px[pi] + DX[newDir]
-          const ny = py[pi] + DY[newDir]
-
-          if (canPlace(nx, ny)) {
-            occupy(nx, ny)
-            px[pi] = nx; py[pi] = ny; pdir[pi] = newDir
-            const hi = pi * MAX_HISTORY + phistLen[pi]
-            phistX[hi] = nx; phistY[hi] = ny
-            phistLen[pi]++
-            pblocked[pi] = 0
-          } else {
-            pblocked[pi]++
-            if (pblocked[pi] >= 2) {
-              palive[pi] = 0
-              if (phistLen[pi] > 4 && Math.random() < 0.5) {
-                const perpDir = (pdir[pi] + (Math.random() < 0.5 ? 1 : 3)) % 4
-                seedPath(px[pi] + DX[perpDir], py[pi] + DY[perpDir], perpDir, 8 + Math.floor(Math.random() * 15), pwidth[pi] * 0.8)
-              }
-            } else {
-              const tryDir = (pdir[pi] + (Math.random() < 0.5 ? 1 : 3)) % 4
-              const tx = px[pi] + DX[tryDir], ty = py[pi] + DY[tryDir]
-              if (canPlace(tx, ty)) {
-                occupy(tx, ty)
-                px[pi] = tx; py[pi] = ty; pdir[pi] = tryDir
-                const hi = pi * MAX_HISTORY + phistLen[pi]
-                phistX[hi] = tx; phistY[hi] = ty
-                phistLen[pi]++
-              } else {
-                palive[pi] = 0
-              }
-            }
-          }
-        }
-
-        if (!anyAlive) break
-      }
-
-      // ── Convert to render data ──
-      // Collect all simplified traces
-      const tempTraces: { pts: number[]; w: number }[] = [] // pts as flat [x,y,x,y,...]
-      const tempPads: { x: number; y: number; r: number }[] = []
-
-      for (let pi = 0; pi < pathCount; pi++) {
-        const len = phistLen[pi]
-        if (len < 3) continue
-        const base = pi * MAX_HISTORY
-
-        // Simplify: keep only direction-change points
-        const simplified: number[] = [phistX[base] * gridSize, phistY[base] * gridSize]
-
-        for (let i = 1; i < len - 1; i++) {
-          const dx1 = phistX[base + i] - phistX[base + i - 1]
-          const dy1 = phistY[base + i] - phistY[base + i - 1]
-          const dx2 = phistX[base + i + 1] - phistX[base + i]
-          const dy2 = phistY[base + i + 1] - phistY[base + i]
-          if (dx1 !== dx2 || dy1 !== dy2) {
-            simplified.push(phistX[base + i] * gridSize, phistY[base + i] * gridSize)
-          }
-        }
-        simplified.push(phistX[base + len - 1] * gridSize, phistY[base + len - 1] * gridSize)
-
-        if (simplified.length >= 4) {
-          tempTraces.push({ pts: simplified, w: pwidth[pi] })
-
-          // Terminal pad
-          tempPads.push({ x: simplified[simplified.length - 2], y: simplified[simplified.length - 1], r: 1.5 + Math.random() * 2 })
-          if (Math.random() < 0.3) {
-            tempPads.push({ x: simplified[0], y: simplified[1], r: 1.5 + Math.random() * 1.5 })
-          }
-        }
-      }
-
-      // Pack into typed arrays
-      traceCount = tempTraces.length
-      let totalPts = 0
-      for (const t of tempTraces) totalPts += t.pts.length
-
-      traceMeta = new Float32Array(traceCount * 3)
-      tracePts = new Float32Array(totalPts)
-      let ptOffset = 0
-      for (let i = 0; i < traceCount; i++) {
-        const t = tempTraces[i]
-        traceMeta[i * 3] = ptOffset
-        traceMeta[i * 3 + 1] = t.pts.length / 2
-        traceMeta[i * 3 + 2] = t.w
-        for (let j = 0; j < t.pts.length; j++) tracePts[ptOffset++] = t.pts[j]
-      }
-
-      padCount = tempPads.length
-      padX = new Float32Array(padCount)
-      padY = new Float32Array(padCount)
-      padR = new Float32Array(padCount)
-      for (let i = 0; i < padCount; i++) {
-        padX[i] = tempPads[i].x; padY[i] = tempPads[i].y; padR[i] = tempPads[i].r
-      }
-
-      // Glows
-      glowCount = Math.min(Math.floor(traceCount / 8), 20)
-      glowX = new Float32Array(glowCount)
-      glowY = new Float32Array(glowCount)
-      glowR = new Float32Array(glowCount)
-      glowPh = new Float32Array(glowCount)
-      glowSp = new Float32Array(glowCount)
-      for (let i = 0; i < glowCount; i++) {
-        const ti = Math.floor(Math.random() * traceCount)
-        const startIdx = traceMeta[ti * 3]
-        const ptCount = traceMeta[ti * 3 + 1]
-        const pi = Math.floor(Math.random() * ptCount)
-        glowX[i] = tracePts[startIdx + pi * 2]
-        glowY[i] = tracePts[startIdx + pi * 2 + 1]
-        glowR[i] = 3 + Math.random() * 5
-        glowPh[i] = Math.random() * Math.PI * 2
-        glowSp[i] = 0.2 + Math.random() * 0.5
-      }
-
-      // Pulses — pre-compute segment lengths and total length
-      pulseData = []
-      if (!reducedMotion && traceCount > 0) {
-        const pc = Math.min(Math.floor(traceCount / 4), 24)
-        for (let i = 0; i < pc; i++) {
-          const ti = Math.floor(Math.random() * traceCount)
-          const startIdx = traceMeta[ti * 3]
-          const ptCount = traceMeta[ti * 3 + 1]
-          if (ptCount < 2) continue
-
-          const pts = new Float32Array(ptCount * 2)
-          for (let j = 0; j < ptCount * 2; j++) pts[j] = tracePts[startIdx + j]
-
-          const segLens = new Float32Array(ptCount - 1)
-          let totalLen = 0
-          for (let j = 0; j < ptCount - 1; j++) {
-            const dx = pts[(j + 1) * 2] - pts[j * 2]
-            const dy = pts[(j + 1) * 2 + 1] - pts[j * 2 + 1]
-            const len = Math.sqrt(dx * dx + dy * dy)
-            segLens[j] = len
-            totalLen += len
-          }
-
-          if (totalLen < 10) continue
-
-          // Variable speeds: mix of slow, medium, and fast pulses
-          const speedTier = Math.random()
-          const sp = speedTier < 0.3
-            ? 0.0008 + Math.random() * 0.0007   // slow
-            : speedTier < 0.7
-            ? 0.002 + Math.random() * 0.002      // medium
-            : 0.005 + Math.random() * 0.004       // fast
-
-          pulseData.push({
-            pts, segLens, totalLen,
-            pr: Math.random() * (1.0 + sp * 200), // Stagger across lifecycle
-            sp,
-            ln: 0.04 + Math.random() * 0.06,
-            w: traceMeta[ti * 3 + 2],
-          })
-        }
-      }
-
-      updateColors()
-    }
-
-    function resize() {
+    function requestGenerate() {
       w = canvas.clientWidth; h = canvas.clientHeight
       canvas.width = w * dpr; canvas.height = h * dpr
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      generate()
+      genId++
+      worker.postMessage({ w, h, reducedMotion, id: genId })
     }
+
+    worker.onmessage = (e) => {
+      const d = e.data
+      if (d.id !== genId) return // stale result from a previous resize
+
+      traceMeta = d.traceMeta; tracePts = d.tracePts; traceCount = d.traceCount
+      padX = d.padX; padY = d.padY; padR = d.padR; padCount = d.padCount
+      glowX = d.glowX; glowY = d.glowY; glowR = d.glowR
+      glowPh = d.glowPh; glowSp = d.glowSp; glowCount = d.glowCount
+      pulseData = d.pulses
+      ready = true
+      updateColors()
+      if (reducedMotion) draw(0)
+    }
+
+    // ── Draw ──
 
     function draw(time: number) {
       ctx.clearRect(0, 0, w, h)
+      if (!ready) return
 
-      // ── Traces (batched by similar width for fewer state changes) ──
+      // ── Traces ──
       ctx.strokeStyle = traceColor
       ctx.lineCap = "round"
       ctx.lineJoin = "round"
@@ -387,11 +131,11 @@ export function CircuitBg() {
         ctx.stroke()
       }
 
-      // ── Pads (single fillStyle, batched) ──
+      // ── Pads ──
       ctx.fillStyle = padColor
       for (let i = 0; i < padCount; i++) {
         ctx.beginPath()
-        ctx.arc(padX[i], padY[i], padR[i], 0, 6.2832) // 2*PI
+        ctx.arc(padX[i], padY[i], padR[i], 0, 6.2832)
         ctx.fill()
       }
 
@@ -416,26 +160,22 @@ export function CircuitBg() {
         ctx.fill()
       }
 
-      // ── Pulses (gradual grow-in / shrink-out lifecycle) ──
+      // ── Pulses ──
       if (!reducedMotion) {
         for (const pl of pulseData) {
-          // Lifecycle: grow tail in → full length → shrink tail out → restart
           const life = pl.pr < pl.ln
-            ? pl.pr / pl.ln                              // growing in: 0→1
+            ? pl.pr / pl.ln
             : pl.pr > 1.0
-            ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)   // shrinking out: 1→0
-            : 1.0                                         // full length
+            ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)
+            : 1.0
 
-          // Advance and reset when fully exited
           pl.pr += pl.sp
           if (life <= 0) { pl.pr = 0; continue }
 
-          // Head clamped to trace end, tail clamped to trace start
           const hd = Math.min(pl.pr, 1.0) * pl.totalLen
           const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
           if (hd - td < 1) continue
 
-          // Interpolate point at distance along pre-computed segments
           function ptAt(d: number): [number, number] {
             let a = 0
             for (let i = 0; i < pl.segLens.length; i++) {
@@ -453,7 +193,6 @@ export function CircuitBg() {
             return [pl.pts[last], pl.pts[last + 1]]
           }
 
-          // Draw gradient tail — opacity scaled by lifecycle
           const pulseMult = (isLightMode ? 0.8 : 0.7) * life
           ctx.lineCap = "round"
           for (let s = 0; s < 8; s++) {
@@ -468,7 +207,6 @@ export function CircuitBg() {
             ctx.stroke()
           }
 
-          // Head glow — also scaled by lifecycle
           const [hx, hy] = ptAt(hd)
           const headAlpha = 0.5 * life
           const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 8)
@@ -483,16 +221,12 @@ export function CircuitBg() {
       }
 
       // ── Content readability vignette ──
-      // Full brilliance at all 4 screen edges, sharp fade into the
-      // center content column so text stays readable.
-      // Light mode uses a gentler fade to keep traces visible in the center.
       const isMobile = w < 768
       const fadeStrength = isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65
       const fadeEdge = isLightMode ? (isMobile ? 0.45 : 0.25) : 0.6
       ctx.globalCompositeOperation = "destination-out"
       const bandFade = ctx.createLinearGradient(0, 0, w, 0)
       if (isLightMode && isMobile) {
-        // Light mobile: fade from edges inward, no full-glory zone
         bandFade.addColorStop(0, `rgba(0,0,0,${fadeEdge})`)
         bandFade.addColorStop(0.5, `rgba(0,0,0,${fadeStrength})`)
         bandFade.addColorStop(1, `rgba(0,0,0,${fadeEdge})`)
@@ -511,22 +245,20 @@ export function CircuitBg() {
     }
 
     // ── Lifecycle ──
-    // Defer generation so it doesn't block first paint (LCP/TBT)
 
-    const initId = requestAnimationFrame(() => { resize() })
+    requestGenerate()
     let rt: ReturnType<typeof setTimeout>
-    const onR = () => { clearTimeout(rt); rt = setTimeout(resize, 300) }
+    const onR = () => { clearTimeout(rt); rt = setTimeout(requestGenerate, 300) }
     window.addEventListener("resize", onR)
 
-    // Update colors on theme change
     const obs = new MutationObserver(() => {
       updateColors()
-      if (reducedMotion) draw(0)
+      if (reducedMotion && ready) draw(0)
     })
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
 
     if (reducedMotion) {
-      return () => { cancelAnimationFrame(initId); window.removeEventListener("resize", onR); obs.disconnect() }
+      return () => { worker.terminate(); window.removeEventListener("resize", onR); obs.disconnect() }
     }
 
     let fid: number, lt = 0
@@ -535,7 +267,7 @@ export function CircuitBg() {
       fid = requestAnimationFrame(loop)
     }
     fid = requestAnimationFrame(loop)
-    return () => { cancelAnimationFrame(initId); cancelAnimationFrame(fid); window.removeEventListener("resize", onR); obs.disconnect() }
+    return () => { cancelAnimationFrame(fid); worker.terminate(); window.removeEventListener("resize", onR); obs.disconnect() }
   }, [])
 
   return <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full print:hidden" />
