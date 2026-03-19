@@ -462,6 +462,11 @@ function CurrentProjectCard({
       </div>
       <p className={`mt-2 text-sm font-medium ${project.href ? "text-text-primary" : "italic text-text-muted"}`}>
         {project.title}
+        {project.href && (
+          <span className="ml-1.5 inline-block text-text-muted transition-all duration-300 group-hover:text-accent group-hover:translate-x-0.5">
+            →
+          </span>
+        )}
       </p>
     </>
   )
@@ -470,13 +475,10 @@ function CurrentProjectCard({
     return (
       <motion.a
         href={project.href}
-        className={`group relative block rounded-lg border p-4 transition-colors hover:border-accent/40 ${borderClass}`}
+        className={`group block rounded-lg border p-4 transition-colors hover:border-accent/40 ${borderClass}`}
         whileHover={shouldReduceMotion ? {} : { y: -4 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        <span className="absolute top-3 right-3 text-text-muted text-xs transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
-          ↗
-        </span>
         {inner}
       </motion.a>
     )
