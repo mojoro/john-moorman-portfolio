@@ -8,7 +8,9 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="rounded-md p-2 text-text-muted transition-colors hover:text-accent print:hidden"
+      className={`rounded-md p-2 transition-colors hover:text-accent print:hidden ${
+        theme === "dark" ? "text-white" : "text-black"
+      }`}
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {theme === "dark" ? (
