@@ -28,10 +28,10 @@ export function createSessionToken(): string {
 }
 
 export function verifySessionToken(cookie: string): boolean {
-  const parts = cookie.split(".")
-  if (parts.length !== 6) return false // UUID has 5 parts + 1 signature
-  const token = parts.slice(0, 5).join(".")
-  const signature = parts[5]
+  const dotIndex = cookie.lastIndexOf(".")
+  if (dotIndex === -1) return false
+  const token = cookie.slice(0, dotIndex)
+  const signature = cookie.slice(dotIndex + 1)
   const expected = crypto
     .createHmac("sha256", getSecret())
     .update(token)
