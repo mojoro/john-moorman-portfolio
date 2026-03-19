@@ -28,9 +28,10 @@ Make a Berlin startup CTO or hiring manager think "I want this person on my team
 - **Language:** TypeScript throughout — strict mode, no `any`
 - **Styling:** Tailwind CSS v4
 - **Animations:** Framer Motion
-- **AI Feature:** Anthropic API (`claude-sonnet-4-20250514`) for the chatbot
-- **Database:** Neon PostgreSQL (serverless, Edge-compatible) — stores chatbot conversations
-- **Rate limiting:** Upstash Redis (`@upstash/ratelimit`) — 10 requests/IP/hour
+- **AI Feature:** Anthropic API (Claude Haiku 4.5) for the chatbot, Gemini fallback via OpenRouter
+- **Database:** Neon PostgreSQL (serverless, Edge-compatible) — stores chatbot conversations + blog comments
+- **Rate limiting:** Upstash Redis (`@upstash/ratelimit`) — 20 requests/IP/hour
+- **Captcha:** Cloudflare Turnstile (blog comments)
 - **Deployment:** Vercel with custom domain (johnmoorman.com)
 - **Package manager:** pnpm
 
@@ -40,11 +41,12 @@ Make a Berlin startup CTO or hiring manager think "I want this person on my team
 
 ```
 app/
-  page.tsx                  — homepage (hero, about, work preview, contact)
+  page.tsx                  — homepage (hero, work, blog, resume, contact)
   layout.tsx                — root layout (sidebar nav, fonts, theme, analytics)
+                              conditionally hides site shell on /admin routes
   about/page.tsx
   blog/page.tsx             — blog index
-  blog/[slug]/page.tsx      — individual post (MDX)
+  blog/[slug]/page.tsx      — individual post (MDX + comments section)
   work/page.tsx             — work/case study index
   work/[slug]/page.tsx      — individual case study (MDX)
   resume/page.tsx           — printable resume
@@ -53,6 +55,20 @@ app/
   api/contact/route.ts      — contact form handler
   not-found.tsx
   error.tsx
+
+  admin/
+    layout.tsx              — admin shell (toast provider)
+    login/page.tsx          — password login
+    (dashboard)/
+      layout.tsx            — admin nav bar wrapper
+      page.tsx              — dashboard overview (stats, recent activity)
+      content/page.tsx      — content listing (blog + work, sortable, new post creation)
+      content/[type]/[slug]/page.tsx — MDX editor with frontmatter form + live preview
+      comments/page.tsx     — comment manager with delete
+      chats/page.tsx        — chat session browser
+      chats/[id]/page.tsx   — full conversation thread view
+      prompt/page.tsx       — chatbot system prompt editor
+      palette/page.tsx      — live color palette editor (dark + light mode)
 
 components/
   sidebar.tsx               — fixed left nav (desktop), hamburger menu (mobile)
@@ -66,29 +82,61 @@ components/
   lightbox-provider.tsx
   mdx-image.tsx             — Next.js Image wrapper for MDX content
   contact-form.tsx
+  comment-form.tsx          — anonymous blog comment form with Turnstile
+  comment-list.tsx          — server component rendering comments per post
+  tag-pill.tsx              — reusable tag badge with hover styles
+  prefetch-routes.tsx       — eager site-wide prefetch after first page load
   print-button.tsx
+  table-of-contents.tsx     — sticky TOC with scroll-spy for blog/work posts
+
+  admin/
+    admin-nav.tsx           — horizontal nav bar for admin sections
+    toast.tsx               — toast notifications via context
+    stat-card.tsx           — dashboard stat card
+    content-table.tsx       — sortable content listing table
+    content-editor.tsx      — MDX editor page wrapper (state, save, Cmd+S)
+    frontmatter-form.tsx    — structured form for frontmatter fields
+    mdx-editor.tsx          — textarea + markdown preview toggle
+    new-post-form.tsx       — inline new post creation form
+    comment-row.tsx         — comment with two-click delete
+    chat-preview.tsx        — chat session preview card
+    delete-chat-button.tsx  — two-click chat deletion
 
 lib/
-  content.ts                — MDX file loader (getPosts) used by blog and work routes
+  content.ts                — MDX file loader (getPosts, getPost) with includeDrafts param
   chatbot-prompt.ts         — system prompt for the Ask John chatbot
   ratelimit.ts              — Upstash Redis rate limiter
-  sanitize.ts               — input sanitization for chat API
-  db.ts                     — Neon PostgreSQL client (conversation storage)
+  sanitize.ts               — input sanitization (stripDangerous + sanitizeInput)
+  db.ts                     — Neon PostgreSQL client (conversations, comments, admin queries)
+  actions/comments.ts       — server action for blog comment submission
+
+  admin/
+    auth.ts                 — password verification, HMAC session tokens, cookie helpers
+    constants.ts            — shared constants (cookie name) safe for Edge runtime
+    actions.ts              — server actions: login, logout, save content, delete comment/chat,
+                              save prompt, save palette, create content
+
+middleware.ts               — protects /admin routes, sets x-pathname header for layout
 
 content/
   blog/
     _template.mdx           — frontmatter template (ignored by loader)
     real-estate-ai-tool.mdx
+    hackathon-drop.mdx
+    shortlist.mdx
   work/
     boa-automation.mdx
     real-estate-pipeline.mdx
     finalflow.mdx
     serenity-retreat.mdx
     portfolio-site.mdx
+    shortlist.mdx
+    drop-oss.mdx
 
 public/
   images/
-    blog/real-estate-ai-tool/   — blog post images
+    blog/real-estate-ai-tool/
+    blog/shortlist/
 ```
 
 ---
@@ -104,21 +152,23 @@ public/
 --accent:         #64ffda   /* Mint — use sparingly */
 --text-primary:   #ccd6f6   /* Warm slate */
 --text-secondary: #8892b0   /* Secondary text */
---text-muted:     #495670   /* Timestamps, dividers */
+--text-muted:     #5a6a8a   /* Timestamps, dividers */
 ```
 
 ### Color palette (light mode)
 
 ```
---bg:             #f5f3ee   /* Warm off-white */
---bg-surface:     #edeae3
---bg-elevated:    #e4e0d7
---accent:         #0a7a5c   /* Dark teal (mint doesn't work on light) */
---text-primary:   #1a1a2e
---text-secondary: #4a5568
---text-muted:     #94a3b8
+--bg:             #f0f4f8   /* Cool blue-grey */
+--bg-surface:     #e3ecf3
+--bg-elevated:    #d6e3ee
+--accent:         #0891b2   /* Cyan-600 */
+--text-primary:   #0d1b2e
+--text-secondary: #374e6a
+--text-muted:     #6b87a4
 --border:         rgba(0,0,0,0.08)
 ```
+
+Colors are editable via the admin palette editor at `/admin/palette` (local dev only).
 
 ### Typography
 
@@ -131,9 +181,11 @@ All loaded via `next/font/google` (not a `<link>` tag).
 ### Layout
 
 - Desktop: fixed left sidebar (240px), content max-width 900px
+- Admin: no sidebar, top nav, max-width 1100px
 - Case study body text: max-width 680px
 - Mobile: sidebar hidden, fixed top bar (56px) with hamburger overlay
-- Section numbers: monospace, accent-colored — "01.", "02." etc.
+- Section numbers: monospace, accent-colored — "01.", "02.", "03.", "04."
+- Homepage sections match sidebar nav: Work, Blog, Resume, Contact
 
 ### Motion (Framer Motion)
 
@@ -149,11 +201,31 @@ All loaded via `next/font/google` (not a `<link>` tag).
 
 ```
 ANTHROPIC_API_KEY=          # Server-side only — never NEXT_PUBLIC_
-GOOGLE_AI_API_KEY=          # Gemini fallback — free tier at aistudio.google.com
+OPENROUTER_API_KEY=         # Gemini fallback via OpenRouter
 UPSTASH_REDIS_REST_URL=     # Upstash console
 UPSTASH_REDIS_REST_TOKEN=   # Upstash console
 DATABASE_URL=               # Neon PostgreSQL connection string
+RESEND_API_KEY=             # Contact form email (Resend)
+ADMIN_PASSWORD=             # Admin dashboard login + session signing key
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=  # Cloudflare Turnstile (blog comments, client-side)
+TURNSTILE_SECRET_KEY=       # Cloudflare Turnstile (server-side verification)
 ```
+
+---
+
+## Admin Dashboard
+
+Password-protected at `/admin`. Auth via `ADMIN_PASSWORD` env var with HMAC-signed session cookie (7-day expiry). Middleware redirects unauthenticated users to `/admin/login`.
+
+**Sections:**
+- **Dashboard** — at-a-glance stats (posts, comments, chats), recent activity with clickable items
+- **Content** — browse all posts including drafts, create new posts, edit frontmatter + MDX body with live preview, Cmd/Ctrl+S to save
+- **Comments** — view and delete blog comments
+- **Chats** — browse chatbot conversations with message previews and visitor location (city/country from Vercel geo headers), view full threads, delete sessions
+- **Prompt** — edit the chatbot system prompt with a warning banner
+- **Palette** — live color picker for all design tokens (dark + light mode) with inline preview
+
+**Important:** Content editing, prompt editing, and palette editing write to the filesystem. They only work in local dev (`pnpm dev`). On Vercel production, these are read-only. DB-backed features (comments, chats, dashboard stats) work everywhere.
 
 ---
 
@@ -161,18 +233,20 @@ DATABASE_URL=               # Neon PostgreSQL connection string
 
 The most important feature. Lives at `POST /api/chat` (Edge runtime, streaming).
 
+**Provider chain:** Anthropic Claude Haiku 4.5 (primary) → OpenRouter Gemini (fallback).
+
 **Cost protection layers (all implemented):**
-1. Upstash Redis: 10 requests/IP/hour, sliding window
-2. Input capped at 500 chars server-side; output capped at 400 tokens
+1. Upstash Redis: 20 requests/IP/hour, sliding window
+2. Input capped at 500 chars server-side; output capped at 1200 tokens
 3. Conversation history capped at 10 turns per session
 4. Anthropic console spend limit set (separate console setting — keep it active)
 5. Honeypot field + timing check (reject if message arrives within 500ms of page load)
 6. Input sanitized (strip HTML, injection markers)
 7. `ANTHROPIC_API_KEY` server-side only; route handler only
 
-**Conversation storage:** Each session's messages are upserted to Neon PostgreSQL via `lib/db.ts`. IP addresses are SHA-256 hashed before storage.
+**Conversation storage:** Each session's messages are upserted to Neon PostgreSQL via `lib/db.ts`. IP addresses are SHA-256 hashed before storage. City and country are captured from Vercel geo headers.
 
-**System prompt** (`lib/chatbot-prompt.ts`) — do not overwrite this without care. It is the primary voice of the site. Key constraints encoded in it:
+**System prompt** (`lib/chatbot-prompt.ts`) — do not overwrite this without care. It is the primary voice of the site. Also editable via `/admin/prompt` in local dev. Key constraints encoded in it:
 - Speaks first-person as John, clarifies AI status when asked
 - Leads with business impact, not tech lists
 - Honest about gaps ("I haven't used X professionally...")
@@ -181,15 +255,15 @@ The most important feature. Lives at `POST /api/chat` (Edge runtime, streaming).
 
 ---
 
-## Blog Authoring Workflow
+## Blog & Content Authoring
 
 All content lives as MDX files in `content/blog/` and `content/work/`. No CMS.
 
-**To write a new blog post:**
-1. Create `content/blog/your-slug.mdx` with frontmatter
-2. Set `draft: true` while writing — visible locally, hidden in production
-3. `pnpm dev` → `localhost:3000/blog/your-slug` to preview
-4. When ready: remove `draft: true`, commit, push → Vercel auto-deploys
+**Two workflows for authoring:**
+
+1. **Admin dashboard** (preferred for quick edits): `/admin/content` → edit in browser → Cmd+S to save. Can also create new posts via the "+ New post" button. Only works in local dev.
+
+2. **Manual**: Create `content/blog/your-slug.mdx` with frontmatter, set `draft: true`, preview at `localhost:3000/blog/your-slug`, remove draft flag when ready.
 
 **Frontmatter:**
 ```mdx
@@ -204,9 +278,11 @@ draft: true          # Remove or set false when ready to publish
 
 Copy `content/blog/_template.mdx` as a starting point.
 
-**Draft rule:** `lib/content.ts` filters out `draft: true` posts in `NODE_ENV === 'production'`. Files prefixed with `_` are always excluded.
+**Draft rule:** `lib/content.ts` filters out `draft: true` posts in `NODE_ENV === 'production'` unless `includeDrafts` is passed (used by admin). Files prefixed with `_` are always excluded.
 
 **Blog images:** Put them in `public/images/blog/your-slug/`. Reference with absolute paths: `/images/blog/your-slug/image.png`. The `mdx-image.tsx` component wraps Next.js `<Image>` for optimization.
+
+**Blog comments:** Anonymous with optional name, Cloudflare Turnstile captcha, stored in Neon PostgreSQL. Manageable via `/admin/comments`.
 
 ---
 
@@ -217,15 +293,18 @@ Plain English imperative sentence. No conventional commit prefixes.
 - Start with a capitalized verb: `Add`, `Fix`, `Remove`, `Rewrite`, `Update`, `Wire`, etc.
 - Max ~75 characters
 - No `Co-Authored-By` line
+- Commit atomically — one logical change per commit
+- For features, commit each layer separately (schema, server action, components, page integration)
 - Never vague: no `update`, `fix stuff`, `wip`
 - Never commit broken code
-- If a decision involved a meaningful tradeoff, note it in the commit body
 
 Examples:
 ```
 Add currently-building section with 10-in-10 challenge
 Guard Upstash init against placeholder env values
 Wire image lightbox into blog and work MDX pages
+Fix session token verification splitting on wrong delimiter
+Extract TagPill component and unify pill styles site-wide
 ```
 
 ---
@@ -238,3 +317,6 @@ Wire image lightbox into blog and work MDX pages
 - SEO: `generateMetadata` on every page, OG image at `/og`, JSON-LD Person schema on homepage, sitemap and robots.txt in place
 - Performance target: Lighthouse 95+ / Core Web Vitals green
 - `@vercel/analytics` is active — check Vercel dashboard for real visitor data
+- Eager prefetching: all site routes are prefetched after first page load via `components/prefetch-routes.tsx`
+- `TagPill` component (`components/tag-pill.tsx`) is the single source of truth for tag badge styles — use it everywhere
+- `middleware.ts` sets an `x-pathname` header used by the root layout to detect admin routes
