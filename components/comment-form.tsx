@@ -92,7 +92,7 @@ export function CommentForm({
         <div
           className="cf-turnstile"
           data-sitekey={turnstileSiteKey}
-          data-theme="auto"
+          data-size="invisible"
         />
 
         {status === "error" && (
