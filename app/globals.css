@@ -20,14 +20,14 @@
 }
 
 [data-theme="light"] {
-  --bg:             #f0f4f8;   /* cool blue-grey, the daylight version of the navy */
-  --bg-surface:     #e3ecf3;   /* cards, panels */
-  --bg-elevated:    #d6e3ee;   /* hover states */
-  --accent:         #0891b2;   /* cyan-600, same family as mint, readable on light */
-  --text-primary:   #0d1b2e;   /* deep navy, mirrors dark mode bg tones */
-  --text-secondary: #374e6a;   /* blue-grey */
-  --text-muted:     #6b87a4;   /* muted blue-grey */
-  --border:         rgba(0, 0, 0, 0.08);
+  --bg:             #e4eaf0;   /* cool blue-grey, slightly deeper */
+  --bg-surface:     #d8e2ec;   /* cards, panels */
+  --bg-elevated:    #cad7e3;   /* hover states */
+  --accent:         #0780a0;   /* cyan-700, darker for better contrast */
+  --text-primary:   #081422;   /* deeper navy */
+  --text-secondary: #2e4260;   /* darker blue-grey */
+  --text-muted:     #5c7691;   /* darker muted blue-grey */
+  --border:         rgba(0, 0, 0, 0.10);
   --cursor-glow:    transparent;
 }
 
