@@ -87,14 +87,13 @@ export function CircuitBg() {
         paths.push({ x, y, dir, history: [{ x, y }], maxLen, alive: true, width, isBundle, blockedCount: 0 })
       }
 
-      // Seed parallel bundles from edges — groups of 2-4 traces with 2-cell spacing
+      // Seed parallel bundles — tighter spacing (1 cell), bigger groups, longer paths
       function seedBundle(startX: number, startY: number, dir: number, perpDx: number, perpDy: number) {
-        const bundleSize = 2 + Math.floor(Math.random() * 3) // 2-4 traces
-        const pathLen = 25 + Math.floor(Math.random() * 40)
+        const bundleSize = 3 + Math.floor(Math.random() * 5) // 3-7 traces
+        const pathLen = 40 + Math.floor(Math.random() * 50) // Much longer
         const w = 0.6 + Math.random() * 0.5
         for (let i = 0; i < bundleSize; i++) {
-          const offset = i * 2
-          seedPath(startX + perpDx * offset, startY + perpDy * offset, dir, pathLen, w)
+          seedPath(startX + perpDx * i, startY + perpDy * i, dir, pathLen, w) // 1-cell spacing
         }
       }
 
@@ -115,14 +114,14 @@ export function CircuitBg() {
         seedBundle(cols - 1, y, 2, 0, 1)
       }
 
-      // Single edge traces filling gaps
+      // Single edge traces filling gaps — longer
       for (let x = 2; x < cols - 2; x += 4 + Math.floor(Math.random() * 3)) {
-        seedPath(x, 0, 1, 20 + Math.floor(Math.random() * 30), 0.5 + Math.random() * 0.5)
-        seedPath(x, rows - 1, 3, 20 + Math.floor(Math.random() * 30), 0.5 + Math.random() * 0.5)
+        seedPath(x, 0, 1, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
+        seedPath(x, rows - 1, 3, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
       }
       for (let y = 2; y < rows - 2; y += 4 + Math.floor(Math.random() * 3)) {
-        seedPath(0, y, 0, 20 + Math.floor(Math.random() * 30), 0.5 + Math.random() * 0.5)
-        seedPath(cols - 1, y, 2, 20 + Math.floor(Math.random() * 30), 0.5 + Math.random() * 0.5)
+        seedPath(0, y, 0, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
+        seedPath(cols - 1, y, 2, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
       }
 
       // Interior seed bundles
@@ -141,12 +140,12 @@ export function CircuitBg() {
       for (let i = 0; i < interiorSeeds; i++) {
         const x = 3 + Math.floor(Math.random() * (cols - 6))
         const y = 3 + Math.floor(Math.random() * (rows - 6))
-        const dir = Math.floor(Math.random() * 4) // Cardinal only
-        seedPath(x, y, dir, 15 + Math.floor(Math.random() * 35), 0.5 + Math.random() * 0.8)
+        const dir = Math.floor(Math.random() * 4)
+        seedPath(x, y, dir, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.8)
       }
 
       // Round-robin growth: grow all paths one step at a time
-      const STRAIGHTNESS = 0.90 // High straightness but enough turns for PCB look
+      const STRAIGHTNESS = 0.93 // Very straight — long runs with rare clean turns
       const maxSteps = 80
 
       for (let step = 0; step < maxSteps; step++) {
