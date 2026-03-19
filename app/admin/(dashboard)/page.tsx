@@ -50,7 +50,7 @@ export default async function AdminDashboardPage() {
                 <li key={comment.id}>
                   <Link
                     href={`/blog/${comment.post_slug}`}
-                    className="block border-b border-border py-4 transition-colors last:border-0 last:pb-0 hover:bg-bg-elevated/30 -mx-2 px-2 rounded"
+                    className="block border-b border-border py-4 transition-colors last:border-0 hover:bg-bg-elevated/30 -mx-2 px-2 rounded"
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-mono text-xs font-medium text-text-primary">
@@ -104,7 +104,7 @@ export default async function AdminDashboardPage() {
                   <li key={chat.id}>
                     <Link
                       href={`/admin/chats/${chat.id}`}
-                      className="block border-b border-border py-4 transition-colors last:border-0 last:pb-0 hover:bg-bg-elevated/30 -mx-2 px-2 rounded"
+                      className="block border-b border-border py-4 transition-colors last:border-0 hover:bg-bg-elevated/30 -mx-2 px-2 rounded"
                     >
                       <p className="text-sm text-text-secondary line-clamp-1">
                         {preview}
