@@ -511,8 +511,9 @@ export function CircuitBg() {
     }
 
     // ── Lifecycle ──
+    // Defer generation so it doesn't block first paint (LCP/TBT)
 
-    resize()
+    const initId = requestAnimationFrame(() => { resize() })
     let rt: ReturnType<typeof setTimeout>
     const onR = () => { clearTimeout(rt); rt = setTimeout(resize, 300) }
     window.addEventListener("resize", onR)
@@ -525,8 +526,7 @@ export function CircuitBg() {
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
 
     if (reducedMotion) {
-      draw(0)
-      return () => { window.removeEventListener("resize", onR); obs.disconnect() }
+      return () => { cancelAnimationFrame(initId); window.removeEventListener("resize", onR); obs.disconnect() }
     }
 
     let fid: number, lt = 0
@@ -535,7 +535,7 @@ export function CircuitBg() {
       fid = requestAnimationFrame(loop)
     }
     fid = requestAnimationFrame(loop)
-    return () => { cancelAnimationFrame(fid); window.removeEventListener("resize", onR); obs.disconnect() }
+    return () => { cancelAnimationFrame(initId); cancelAnimationFrame(fid); window.removeEventListener("resize", onR); obs.disconnect() }
   }, [])
 
   return <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full print:hidden" />

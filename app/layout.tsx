@@ -6,7 +6,7 @@ import { ChatPanelLazy } from "@/components/chat-panel-lazy"
 import { CursorGlow } from "@/components/cursor-glow"
 import { Analytics } from "@vercel/analytics/react"
 import { PrefetchRoutes } from "@/components/prefetch-routes"
-import { CircuitBg } from "@/components/circuit-bg"
+import { CircuitBgLazy } from "@/components/circuit-bg-lazy"
 import { getPosts } from "@/lib/content"
 import { headers } from "next/headers"
 import "./globals.css"
@@ -132,7 +132,7 @@ export default async function RootLayout({
               <CursorGlow />
               <Sidebar />
               <div className="relative pt-14 md:ml-60 md:pt-0 print:ml-0 print:pt-0">
-                <CircuitBg />
+                <CircuitBgLazy />
                 <div className="relative mx-auto max-w-[900px] px-6 md:px-12">
                   {children}
                 </div>
