@@ -73,23 +73,117 @@ async function hashIp(ip: string): Promise<string> {
 export async function upsertConversation(
   sessionId: string,
   ip: string,
-  messages: StoredMessage[]
+  messages: StoredMessage[],
+  geo?: { city?: string; country?: string }
 ): Promise<void> {
   const sql = getDb()
   const ipHash = await hashIp(ip)
   const messageCount = messages.length
+  const city = geo?.city ?? null
+  const country = geo?.country ?? null
 
   await sql`
-    INSERT INTO conversations (id, ip_hash, messages, message_count)
+    INSERT INTO conversations (id, ip_hash, messages, message_count, city, country)
     VALUES (
       ${sessionId},
       ${ipHash},
       ${JSON.stringify(messages)},
-      ${messageCount}
+      ${messageCount},
+      ${city},
+      ${country}
     )
     ON CONFLICT (id) DO UPDATE SET
       messages      = EXCLUDED.messages,
       message_count = EXCLUDED.message_count,
+      city          = COALESCE(EXCLUDED.city, conversations.city),
+      country       = COALESCE(EXCLUDED.country, conversations.country),
       updated_at    = NOW()
   `
+}
+
+export interface ChatSession {
+  id: string
+  ip_hash: string
+  messages: StoredMessage[]
+  message_count: number
+  updated_at: string
+  city: string | null
+  country: string | null
+}
+
+export async function getCommentCount(): Promise<number> {
+  if (!process.env.DATABASE_URL) return 0
+  const sql = getDb()
+  const rows = await sql`SELECT COUNT(*)::int AS count FROM comments`
+  return rows[0].count
+}
+
+export async function getChatCount(): Promise<number> {
+  if (!process.env.DATABASE_URL) return 0
+  const sql = getDb()
+  const rows = await sql`SELECT COUNT(*)::int AS count FROM conversations`
+  return rows[0].count
+}
+
+export async function getAllComments(): Promise<Comment[]> {
+  if (!process.env.DATABASE_URL) return []
+  const sql = getDb()
+  const rows = await sql`SELECT id, post_slug, author, body, created_at FROM comments ORDER BY created_at DESC`
+  return rows as Comment[]
+}
+
+export async function getRecentComments(limit: number): Promise<Comment[]> {
+  if (!process.env.DATABASE_URL) return []
+  const sql = getDb()
+  const rows = await sql`SELECT id, post_slug, author, body, created_at FROM comments ORDER BY created_at DESC LIMIT ${limit}`
+  return rows as Comment[]
+}
+
+export interface ChatPreviewRow {
+  id: string
+  message_count: number
+  updated_at: string
+  city: string | null
+  country: string | null
+  first_message: string | null
+}
+
+export async function getAllChats(): Promise<ChatPreviewRow[]> {
+  if (!process.env.DATABASE_URL) return []
+  const sql = getDb()
+  const rows = await sql`
+    SELECT id, message_count, updated_at, city, country,
+      messages->0->>'content' AS first_message
+    FROM conversations ORDER BY updated_at DESC
+  `
+  return rows as ChatPreviewRow[]
+}
+
+export async function getRecentChats(limit: number): Promise<ChatPreviewRow[]> {
+  if (!process.env.DATABASE_URL) return []
+  const sql = getDb()
+  const rows = await sql`
+    SELECT id, message_count, updated_at, city, country,
+      messages->0->>'content' AS first_message
+    FROM conversations ORDER BY updated_at DESC LIMIT ${limit}
+  `
+  return rows as ChatPreviewRow[]
+}
+
+export async function getChatSession(id: string): Promise<ChatSession | null> {
+  if (!process.env.DATABASE_URL) return null
+  const sql = getDb()
+  const rows = await sql`SELECT id, ip_hash, messages, message_count, updated_at, city, country FROM conversations WHERE id = ${id}`
+  if (rows.length === 0) return null
+  return rows[0] as ChatSession
+}
+
+export async function deleteComment(id: number): Promise<void> {
+  const sql = getDb()
+  await sql`DELETE FROM comments WHERE id = ${id}`
+}
+
+export async function deleteChat(id: string): Promise<void> {
+  const sql = getDb()
+  await sql`DELETE FROM conversations WHERE id = ${id}`
 }

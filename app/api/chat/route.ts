@@ -31,7 +31,8 @@ async function saveConversation(
   ip: string,
   trimmedHistory: ChatMessage[],
   sanitizedMessage: string,
-  assistantContent: string
+  assistantContent: string,
+  geo?: { city?: string; country?: string }
 ): Promise<void> {
   if (!sessionId || !assistantContent) return
   const fullConversation = [
@@ -39,7 +40,7 @@ async function saveConversation(
     { role: "user" as const, content: sanitizedMessage },
     { role: "assistant" as const, content: assistantContent },
   ]
-  await upsertConversation(sessionId, ip, fullConversation).catch(() => {})
+  await upsertConversation(sessionId, ip, fullConversation, geo).catch(() => {})
 }
 
 // ── Provider streaming helpers ──
@@ -48,7 +49,7 @@ async function saveConversation(
  *  API call fails (bad key, rate limit, service down). */
 async function streamAnthropic(
   messages: ChatMessage[],
-  ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string }
+  ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string; geo?: { city?: string; country?: string } }
 ): Promise<ReadableStream<Uint8Array>> {
   // maxRetries: 0 — fail fast so rate limits and auth errors immediately
   // trigger the OpenRouter fallback instead of hanging on SDK retries.
@@ -88,7 +89,7 @@ async function streamAnthropic(
         return
       }
       await saveConversation(
-        ctx.sessionId, ctx.ip, ctx.trimmedHistory, ctx.sanitizedMessage, assistantContent
+        ctx.sessionId, ctx.ip, ctx.trimmedHistory, ctx.sanitizedMessage, assistantContent, ctx.geo
       )
       controller.close()
     },
@@ -100,7 +101,7 @@ async function streamAnthropic(
  *  the initial HTTP request fails. */
 async function streamGemini(
   messages: ChatMessage[],
-  ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string }
+  ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string; geo?: { city?: string; country?: string } }
 ): Promise<ReadableStream<Uint8Array>> {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -159,7 +160,7 @@ async function streamGemini(
         return
       }
       await saveConversation(
-        ctx.sessionId, ctx.ip, ctx.trimmedHistory, ctx.sanitizedMessage, assistantContent
+        ctx.sessionId, ctx.ip, ctx.trimmedHistory, ctx.sanitizedMessage, assistantContent, ctx.geo
       )
       controller.close()
     },
@@ -225,7 +226,11 @@ export async function POST(request: Request) {
     { role: "user" as const, content: sanitizedMessage },
   ]
 
-  const ctx = { sessionId, ip, trimmedHistory, sanitizedMessage }
+  const geo = {
+    city: request.headers.get("x-vercel-ip-city") ?? undefined,
+    country: request.headers.get("x-vercel-ip-country") ?? undefined,
+  }
+  const ctx = { sessionId, ip, trimmedHistory, sanitizedMessage, geo }
   const responseHeaders = {
     "Content-Type": "text/plain; charset=utf-8",
     "Cache-Control": "no-cache",
