@@ -6,9 +6,9 @@
  * lightweight resize/theme messages thereafter.
  *
  * The OffscreenCanvas is 2× viewport height. The circuit is generated for
- * 1.5× the viewport height (stored in genH). The CSS translateY(-20%) animation
- * reveals at most y=0..1.4h of canvas, so a soft fade from y=0.85h→1.4h
- * dissolves the circuit before the content edge — no seam, no empty stripe.
+ * one viewport tile and drawn twice per frame (tile 1 at y=0, tile 2 at y=h).
+ * Seam stubs — short mirrored vertical traces at the top and bottom edges —
+ * connect geometrically when the tile repeats, hiding the seam.
  *
  * Protocol (main → worker):
  *   { type: 'init',   canvas: OffscreenCanvas, w, h, dpr, reducedMotion, theme, accent, density }
@@ -64,7 +64,6 @@ let pulseData: PulseData[] = []
 
 let w = 0
 let h = 0
-let genH = 0     // circuit generation height = Math.round(h * 1.5)
 let dpr = 1
 let reducedMotion = false
 let ready = false
@@ -154,18 +153,55 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
     }
   }
 
+  // ── Seaming stubs (seamless vertical tiling) ──
+  //
+  // Short deterministic vertical traces at evenly-spaced x positions.
+  // Top stubs (y=0 → seamRows) and bottom stubs (y=rows-1 → rows-1-seamRows)
+  // use identical x positions and widths. When the tile stacks, the bottom
+  // stub of tile N and the top stub of tile N+1 meet at the seam and form a
+  // continuous trace — no cross-fade or empty stripe needed.
+  // All other generation branches out independently from the stub endpoints.
+
+  const seamRows = Math.max(3, Math.ceil(rows * 0.05))
+  const seamStep = 8  // one stub pair every 8 grid columns (~80 px)
+
+  for (let sx = 4; sx < cols - 4; sx += seamStep) {
+    const sw = 0.5 + ((sx * 3 + 7) % 15) / 30  // deterministic width 0.5..1.0
+
+    // Top stub: (sx, 0) → (sx, seamRows), straight south
+    if (pathCount < MAX_PATHS) {
+      const pi = pathCount++
+      for (let s = 0; s <= seamRows; s++) {
+        phistX[pi * MAX_HISTORY + s] = sx
+        phistY[pi * MAX_HISTORY + s] = s
+        if (inBounds(sx, s)) grid[at(sx, s)] = 1
+      }
+      phistLen[pi] = seamRows + 1
+      pwidth[pi] = sw
+      palive[pi] = 0
+      seedPath(sx, seamRows + 1, 1, 15 + (sx % 5) * 5, sw * 0.9)
+    }
+
+    // Bottom stub: mirror of top — (sx, rows-1) → (sx, rows-1-seamRows), straight north
+    if (pathCount < MAX_PATHS) {
+      const pi = pathCount++
+      for (let s = 0; s <= seamRows; s++) {
+        phistX[pi * MAX_HISTORY + s] = sx
+        phistY[pi * MAX_HISTORY + s] = rows - 1 - s
+        if (inBounds(sx, rows - 1 - s)) grid[at(sx, rows - 1 - s)] = 1
+      }
+      phistLen[pi] = seamRows + 1
+      pwidth[pi] = sw
+      palive[pi] = 0
+      seedPath(sx, rows - 2 - seamRows, 3, 15 + (sx % 5) * 5, sw * 0.9)
+    }
+  }
+
   // ── Seeding ──
 
-  // Edge bundles (not density-scaled — keep edges full at all viewport sizes)
-  for (let x = 3; x < cols - 10; x += 6 + Math.floor(Math.random() * 6)) seedBundle(x, 0, 1, 1, 0)
-  for (let x = 3; x < cols - 10; x += 6 + Math.floor(Math.random() * 6)) seedBundle(x, rows - 1, 3, 1, 0)
+  // Left/right edge bundles (non-tiling edges — random seeding is fine here)
   for (let y = 3; y < rows - 10; y += 6 + Math.floor(Math.random() * 6)) seedBundle(0, y, 0, 0, 1)
   for (let y = 3; y < rows - 10; y += 6 + Math.floor(Math.random() * 6)) seedBundle(cols - 1, y, 2, 0, 1)
-
-  for (let x = 2; x < cols - 2; x += 4 + Math.floor(Math.random() * 3)) {
-    seedPath(x, 0, 1, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
-    seedPath(x, rows - 1, 3, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
-  }
   for (let y = 2; y < rows - 2; y += 4 + Math.floor(Math.random() * 3)) {
     seedPath(0, y, 0, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
     seedPath(cols - 1, y, 2, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
@@ -528,7 +564,7 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
     bandFade.addColorStop(1, "rgba(0,0,0,0)")
   }
   ctx.fillStyle = bandFade
-  ctx.fillRect(0, 0, w, genH)
+  ctx.fillRect(0, 0, w, h)
   ctx.globalCompositeOperation = "source-over"
 }
 
@@ -537,19 +573,15 @@ function draw(time: number) {
   if (!ready) return
 
   const drawablePulses = computePulseStates()
+
+  // Tile 1 at y=0
   drawScene(time, drawablePulses)
 
-  // Soft bottom fade — circuit dissolves well before the canvas edge,
-  // so the scroll range (max visible: y=0..1.4h) never shows a hard cutoff.
-  const fadeStart = h * 0.85
-  const fadeEnd = h * 1.4
-  ctx.globalCompositeOperation = "destination-out"
-  const btmFade = ctx.createLinearGradient(0, fadeStart, 0, fadeEnd)
-  btmFade.addColorStop(0, "rgba(0,0,0,0)")
-  btmFade.addColorStop(1, "rgba(0,0,0,1)")
-  ctx.fillStyle = btmFade
-  ctx.fillRect(0, fadeStart, w, fadeEnd - fadeStart)
-  ctx.globalCompositeOperation = "source-over"
+  // Tile 2 at y=h — same frame state, no double-advancing
+  ctx.save()
+  ctx.translate(0, h)
+  drawScene(time, drawablePulses)
+  ctx.restore()
 }
 
 // ── Animation loop ─────────────────────────────────────────────────────────
@@ -586,13 +618,12 @@ function stopLoop() {
     offscreen = msg.canvas
     ctx = offscreen.getContext("2d")!
     w = msg.w; h = msg.h; dpr = msg.dpr
-    genH = Math.round(h * 1.5)
     reducedMotion = msg.reducedMotion
     offscreen.width = w * dpr
     offscreen.height = h * 2 * dpr  // 2× viewport height for CSS animation
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     applyAccent(msg.accent, msg.theme)
-    generate(w, genH, reducedMotion, msg.density)
+    generate(w, h, reducedMotion, msg.density)
     startLoop()
     return
   }
@@ -601,11 +632,10 @@ function stopLoop() {
     stopLoop()
     ready = false
     w = msg.w; h = msg.h; dpr = msg.dpr
-    genH = Math.round(h * 1.5)
     offscreen.width = w * dpr
     offscreen.height = h * 2 * dpr  // 2× viewport height for CSS animation
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    generate(w, genH, reducedMotion, msg.density)
+    generate(w, h, reducedMotion, msg.density)
     startLoop()
     return
   }

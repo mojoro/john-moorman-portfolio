@@ -100,7 +100,7 @@ export function CircuitBg() {
     let glowX = new Float32Array(0), glowY = new Float32Array(0), glowR = new Float32Array(0)
     let glowPh = new Float32Array(0), glowSp = new Float32Array(0), glowCount = 0
     let pulseData: PulseData[] = []
-    let w = 0, h = 0, genH = 0, ready = false, lastW = 0
+    let w = 0, h = 0, ready = false, lastW = 0
 
     let cachedR = 100, cachedG = 255, cachedB = 218
     let traceColor = "", padColor = "", isLightMode = false
@@ -131,13 +131,12 @@ export function CircuitBg() {
       lastW = newW
       w = newW
       h = window.innerHeight
-      genH = Math.round(h * 1.5)
       canvas.width = w * dpr; canvas.height = h * 2 * dpr
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       genId++
       genWorker.postMessage({
         w,
-        h: genH,
+        h,
         reducedMotion,
         density: getDensity(),
         id: genId,
@@ -161,7 +160,7 @@ export function CircuitBg() {
       ctx.clearRect(0, 0, w, h * 2)
       if (!ready) return
 
-      // Draw circuit (generated for genH = 1.5 × viewport height)
+      // Draw tile 1 (one viewport-height tile at y=0)
       ctx.strokeStyle = traceColor
       ctx.lineCap = "round"; ctx.lineJoin = "round"
       for (let i = 0; i < traceCount; i++) {
@@ -244,17 +243,11 @@ export function CircuitBg() {
         bandFade.addColorStop(0.18, `rgba(0,0,0,${fadeEdge})`); bandFade.addColorStop(0.5, `rgba(0,0,0,${fadeStrength})`)
         bandFade.addColorStop(0.82, `rgba(0,0,0,${fadeEdge})`); bandFade.addColorStop(0.9, "rgba(0,0,0,0)"); bandFade.addColorStop(1, "rgba(0,0,0,0)")
       }
-      ctx.fillStyle = bandFade; ctx.fillRect(0, 0, w, genH)
-
-      // Soft bottom fade — circuit dissolves before the canvas edge
-      const fadeStart = h * 0.85
-      const fadeEnd = h * 1.4
-      const btmFade = ctx.createLinearGradient(0, fadeStart, 0, fadeEnd)
-      btmFade.addColorStop(0, "rgba(0,0,0,0)")
-      btmFade.addColorStop(1, "rgba(0,0,0,1)")
-      ctx.fillStyle = btmFade
-      ctx.fillRect(0, fadeStart, w, fadeEnd - fadeStart)
+      ctx.fillStyle = bandFade; ctx.fillRect(0, 0, w, h)
       ctx.globalCompositeOperation = "source-over"
+
+      // Tile 2: copy the rendered first tile into the second half of the canvas
+      ctx.drawImage(canvas, 0, 0, w * dpr, h * dpr, 0, h, w, h)
     }
 
     requestGenerate(true)

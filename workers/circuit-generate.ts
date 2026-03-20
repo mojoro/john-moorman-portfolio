@@ -77,15 +77,40 @@ worker.onmessage = (e: MessageEvent<{ w: number; h: number; reducedMotion: boole
     }
   }
 
-  for (let x = 3; x < cols - 10; x += 6 + Math.floor(Math.random() * 6)) seedBundle(x, 0, 1, 1, 0)
-  for (let x = 3; x < cols - 10; x += 6 + Math.floor(Math.random() * 6)) seedBundle(x, rows - 1, 3, 1, 0)
+  // Seam stubs — deterministic vertical traces at top/bottom edges so the
+  // tile connects seamlessly when drawn twice (tiled at y=0 and y=h).
+  const seamRows = Math.max(3, Math.ceil(rows * 0.05))
+  const seamStep = 8
+
+  for (let sx = 4; sx < cols - 4; sx += seamStep) {
+    const sw = 0.5 + ((sx * 3 + 7) % 15) / 30
+
+    if (pathCount < MAX_PATHS) {
+      const pi = pathCount++
+      for (let s = 0; s <= seamRows; s++) {
+        phistX[pi * MAX_HISTORY + s] = sx
+        phistY[pi * MAX_HISTORY + s] = s
+        if (inBounds(sx, s)) grid[at(sx, s)] = 1
+      }
+      phistLen[pi] = seamRows + 1; pwidth[pi] = sw; palive[pi] = 0
+      seedPath(sx, seamRows + 1, 1, 15 + (sx % 5) * 5, sw * 0.9)
+    }
+
+    if (pathCount < MAX_PATHS) {
+      const pi = pathCount++
+      for (let s = 0; s <= seamRows; s++) {
+        phistX[pi * MAX_HISTORY + s] = sx
+        phistY[pi * MAX_HISTORY + s] = rows - 1 - s
+        if (inBounds(sx, rows - 1 - s)) grid[at(sx, rows - 1 - s)] = 1
+      }
+      phistLen[pi] = seamRows + 1; pwidth[pi] = sw; palive[pi] = 0
+      seedPath(sx, rows - 2 - seamRows, 3, 15 + (sx % 5) * 5, sw * 0.9)
+    }
+  }
+
+  // Left/right edge bundles (non-tiling edges — random seeding is fine here)
   for (let y = 3; y < rows - 10; y += 6 + Math.floor(Math.random() * 6)) seedBundle(0, y, 0, 0, 1)
   for (let y = 3; y < rows - 10; y += 6 + Math.floor(Math.random() * 6)) seedBundle(cols - 1, y, 2, 0, 1)
-
-  for (let x = 2; x < cols - 2; x += 4 + Math.floor(Math.random() * 3)) {
-    seedPath(x, 0, 1, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
-    seedPath(x, rows - 1, 3, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
-  }
   for (let y = 2; y < rows - 2; y += 4 + Math.floor(Math.random() * 3)) {
     seedPath(0, y, 0, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
     seedPath(cols - 1, y, 2, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
