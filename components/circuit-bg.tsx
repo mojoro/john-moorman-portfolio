@@ -27,16 +27,17 @@ export function CircuitBg() {
       getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#64ffda"
     const getDensity = () => (window.innerWidth < 768 ? 0.4 : 1.0)
 
-    // Prefer canvas.clientWidth; fall back to window dimensions in case layout
-    // hasn't settled yet (can happen on some mobile browsers at mount time).
-    const cw = canvas.clientWidth || window.innerWidth
-    const ch = canvas.clientHeight || window.innerHeight
+    // Always use viewport dimensions — canvas is fixed-position, viewport-sized.
+    // Using scroll height caused GPU buffer overruns on mobile (blank canvas).
+    const cw = window.innerWidth
+    const ch = window.innerHeight
 
     // ── Primary path: OffscreenCanvas ──────────────────────────────────────
 
     if (typeof canvas.transferControlToOffscreen === "function") {
       const offscreen = canvas.transferControlToOffscreen()
       const worker = new Worker(new URL("../workers/circuit-worker.ts", import.meta.url))
+      worker.onerror = (e) => console.error("[circuit-worker]", e)
 
       worker.postMessage(
         { type: "init", canvas: offscreen, w: cw, h: ch, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), density: getDensity() },
@@ -49,8 +50,8 @@ export function CircuitBg() {
         rt = setTimeout(() => {
           worker.postMessage({
             type: "resize",
-            w: canvas.clientWidth || window.innerWidth,
-            h: canvas.clientHeight || window.innerHeight,
+            w: window.innerWidth,
+            h: window.innerHeight,
             dpr: Math.min(window.devicePixelRatio || 1, 2),
             density: getDensity(),
           })
@@ -119,8 +120,8 @@ export function CircuitBg() {
     let genId = 0
 
     function requestGenerate() {
-      w = canvas.clientWidth || window.innerWidth
-      h = canvas.clientHeight || window.innerHeight
+      w = window.innerWidth
+      h = window.innerHeight
       canvas.width = w * dpr; canvas.height = h * dpr
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       genId++
@@ -258,7 +259,7 @@ export function CircuitBg() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 h-full w-full print:hidden"
+      className="pointer-events-none fixed inset-0 -z-10 print:hidden"
     />
   )
 }
