@@ -1,5 +1,5 @@
-import { AdminNav } from "@/components/admin/admin-nav"
 import { ToastProvider } from "@/components/admin/toast"
+import { CircuitBgLazy } from "@/components/circuit-bg-lazy"
 
 export default function AdminLayout({
   children,
@@ -8,6 +8,7 @@ export default function AdminLayout({
 }) {
   return (
     <ToastProvider>
+      <CircuitBgLazy />
       {children}
     </ToastProvider>
   )
