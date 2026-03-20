@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 /**
  * PCB circuit board background.
@@ -16,9 +16,16 @@ import { useEffect, useRef } from "react"
  * Scroll effect: canvas is 2× viewport height with two identical tiles.
  * A CSS scroll-driven animation (globals.css .circuit-bg-anim) slides it
  * from translateY(0) to translateY(-50%) — compositor-driven, zero JS lag.
+ *
+ * StrictMode note: React StrictMode (dev) runs effects twice — mount,
+ * cleanup, mount. transferControlToOffscreen is a one-shot operation and
+ * throws on the second attempt. We catch that, increment `generation`,
+ * which re-keys the canvas element (fresh DOM node) and re-runs the effect
+ * cleanly. Production is unaffected (effect runs once, no throw).
  */
 export function CircuitBg() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [generation, setGeneration] = useState(0)
 
   useEffect(() => {
     const canvas = canvasRef.current!
@@ -37,13 +44,22 @@ export function CircuitBg() {
     // ── Primary path: OffscreenCanvas ──────────────────────────────────────
 
     if (typeof canvas.transferControlToOffscreen === "function") {
-      const offscreen = canvas.transferControlToOffscreen()
+      let offscreen: OffscreenCanvas
+      try {
+        offscreen = canvas.transferControlToOffscreen()
+      } catch {
+        // React StrictMode double-invoke: canvas was already transferred in the
+        // first run's effect, then that worker was cleaned up. Force a fresh
+        // canvas DOM element by bumping the generation key.
+        setGeneration(g => g + 1)
+        return
+      }
       const worker = new Worker(new URL("../workers/circuit-worker.ts", import.meta.url))
       worker.onerror = (e) => console.error("[circuit-worker]", e)
 
       worker.postMessage(
-        { type: "init", canvas: offscreen, w: cw, h: ch, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), density: getDensity() },
-        [offscreen],
+        { type: "init", canvas: offscreen!, w: cw, h: ch, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), density: getDensity() },
+        [offscreen!],
       )
 
       let lastW = cw
@@ -324,10 +340,11 @@ export function CircuitBg() {
       window.removeEventListener("circuit-config", onConfig2)
       obs.disconnect()
     }
-  }, [])
+  }, [generation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <canvas
+      key={generation}
       ref={canvasRef}
       aria-hidden="true"
       className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[200svh] w-full circuit-bg-anim print:hidden"
