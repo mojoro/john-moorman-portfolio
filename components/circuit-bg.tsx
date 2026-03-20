@@ -46,13 +46,17 @@ export function CircuitBg() {
         [offscreen],
       )
 
+      let lastW = cw
       let rt: ReturnType<typeof setTimeout>
       const onResize = () => {
         clearTimeout(rt)
         rt = setTimeout(() => {
+          const newW = window.innerWidth
+          if (newW === lastW) return  // height-only change (mobile toolbar) — skip
+          lastW = newW
           worker.postMessage({
             type: "resize",
-            w: window.innerWidth,
+            w: newW,
             h: window.innerHeight,
             dpr: Math.min(window.devicePixelRatio || 1, 2),
             density: getDensity(),
@@ -96,7 +100,7 @@ export function CircuitBg() {
     let glowX = new Float32Array(0), glowY = new Float32Array(0), glowR = new Float32Array(0)
     let glowPh = new Float32Array(0), glowSp = new Float32Array(0), glowCount = 0
     let pulseData: PulseData[] = []
-    let w = 0, h = 0, ready = false
+    let w = 0, h = 0, ready = false, lastW = 0
 
     let cachedR = 100, cachedG = 255, cachedB = 218
     let traceColor = "", padColor = "", isLightMode = false
@@ -121,8 +125,11 @@ export function CircuitBg() {
     const genWorker = new Worker(new URL("../workers/circuit-generate.ts", import.meta.url))
     let genId = 0
 
-    function requestGenerate() {
-      w = window.innerWidth
+    function requestGenerate(forceRegen = false) {
+      const newW = window.innerWidth
+      if (!forceRegen && newW === lastW && ready) return  // height-only change — skip
+      lastW = newW
+      w = newW
       h = window.innerHeight
       canvas.width = w * dpr; canvas.height = h * 2 * dpr
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -130,7 +137,7 @@ export function CircuitBg() {
       genWorker.postMessage({
         w,
         h,
-        reducedMotion: reducedMotion || w < 768,
+        reducedMotion,
         density: getDensity(),
         id: genId,
       })
@@ -182,7 +189,7 @@ export function CircuitBg() {
         ctx.beginPath(); ctx.arc(glowX[i], glowY[i], glowR[i] * 0.5, 0, 6.2832); ctx.fill()
       }
 
-      if (!reducedMotion && w >= 768) {
+      if (!reducedMotion) {
         for (const pl of pulseData) {
           const life = pl.pr < pl.ln ? pl.pr / pl.ln : pl.pr > 1.0 ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln) : 1.0
           pl.pr += pl.sp
@@ -241,12 +248,27 @@ export function CircuitBg() {
 
       // Copy tile 1 to tile 2 (y = h..2h)
       ctx.drawImage(canvas, 0, 0, w * dpr, h * dpr, 0, h, w, h)
+
+      // Cross-fade at the tile seam (y = h) to hide the hard edge
+      const fadePx = h * 0.18
+      ctx.globalCompositeOperation = "destination-out"
+      const btmFade = ctx.createLinearGradient(0, h - fadePx, 0, h)
+      btmFade.addColorStop(0, "rgba(0,0,0,0)")
+      btmFade.addColorStop(1, "rgba(0,0,0,1)")
+      ctx.fillStyle = btmFade
+      ctx.fillRect(0, h - fadePx, w, fadePx)
+      const topFade = ctx.createLinearGradient(0, h, 0, h + fadePx)
+      topFade.addColorStop(0, "rgba(0,0,0,1)")
+      topFade.addColorStop(1, "rgba(0,0,0,0)")
+      ctx.fillStyle = topFade
+      ctx.fillRect(0, h, w, fadePx)
+      ctx.globalCompositeOperation = "source-over"
     }
 
-    requestGenerate()
+    requestGenerate(true)
 
     let rt: ReturnType<typeof setTimeout>
-    const onResize = () => { clearTimeout(rt); rt = setTimeout(requestGenerate, 300) }
+    const onResize = () => { clearTimeout(rt); rt = setTimeout(() => requestGenerate(), 300) }
     window.addEventListener("resize", onResize)
 
     const obs = new MutationObserver(() => { updateColors(); if (reducedMotion && ready) draw(0) })

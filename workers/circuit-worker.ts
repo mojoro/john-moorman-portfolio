@@ -333,9 +333,9 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
     gsp[i] = 0.2 + Math.random() * 0.5
   }
 
-  // Pack pulses (desktop only)
+  // Pack pulses
   const pulses: PulseData[] = []
-  if (!rm && gw >= 768 && tc > 0) {
+  if (!rm && tc > 0) {
     const numPulses = Math.min(Math.floor(tc / 4), 24)
     for (let i = 0; i < numPulses; i++) {
       const ti = Math.floor(Math.random() * tc)
@@ -409,7 +409,7 @@ function ptAt(pl: PulseData, d: number): [number, number] {
 // Separating update from draw allows drawScene to be called twice per frame
 // (once per tile) without double-advancing the animation.
 function computePulseStates(): DrawablePulse[] {
-  if (reducedMotion || w < 768) return []
+  if (reducedMotion) return []
   const result: DrawablePulse[] = []
   for (const pl of pulseData) {
     const life =
@@ -546,6 +546,22 @@ function draw(time: number) {
   ctx.translate(0, h)
   drawScene(time, drawablePulses)
   ctx.restore()
+
+  // Cross-fade at the tile seam (y = h) to hide the hard edge.
+  // Fades tile 1 out before the seam and tile 2 in after it.
+  const fadePx = h * 0.18
+  ctx.globalCompositeOperation = "destination-out"
+  const btmFade = ctx.createLinearGradient(0, h - fadePx, 0, h)
+  btmFade.addColorStop(0, "rgba(0,0,0,0)")
+  btmFade.addColorStop(1, "rgba(0,0,0,1)")
+  ctx.fillStyle = btmFade
+  ctx.fillRect(0, h - fadePx, w, fadePx)
+  const topFade = ctx.createLinearGradient(0, h, 0, h + fadePx)
+  topFade.addColorStop(0, "rgba(0,0,0,1)")
+  topFade.addColorStop(1, "rgba(0,0,0,0)")
+  ctx.fillStyle = topFade
+  ctx.fillRect(0, h, w, fadePx)
+  ctx.globalCompositeOperation = "source-over"
 }
 
 // ── Animation loop ─────────────────────────────────────────────────────────
