@@ -193,7 +193,29 @@ export function CircuitBg() {
         for (const pl of pulseData) {
           const life = pl.pr < pl.ln ? pl.pr / pl.ln : pl.pr > 1.0 ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln) : 1.0
           pl.pr += pl.sp
-          if (life <= 0) { pl.pr = 0; continue }
+          if (pl.pr >= 1.0 + pl.ln) {
+            // Pulse completed — pick a new random trace for the next pass
+            const ti = Math.floor(Math.random() * traceCount)
+            const si = traceMeta[ti * 3], ptC = traceMeta[ti * 3 + 1]
+            if (ptC >= 2) {
+              const pts = new Float32Array(ptC * 2)
+              for (let j = 0; j < ptC * 2; j++) pts[j] = tracePts[si + j]
+              const segLens = new Float32Array(ptC - 1)
+              let tl = 0
+              for (let j = 0; j < ptC - 1; j++) {
+                const dx = pts[(j + 1) * 2] - pts[j * 2], dy = pts[(j + 1) * 2 + 1] - pts[j * 2 + 1]
+                segLens[j] = Math.sqrt(dx * dx + dy * dy); tl += segLens[j]
+              }
+              if (tl >= 10) {
+                pl.pts = pts; pl.segLens = segLens; pl.totalLen = tl; pl.w = traceMeta[ti * 3 + 2]
+                pl.ln = 0.04 + Math.random() * 0.06
+                const st = Math.random()
+                pl.sp = st < 0.3 ? 0.0008 + Math.random() * 0.0007 : st < 0.7 ? 0.002 + Math.random() * 0.002 : 0.005 + Math.random() * 0.004
+              }
+            }
+            pl.pr = 0; continue
+          }
+          if (life <= 0) continue
           const hd = Math.min(pl.pr, 1.0) * pl.totalLen
           const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
           if (hd - td < 1) continue

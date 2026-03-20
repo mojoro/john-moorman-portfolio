@@ -182,15 +182,20 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
       seedPath(sx, seamRows + 1, 1, 15 + (sx % 5) * 5, sw * 0.9)
     }
 
-    // Bottom stub: mirror of top — (sx, rows-1) → (sx, rows-1-seamRows), straight north
+    // Bottom stub: (sx, rows) → (sx, rows-1-seamRows), straight north.
+    // The first point at y=rows (one past the last valid grid row) ensures the
+    // trace reaches the exact tile boundary h when drawn — Canvas2D clips it
+    // to y=h, meeting tile 2's top stub at global y=h with no gap.
     if (pathCount < MAX_PATHS) {
       const pi = pathCount++
+      phistX[pi * MAX_HISTORY] = sx
+      phistY[pi * MAX_HISTORY] = rows  // tile boundary (rows*gridSize >= h)
       for (let s = 0; s <= seamRows; s++) {
-        phistX[pi * MAX_HISTORY + s] = sx
-        phistY[pi * MAX_HISTORY + s] = rows - 1 - s
+        phistX[pi * MAX_HISTORY + 1 + s] = sx
+        phistY[pi * MAX_HISTORY + 1 + s] = rows - 1 - s
         if (inBounds(sx, rows - 1 - s)) grid[at(sx, rows - 1 - s)] = 1
       }
-      phistLen[pi] = seamRows + 1
+      phistLen[pi] = seamRows + 2
       pwidth[pi] = sw
       palive[pi] = 0
       seedPath(sx, rows - 2 - seamRows, 3, 15 + (sx % 5) * 5, sw * 0.9)
@@ -442,6 +447,47 @@ function ptAt(pl: PulseData, d: number): [number, number] {
   return [pl.pts[last], pl.pts[last + 1]]
 }
 
+// Re-assign a pulse to a new random trace so each cycle looks different.
+function resamplePulse(pl: PulseData) {
+  if (traceCount === 0) return
+  let ti = 0, ptC = 0, attempts = 0
+  do {
+    ti = Math.floor(Math.random() * traceCount)
+    ptC = traceMeta[ti * 3 + 1]
+    attempts++
+  } while (ptC < 2 && attempts < 10)
+  if (ptC < 2) return
+
+  const startIdx = traceMeta[ti * 3]
+  const pts = new Float32Array(ptC * 2)
+  for (let j = 0; j < ptC * 2; j++) pts[j] = tracePts[startIdx + j]
+
+  const segLens = new Float32Array(ptC - 1)
+  let totalLen = 0
+  for (let j = 0; j < ptC - 1; j++) {
+    const ddx = pts[(j + 1) * 2] - pts[j * 2]
+    const ddy = pts[(j + 1) * 2 + 1] - pts[j * 2 + 1]
+    const slen = Math.sqrt(ddx * ddx + ddy * ddy)
+    segLens[j] = slen
+    totalLen += slen
+  }
+  if (totalLen < 10) return
+
+  const speedTier = Math.random()
+  pl.sp =
+    speedTier < 0.3
+      ? 0.0008 + Math.random() * 0.0007
+      : speedTier < 0.7
+      ? 0.002 + Math.random() * 0.002
+      : 0.005 + Math.random() * 0.004
+
+  pl.pts = pts
+  pl.segLens = segLens
+  pl.totalLen = totalLen
+  pl.w = traceMeta[ti * 3 + 2]
+  pl.ln = 0.04 + Math.random() * 0.06
+}
+
 // Advance pulse positions once per frame and return drawable states.
 // Separating update from draw allows drawScene to be called twice per frame
 // (once per tile) without double-advancing the animation.
@@ -456,7 +502,15 @@ function computePulseStates(): DrawablePulse[] {
         ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)
         : 1.0
     pl.pr += pl.sp
-    if (life <= 0) { pl.pr = 0; continue }
+    // Pulse completed its journey — reset to start a new pass on a fresh trace.
+    // Must NOT reset inside `life <= 0` because pr=0 also gives life=0,
+    // which would trap the pulse in an infinite reset loop.
+    if (pl.pr >= 1.0 + pl.ln) {
+      pl.pr = 0
+      resamplePulse(pl)
+      continue
+    }
+    if (life <= 0) continue  // still in the initial fade-in ramp (pr: 0 → ln)
     const hd = Math.min(pl.pr, 1.0) * pl.totalLen
     const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
     if (hd - td < 1) continue

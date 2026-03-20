@@ -98,12 +98,14 @@ worker.onmessage = (e: MessageEvent<{ w: number; h: number; reducedMotion: boole
 
     if (pathCount < MAX_PATHS) {
       const pi = pathCount++
+      phistX[pi * MAX_HISTORY] = sx
+      phistY[pi * MAX_HISTORY] = rows  // tile boundary point — clipped to y=h when drawn
       for (let s = 0; s <= seamRows; s++) {
-        phistX[pi * MAX_HISTORY + s] = sx
-        phistY[pi * MAX_HISTORY + s] = rows - 1 - s
+        phistX[pi * MAX_HISTORY + 1 + s] = sx
+        phistY[pi * MAX_HISTORY + 1 + s] = rows - 1 - s
         if (inBounds(sx, rows - 1 - s)) grid[at(sx, rows - 1 - s)] = 1
       }
-      phistLen[pi] = seamRows + 1; pwidth[pi] = sw; palive[pi] = 0
+      phistLen[pi] = seamRows + 2; pwidth[pi] = sw; palive[pi] = 0
       seedPath(sx, rows - 2 - seamRows, 3, 15 + (sx % 5) * 5, sw * 0.9)
     }
   }
