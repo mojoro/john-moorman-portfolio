@@ -18,8 +18,10 @@ export function CircuitBg() {
     if (!ctx) return
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const isMobile = window.innerWidth < 768
+    const staticOnly = reducedMotion || isMobile // mobile canvas draw is too heavy to animate
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    const getDensity = () => (window.innerWidth < 768 ? 0.4 : 1.0)
+    const getDensity = () => (isMobile ? 0.4 : 1.0)
 
     // ── Render data (received from worker) ──
 
@@ -105,7 +107,7 @@ export function CircuitBg() {
       pulseData = d.pulses
       ready = true
       updateColors()
-      if (reducedMotion) draw(0)
+      if (staticOnly) draw(0)
     }
 
     // ── Draw ──
@@ -255,11 +257,11 @@ export function CircuitBg() {
 
     const obs = new MutationObserver(() => {
       updateColors()
-      if (reducedMotion && ready) draw(0)
+      if (staticOnly && ready) draw(0)
     })
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
 
-    if (reducedMotion) {
+    if (staticOnly) {
       return () => { worker.terminate(); window.removeEventListener("resize", onResize); obs.disconnect() }
     }
 
