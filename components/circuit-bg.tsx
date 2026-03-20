@@ -265,7 +265,7 @@ export function CircuitBg() {
 
     let fid: number, lt = 0
     const loop = (t: number) => {
-      if (t - lt >= 33) { draw(t); lt = t }
+      if (t - lt >= 16) { draw(t); lt = t }
       fid = requestAnimationFrame(loop)
     }
     fid = requestAnimationFrame(loop)
