@@ -25,10 +25,10 @@ export function CircuitBg() {
       (document.documentElement.getAttribute("data-theme") ?? "dark") as "dark" | "light"
     const getAccent = () =>
       getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#64ffda"
-    const getDensity = () => (window.innerWidth < 768 ? 0.4 : 1.0)
+    const getDensity = () => (window.innerWidth < 768 ? 0.6 : 1.0)
 
-    // Always use viewport dimensions — canvas is fixed-position, viewport-sized.
-    // Using scroll height caused GPU buffer overruns on mobile (blank canvas).
+    // Canvas is fixed-position, viewport-sized — avoids GPU buffer overruns on mobile.
+    // Circuit is generated for the full page height; scroll offset is applied in the worker.
     const cw = window.innerWidth
     const ch = window.innerHeight
 
@@ -40,9 +40,15 @@ export function CircuitBg() {
       worker.onerror = (e) => console.error("[circuit-worker]", e)
 
       worker.postMessage(
-        { type: "init", canvas: offscreen, w: cw, h: ch, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), density: getDensity() },
+        { type: "init", canvas: offscreen, w: cw, h: ch, pageH: document.body.scrollHeight, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), density: getDensity() },
         [offscreen],
       )
+
+      if (window.scrollY > 0) {
+        worker.postMessage({ type: "scroll", scrollY: window.scrollY })
+      }
+      const onScroll = () => worker.postMessage({ type: "scroll", scrollY: window.scrollY })
+      window.addEventListener("scroll", onScroll, { passive: true })
 
       let rt: ReturnType<typeof setTimeout>
       const onResize = () => {
@@ -52,6 +58,7 @@ export function CircuitBg() {
             type: "resize",
             w: window.innerWidth,
             h: window.innerHeight,
+            pageH: document.body.scrollHeight,
             dpr: Math.min(window.devicePixelRatio || 1, 2),
             density: getDensity(),
           })
@@ -66,6 +73,7 @@ export function CircuitBg() {
 
       return () => {
         clearTimeout(rt)
+        window.removeEventListener("scroll", onScroll)
         window.removeEventListener("resize", onResize)
         obs.disconnect()
         worker.terminate()
@@ -125,7 +133,13 @@ export function CircuitBg() {
       canvas.width = w * dpr; canvas.height = h * dpr
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       genId++
-      genWorker.postMessage({ w, h, reducedMotion, density: getDensity(), id: genId })
+      genWorker.postMessage({
+        w,
+        h: document.body.scrollHeight,
+        reducedMotion: reducedMotion || w < 768,
+        density: getDensity(),
+        id: genId,
+      })
     }
 
     genWorker.onmessage = (e) => {
@@ -141,9 +155,14 @@ export function CircuitBg() {
       if (reducedMotion) draw(0)
     }
 
+    let currentScrollY = window.scrollY
+
     function draw(time: number) {
       ctx.clearRect(0, 0, w, h)
       if (!ready) return
+
+      ctx.save()
+      ctx.translate(0, -currentScrollY)
 
       ctx.strokeStyle = traceColor
       ctx.lineCap = "round"; ctx.lineJoin = "round"
@@ -173,7 +192,7 @@ export function CircuitBg() {
         ctx.beginPath(); ctx.arc(glowX[i], glowY[i], glowR[i] * 0.5, 0, 6.2832); ctx.fill()
       }
 
-      if (!reducedMotion) {
+      if (!reducedMotion && w >= 768) {
         for (const pl of pulseData) {
           const life = pl.pr < pl.ln ? pl.pr / pl.ln : pl.pr > 1.0 ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln) : 1.0
           pl.pr += pl.sp
@@ -214,6 +233,8 @@ export function CircuitBg() {
         }
       }
 
+      ctx.restore()
+
       const isMobile = w < 768
       const fadeStrength = isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65
       const fadeEdge = isLightMode ? (isMobile ? 0.45 : 0.25) : 0.6
@@ -231,6 +252,9 @@ export function CircuitBg() {
     }
 
     requestGenerate()
+    const onScroll2 = () => { currentScrollY = window.scrollY }
+    window.addEventListener("scroll", onScroll2, { passive: true })
+
     let rt: ReturnType<typeof setTimeout>
     const onResize = () => { clearTimeout(rt); rt = setTimeout(requestGenerate, 300) }
     window.addEventListener("resize", onResize)
@@ -239,7 +263,12 @@ export function CircuitBg() {
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
 
     if (reducedMotion) {
-      return () => { genWorker.terminate(); window.removeEventListener("resize", onResize); obs.disconnect() }
+      return () => {
+        genWorker.terminate()
+        window.removeEventListener("scroll", onScroll2)
+        window.removeEventListener("resize", onResize)
+        obs.disconnect()
+      }
     }
 
     let fid: number, lt = 0
@@ -250,6 +279,7 @@ export function CircuitBg() {
       cancelAnimationFrame(fid)
       clearTimeout(rt)
       genWorker.terminate()
+      window.removeEventListener("scroll", onScroll2)
       window.removeEventListener("resize", onResize)
       obs.disconnect()
     }
