@@ -12,6 +12,8 @@
  * density: 0–1 multiplier applied to interior seed counts (use 0.4 on mobile).
  */
 
+export {}
+
 const DX = [1, 0, -1, 0, 1, -1, -1, 1]
 const DY = [0, 1, 0, -1, 1, 1, -1, -1]
 
