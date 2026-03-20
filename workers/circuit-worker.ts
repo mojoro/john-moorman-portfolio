@@ -28,6 +28,7 @@ interface PulseData {
   sp: number
   ln: number
   w: number
+  ti: number
 }
 
 interface DrawablePulse {
@@ -375,15 +376,21 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
     gsp[i] = 0.2 + Math.random() * 0.5
   }
 
-  // Pack pulses
+  // Pack pulses — one per unique trace so no two pulses share the same wire
   const pulses: PulseData[] = []
   if (!rm && tc > 0) {
     const numPulses = Math.min(Math.floor(tc / 4), 24)
+    const usedTi = new Set<number>()
     for (let i = 0; i < numPulses; i++) {
-      const ti = Math.floor(Math.random() * tc)
+      let ti = 0, ptC = 0, attempts = 0
+      do {
+        ti = Math.floor(Math.random() * tc)
+        ptC = tm[ti * 3 + 1]
+        attempts++
+      } while ((ptC < 2 || usedTi.has(ti)) && attempts < 50)
+      if (ptC < 2 || usedTi.has(ti)) continue
+      usedTi.add(ti)
       const startIdx = tm[ti * 3]
-      const ptC = tm[ti * 3 + 1]
-      if (ptC < 2) continue
 
       const pts = new Float32Array(ptC * 2)
       for (let j = 0; j < ptC * 2; j++) pts[j] = tp[startIdx + j]
@@ -416,6 +423,7 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
         sp,
         ln: 0.04 + Math.random() * 0.06,
         w: tm[ti * 3 + 2],
+        ti,
       })
     }
   }
@@ -447,15 +455,16 @@ function ptAt(pl: PulseData, d: number): [number, number] {
   return [pl.pts[last], pl.pts[last + 1]]
 }
 
-// Re-assign a pulse to a new random trace so each cycle looks different.
+// Re-assign a pulse to a new random unoccupied trace so each cycle looks different.
 function resamplePulse(pl: PulseData) {
   if (traceCount === 0) return
+  const occupied = new Set(pulseData.filter(p => p !== pl && p.pr > 0).map(p => p.ti))
   let ti = 0, ptC = 0, attempts = 0
   do {
     ti = Math.floor(Math.random() * traceCount)
     ptC = traceMeta[ti * 3 + 1]
     attempts++
-  } while (ptC < 2 && attempts < 10)
+  } while ((ptC < 2 || occupied.has(ti)) && attempts < 20)
   if (ptC < 2) return
 
   const startIdx = traceMeta[ti * 3]
@@ -486,6 +495,7 @@ function resamplePulse(pl: PulseData) {
   pl.totalLen = totalLen
   pl.w = traceMeta[ti * 3 + 2]
   pl.ln = 0.04 + Math.random() * 0.06
+  pl.ti = ti
 }
 
 // Advance pulse positions once per frame and return drawable states.

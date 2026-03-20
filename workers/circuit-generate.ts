@@ -23,6 +23,7 @@ interface PulseResult {
   sp: number
   ln: number
   w: number
+  ti: number
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -272,11 +273,17 @@ worker.onmessage = (e: MessageEvent<{ w: number; h: number; reducedMotion: boole
   const pulses: PulseResult[] = []
   if (!reducedMotion && traceCount > 0) {
     const pc = Math.min(Math.floor(traceCount / 4), 24)
+    const usedTi = new Set<number>()
     for (let i = 0; i < pc; i++) {
-      const ti = Math.floor(Math.random() * traceCount)
+      let ti = 0, ptC = 0, attempts = 0
+      do {
+        ti = Math.floor(Math.random() * traceCount)
+        ptC = traceMeta[ti * 3 + 1]
+        attempts++
+      } while ((ptC < 2 || usedTi.has(ti)) && attempts < 50)
+      if (ptC < 2 || usedTi.has(ti)) continue
+      usedTi.add(ti)
       const startIdx = traceMeta[ti * 3]
-      const ptC = traceMeta[ti * 3 + 1]
-      if (ptC < 2) continue
 
       const pts = new Float32Array(ptC * 2)
       for (let j = 0; j < ptC * 2; j++) pts[j] = tracePts[startIdx + j]
@@ -307,6 +314,7 @@ worker.onmessage = (e: MessageEvent<{ w: number; h: number; reducedMotion: boole
         sp,
         ln: 0.04 + Math.random() * 0.06,
         w: traceMeta[ti * 3 + 2],
+        ti,
       })
     }
   }
