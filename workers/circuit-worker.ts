@@ -52,9 +52,11 @@ let pulseData: PulseData[] = []
 
 let w = 0
 let h = 0
+let pageH = 0
 let dpr = 1
 let reducedMotion = false
 let ready = false
+let scrollY = 0
 
 // Color cache
 let cachedR = 100
@@ -323,7 +325,7 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
 
   // Pack pulses
   const pulses: PulseData[] = []
-  if (!rm && tc > 0) {
+  if (!rm && gw >= 768 && tc > 0) {
     const numPulses = Math.min(Math.floor(tc / 4), 24)
     for (let i = 0; i < numPulses; i++) {
       const ti = Math.floor(Math.random() * tc)
@@ -380,6 +382,9 @@ function draw(time: number) {
   ctx.clearRect(0, 0, w, h)
   if (!ready) return
 
+  ctx.save()
+  ctx.translate(0, -scrollY)
+
   // Traces
   ctx.strokeStyle = traceColor
   ctx.lineCap = "round"
@@ -428,7 +433,7 @@ function draw(time: number) {
   }
 
   // Pulses
-  if (!reducedMotion) {
+  if (!reducedMotion && w >= 768) {
     for (const pl of pulseData) {
       const life =
         pl.pr < pl.ln
@@ -488,6 +493,8 @@ function draw(time: number) {
     }
   }
 
+  ctx.restore()
+
   // Content readability vignette
   const isMobile = w < 768
   const fadeStrength = isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65
@@ -535,9 +542,10 @@ function stopLoop() {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ;(self as any).onmessage = (
   e: MessageEvent<
-    | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; density: number }
-    | { type: "resize"; w: number; h: number; dpr: number; density: number }
+    | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; pageH: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; density: number }
+    | { type: "resize"; w: number; h: number; pageH: number; dpr: number; density: number }
     | { type: "theme"; theme: Theme; accent: string }
+    | { type: "scroll"; scrollY: number }
   >
 ) => {
   const msg = e.data
@@ -545,13 +553,13 @@ function stopLoop() {
   if (msg.type === "init") {
     offscreen = msg.canvas
     ctx = offscreen.getContext("2d")!
-    w = msg.w; h = msg.h; dpr = msg.dpr
+    w = msg.w; h = msg.h; pageH = msg.pageH; dpr = msg.dpr
     reducedMotion = msg.reducedMotion
     offscreen.width = w * dpr
     offscreen.height = h * dpr
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     applyAccent(msg.accent, msg.theme)
-    generate(w, h, reducedMotion, msg.density)
+    generate(w, pageH, reducedMotion, msg.density)
     startLoop()
     return
   }
@@ -559,11 +567,11 @@ function stopLoop() {
   if (msg.type === "resize") {
     stopLoop()
     ready = false
-    w = msg.w; h = msg.h; dpr = msg.dpr
+    w = msg.w; h = msg.h; pageH = msg.pageH; dpr = msg.dpr
     offscreen.width = w * dpr
     offscreen.height = h * dpr
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    generate(w, h, reducedMotion, msg.density)
+    generate(w, pageH, reducedMotion, msg.density)
     startLoop()
     return
   }
@@ -572,5 +580,9 @@ function stopLoop() {
     applyAccent(msg.accent, msg.theme)
     if (reducedMotion && ready) draw(performance.now())
     return
+  }
+
+  if (msg.type === "scroll") {
+    scrollY = msg.scrollY
   }
 }
