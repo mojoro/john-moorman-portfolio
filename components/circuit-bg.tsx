@@ -306,7 +306,7 @@ export function CircuitBg() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[200vh] w-full circuit-bg-anim print:hidden"
+      className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[200svh] w-full circuit-bg-anim print:hidden"
     />
   )
 }
