@@ -6,9 +6,9 @@
  * lightweight resize/theme messages thereafter.
  *
  * The OffscreenCanvas is 2× viewport height. The circuit is generated for
- * one viewport tile and drawn twice (at y=0 and y=h) to fill both halves.
- * A CSS scroll-driven animation on the canvas element handles parallax —
- * compositor-driven, zero JS lag.
+ * 1.5× the viewport height (stored in genH). The CSS translateY(-20%) animation
+ * reveals at most y=0..1.4h of canvas, so a soft fade from y=0.85h→1.4h
+ * dissolves the circuit before the content edge — no seam, no empty stripe.
  *
  * Protocol (main → worker):
  *   { type: 'init',   canvas: OffscreenCanvas, w, h, dpr, reducedMotion, theme, accent, density }
@@ -64,6 +64,7 @@ let pulseData: PulseData[] = []
 
 let w = 0
 let h = 0
+let genH = 0     // circuit generation height = Math.round(h * 1.5)
 let dpr = 1
 let reducedMotion = false
 let ready = false
@@ -527,7 +528,7 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
     bandFade.addColorStop(1, "rgba(0,0,0,0)")
   }
   ctx.fillStyle = bandFade
-  ctx.fillRect(0, 0, w, h)
+  ctx.fillRect(0, 0, w, genH)
   ctx.globalCompositeOperation = "source-over"
 }
 
@@ -535,32 +536,19 @@ function draw(time: number) {
   ctx.clearRect(0, 0, w, h * 2)
   if (!ready) return
 
-  // Advance pulse positions once per frame, collect drawable states
   const drawablePulses = computePulseStates()
-
-  // Tile 1 (y = 0 .. h)
   drawScene(time, drawablePulses)
 
-  // Tile 2 (y = h .. 2h) — identical circuit, seamlessly repeating
-  ctx.save()
-  ctx.translate(0, h)
-  drawScene(time, drawablePulses)
-  ctx.restore()
-
-  // Cross-fade at the tile seam (y = h) to hide the hard edge.
-  // Fades tile 1 out before the seam and tile 2 in after it.
-  const fadePx = h * 0.18
+  // Soft bottom fade — circuit dissolves well before the canvas edge,
+  // so the scroll range (max visible: y=0..1.4h) never shows a hard cutoff.
+  const fadeStart = h * 0.85
+  const fadeEnd = h * 1.4
   ctx.globalCompositeOperation = "destination-out"
-  const btmFade = ctx.createLinearGradient(0, h - fadePx, 0, h)
+  const btmFade = ctx.createLinearGradient(0, fadeStart, 0, fadeEnd)
   btmFade.addColorStop(0, "rgba(0,0,0,0)")
   btmFade.addColorStop(1, "rgba(0,0,0,1)")
   ctx.fillStyle = btmFade
-  ctx.fillRect(0, h - fadePx, w, fadePx)
-  const topFade = ctx.createLinearGradient(0, h, 0, h + fadePx)
-  topFade.addColorStop(0, "rgba(0,0,0,1)")
-  topFade.addColorStop(1, "rgba(0,0,0,0)")
-  ctx.fillStyle = topFade
-  ctx.fillRect(0, h, w, fadePx)
+  ctx.fillRect(0, fadeStart, w, fadeEnd - fadeStart)
   ctx.globalCompositeOperation = "source-over"
 }
 
@@ -598,12 +586,13 @@ function stopLoop() {
     offscreen = msg.canvas
     ctx = offscreen.getContext("2d")!
     w = msg.w; h = msg.h; dpr = msg.dpr
+    genH = Math.round(h * 1.5)
     reducedMotion = msg.reducedMotion
     offscreen.width = w * dpr
-    offscreen.height = h * 2 * dpr  // 2× viewport height for tiling
+    offscreen.height = h * 2 * dpr  // 2× viewport height for CSS animation
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     applyAccent(msg.accent, msg.theme)
-    generate(w, h, reducedMotion, msg.density)
+    generate(w, genH, reducedMotion, msg.density)
     startLoop()
     return
   }
@@ -612,10 +601,11 @@ function stopLoop() {
     stopLoop()
     ready = false
     w = msg.w; h = msg.h; dpr = msg.dpr
+    genH = Math.round(h * 1.5)
     offscreen.width = w * dpr
-    offscreen.height = h * 2 * dpr  // 2× viewport height for tiling
+    offscreen.height = h * 2 * dpr  // 2× viewport height for CSS animation
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    generate(w, h, reducedMotion, msg.density)
+    generate(w, genH, reducedMotion, msg.density)
     startLoop()
     return
   }
