@@ -71,6 +71,10 @@ let traceAlphaOverride: number | null = null
 let padAlphaOverride: number | null = null
 let fadeStrengthOverride: number | null = null
 let fpsOverride: number | null = null
+let glowIntensityMult = 1.0
+let pulseBrightnessMult = 1.0
+let pulseSpeedMult = 1.0
+let traceWidthMult = 1.0
 
 let w = 0
 let h = 0
@@ -522,7 +526,7 @@ function computePulseStates(): DrawablePulse[] {
         : pl.pr > 1.0
         ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)
         : 1.0
-    pl.pr += pl.sp
+    pl.pr += pl.sp * pulseSpeedMult
     // Pulse completed its journey — reset to start a new pass on a fresh trace.
     // Must NOT reset inside `life <= 0` because pr=0 also gives life=0,
     // which would trap the pulse in an infinite reset loop.
@@ -556,7 +560,7 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
     const startIdx = traceMeta[i * 3]
     const ptCount = traceMeta[i * 3 + 1]
     const tw = traceMeta[i * 3 + 2]
-    ctx.lineWidth = tw
+    ctx.lineWidth = tw * traceWidthMult
     ctx.beginPath()
     ctx.moveTo(tracePts[startIdx], tracePts[startIdx + 1])
     for (let j = 1; j < ptCount; j++) {
@@ -579,14 +583,14 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
     const pulse = reducedMotion ? 0.6 : 0.4 + Math.sin(t * glowSp[i] + glowPh[i]) * 0.3
     const radius = glowR[i] * 5
     const gradR = ctx.createRadialGradient(glowX[i], glowY[i], 0, glowX[i], glowY[i], radius)
-    gradR.addColorStop(0, `rgba(${r},${g},${b},${(0.2 * pulse * glowMult).toFixed(3)})`)
-    gradR.addColorStop(0.5, `rgba(${r},${g},${b},${(0.06 * pulse * glowMult).toFixed(3)})`)
+    gradR.addColorStop(0, `rgba(${r},${g},${b},${(0.2 * pulse * glowMult * glowIntensityMult).toFixed(3)})`)
+    gradR.addColorStop(0.5, `rgba(${r},${g},${b},${(0.06 * pulse * glowMult * glowIntensityMult).toFixed(3)})`)
     gradR.addColorStop(1, `rgba(${r},${g},${b},0)`)
     ctx.fillStyle = gradR
     ctx.beginPath()
     ctx.arc(glowX[i], glowY[i], radius, 0, 6.2832)
     ctx.fill()
-    ctx.fillStyle = `rgba(${r},${g},${b},${(0.4 * pulse * glowMult).toFixed(3)})`
+    ctx.fillStyle = `rgba(${r},${g},${b},${(0.4 * pulse * glowMult * glowIntensityMult).toFixed(3)})`
     ctx.beginPath()
     ctx.arc(glowX[i], glowY[i], glowR[i] * 0.5, 0, 6.2832)
     ctx.fill()
@@ -594,7 +598,7 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
 
   // Pulses (desktop only, pre-computed states — no position advancement here)
   for (const { pl, life, hd, td } of drawablePulses) {
-    const pulseMult = (isLightMode ? 0.8 : 0.7) * life
+    const pulseMult = (isLightMode ? 0.8 : 0.7) * life * pulseBrightnessMult
     ctx.lineCap = "round"
     for (let s = 0; s < 8; s++) {
       const f = s / 8
@@ -687,7 +691,7 @@ function stopLoop() {
     | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; density: number }
     | { type: "resize"; w: number; h: number; dpr: number; density: number }
     | { type: "theme"; theme: Theme; accent: string }
-    | { type: "config"; reset?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number }
+    | { type: "config"; reset?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number; glowIntensity?: number; pulseBrightness?: number; pulseSpeed?: number; traceWidth?: number }
   >
 ) => {
   const msg = e.data
@@ -733,6 +737,10 @@ function stopLoop() {
       fadeStrengthOverride = null
       fpsOverride = null
       maxPulses = 24
+      glowIntensityMult = 1.0
+      pulseBrightnessMult = 1.0
+      pulseSpeedMult = 1.0
+      traceWidthMult = 1.0
       currentDensity = w < 768 ? 0.6 : 1.0
       const defaultTraceAlpha = isLightMode ? 0.11 : 0.06
       const defaultPadAlpha = isLightMode ? 0.13 : 0.07
@@ -758,6 +766,10 @@ function stopLoop() {
     if (msg.fadeStrength !== undefined) fadeStrengthOverride = msg.fadeStrength
     if (msg.maxPulses !== undefined) maxPulses = msg.maxPulses
     if (msg.fps !== undefined) { fpsOverride = msg.fps; startLoop() }
+    if (msg.glowIntensity !== undefined) glowIntensityMult = msg.glowIntensity
+    if (msg.pulseBrightness !== undefined) pulseBrightnessMult = msg.pulseBrightness
+    if (msg.pulseSpeed !== undefined) pulseSpeedMult = msg.pulseSpeed
+    if (msg.traceWidth !== undefined) traceWidthMult = msg.traceWidth
     if (needsRegen) { stopLoop(); ready = false; generate(w, h, reducedMotion, currentDensity); startLoop() }
     else if (reducedMotion && ready) draw(performance.now())
     return
