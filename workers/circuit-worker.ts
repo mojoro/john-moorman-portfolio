@@ -5,6 +5,11 @@
  * main thread. The main thread transfers the canvas once and only sends
  * lightweight resize/theme messages thereafter.
  *
+ * The OffscreenCanvas is 2× viewport height. The circuit is generated for
+ * one viewport tile and drawn twice (at y=0 and y=h) to fill both halves.
+ * A CSS scroll-driven animation on the canvas element handles parallax —
+ * compositor-driven, zero JS lag.
+ *
  * Protocol (main → worker):
  *   { type: 'init',   canvas: OffscreenCanvas, w, h, dpr, reducedMotion, theme, accent, density }
  *   { type: 'resize', w, h, dpr, density }
@@ -23,6 +28,13 @@ interface PulseData {
   sp: number
   ln: number
   w: number
+}
+
+interface DrawablePulse {
+  pl: PulseData
+  life: number
+  hd: number
+  td: number
 }
 
 type Theme = "dark" | "light"
@@ -52,11 +64,9 @@ let pulseData: PulseData[] = []
 
 let w = 0
 let h = 0
-let pageH = 0
 let dpr = 1
 let reducedMotion = false
 let ready = false
-let scrollY = 0
 
 // Color cache
 let cachedR = 100
@@ -323,7 +333,7 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
     gsp[i] = 0.2 + Math.random() * 0.5
   }
 
-  // Pack pulses
+  // Pack pulses (desktop only)
   const pulses: PulseData[] = []
   if (!rm && gw >= 768 && tc > 0) {
     const numPulses = Math.min(Math.floor(tc / 4), 24)
@@ -376,20 +386,60 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
   ready = true
 }
 
+// ── Pulse helpers ───────────────────────────────────────────────────────────
+
+function ptAt(pl: PulseData, d: number): [number, number] {
+  let a = 0
+  for (let i = 0; i < pl.segLens.length; i++) {
+    if (a + pl.segLens[i] >= d) {
+      const f = (d - a) / pl.segLens[i]
+      const i2 = i * 2
+      return [
+        pl.pts[i2] + (pl.pts[i2 + 2] - pl.pts[i2]) * f,
+        pl.pts[i2 + 1] + (pl.pts[i2 + 3] - pl.pts[i2 + 1]) * f,
+      ]
+    }
+    a += pl.segLens[i]
+  }
+  const last = pl.segLens.length * 2
+  return [pl.pts[last], pl.pts[last + 1]]
+}
+
+// Advance pulse positions once per frame and return drawable states.
+// Separating update from draw allows drawScene to be called twice per frame
+// (once per tile) without double-advancing the animation.
+function computePulseStates(): DrawablePulse[] {
+  if (reducedMotion || w < 768) return []
+  const result: DrawablePulse[] = []
+  for (const pl of pulseData) {
+    const life =
+      pl.pr < pl.ln
+        ? pl.pr / pl.ln
+        : pl.pr > 1.0
+        ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)
+        : 1.0
+    pl.pr += pl.sp
+    if (life <= 0) { pl.pr = 0; continue }
+    const hd = Math.min(pl.pr, 1.0) * pl.totalLen
+    const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
+    if (hd - td < 1) continue
+    result.push({ pl, life, hd, td })
+  }
+  return result
+}
+
 // ── Draw ───────────────────────────────────────────────────────────────────
 
-function draw(time: number) {
-  ctx.clearRect(0, 0, w, h)
-  if (!ready) return
-
-  ctx.save()
-  ctx.translate(0, -scrollY)
+// Draws one viewport-sized tile at the current transform origin.
+// Called twice per frame: once for the tile at y=0, once translated to y=h.
+function drawScene(time: number, drawablePulses: DrawablePulse[]) {
+  const t = time * 0.001
+  const r = cachedR, g = cachedG, b = cachedB
 
   // Traces
   ctx.strokeStyle = traceColor
   ctx.lineCap = "round"
   ctx.lineJoin = "round"
-
   for (let i = 0; i < traceCount; i++) {
     const startIdx = traceMeta[i * 3]
     const ptCount = traceMeta[i * 3 + 1]
@@ -412,8 +462,6 @@ function draw(time: number) {
   }
 
   // Glows
-  const t = time * 0.001
-  const r = cachedR, g = cachedG, b = cachedB
   const glowMult = isLightMode ? 1.0 : 0.8
   for (let i = 0; i < glowCount; i++) {
     const pulse = reducedMotion ? 0.6 : 0.4 + Math.sin(t * glowSp[i] + glowPh[i]) * 0.3
@@ -432,70 +480,34 @@ function draw(time: number) {
     ctx.fill()
   }
 
-  // Pulses
-  if (!reducedMotion && w >= 768) {
-    for (const pl of pulseData) {
-      const life =
-        pl.pr < pl.ln
-          ? pl.pr / pl.ln
-          : pl.pr > 1.0
-          ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)
-          : 1.0
-
-      pl.pr += pl.sp
-      if (life <= 0) { pl.pr = 0; continue }
-
-      const hd = Math.min(pl.pr, 1.0) * pl.totalLen
-      const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
-      if (hd - td < 1) continue
-
-      function ptAt(d: number): [number, number] {
-        let a = 0
-        for (let i = 0; i < pl.segLens.length; i++) {
-          if (a + pl.segLens[i] >= d) {
-            const f = (d - a) / pl.segLens[i]
-            const i2 = i * 2
-            return [
-              pl.pts[i2] + (pl.pts[i2 + 2] - pl.pts[i2]) * f,
-              pl.pts[i2 + 1] + (pl.pts[i2 + 3] - pl.pts[i2 + 1]) * f,
-            ]
-          }
-          a += pl.segLens[i]
-        }
-        const last = pl.segLens.length * 2
-        return [pl.pts[last], pl.pts[last + 1]]
-      }
-
-      const pulseMult = (isLightMode ? 0.8 : 0.7) * life
-      ctx.lineCap = "round"
-      for (let s = 0; s < 8; s++) {
-        const f = s / 8
-        const [x1, y1] = ptAt(td + (hd - td) * f)
-        const [x2, y2] = ptAt(td + (hd - td) * ((s + 1) / 8))
-        ctx.beginPath()
-        ctx.moveTo(x1, y1)
-        ctx.lineTo(x2, y2)
-        ctx.strokeStyle = `rgba(${r},${g},${b},${(f * f * 0.5 * pulseMult).toFixed(3)})`
-        ctx.lineWidth = pl.w + 2
-        ctx.stroke()
-      }
-
-      const [hx, hy] = ptAt(hd)
-      const headAlpha = 0.5 * life
-      const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 8)
-      headGrad.addColorStop(0, `rgba(${r},${g},${b},${headAlpha})`)
-      headGrad.addColorStop(0.3, `rgba(${r},${g},${b},${(headAlpha * 0.4).toFixed(3)})`)
-      headGrad.addColorStop(1, `rgba(${r},${g},${b},0)`)
-      ctx.fillStyle = headGrad
+  // Pulses (desktop only, pre-computed states — no position advancement here)
+  for (const { pl, life, hd, td } of drawablePulses) {
+    const pulseMult = (isLightMode ? 0.8 : 0.7) * life
+    ctx.lineCap = "round"
+    for (let s = 0; s < 8; s++) {
+      const f = s / 8
+      const [x1, y1] = ptAt(pl, td + (hd - td) * f)
+      const [x2, y2] = ptAt(pl, td + (hd - td) * ((s + 1) / 8))
       ctx.beginPath()
-      ctx.arc(hx, hy, 8, 0, 6.2832)
-      ctx.fill()
+      ctx.moveTo(x1, y1)
+      ctx.lineTo(x2, y2)
+      ctx.strokeStyle = `rgba(${r},${g},${b},${(f * f * 0.5 * pulseMult).toFixed(3)})`
+      ctx.lineWidth = pl.w + 2
+      ctx.stroke()
     }
+    const [hx, hy] = ptAt(pl, hd)
+    const headAlpha = 0.5 * life
+    const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 8)
+    headGrad.addColorStop(0, `rgba(${r},${g},${b},${headAlpha})`)
+    headGrad.addColorStop(0.3, `rgba(${r},${g},${b},${(headAlpha * 0.4).toFixed(3)})`)
+    headGrad.addColorStop(1, `rgba(${r},${g},${b},0)`)
+    ctx.fillStyle = headGrad
+    ctx.beginPath()
+    ctx.arc(hx, hy, 8, 0, 6.2832)
+    ctx.fill()
   }
 
-  ctx.restore()
-
-  // Content readability vignette
+  // Content readability vignette (per-tile)
   const isMobile = w < 768
   const fadeStrength = isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65
   const fadeEdge = isLightMode ? (isMobile ? 0.45 : 0.25) : 0.6
@@ -517,6 +529,23 @@ function draw(time: number) {
   ctx.fillStyle = bandFade
   ctx.fillRect(0, 0, w, h)
   ctx.globalCompositeOperation = "source-over"
+}
+
+function draw(time: number) {
+  ctx.clearRect(0, 0, w, h * 2)
+  if (!ready) return
+
+  // Advance pulse positions once per frame, collect drawable states
+  const drawablePulses = computePulseStates()
+
+  // Tile 1 (y = 0 .. h)
+  drawScene(time, drawablePulses)
+
+  // Tile 2 (y = h .. 2h) — identical circuit, seamlessly repeating
+  ctx.save()
+  ctx.translate(0, h)
+  drawScene(time, drawablePulses)
+  ctx.restore()
 }
 
 // ── Animation loop ─────────────────────────────────────────────────────────
@@ -542,10 +571,9 @@ function stopLoop() {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ;(self as any).onmessage = (
   e: MessageEvent<
-    | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; pageH: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; density: number }
-    | { type: "resize"; w: number; h: number; pageH: number; dpr: number; density: number }
+    | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; density: number }
+    | { type: "resize"; w: number; h: number; dpr: number; density: number }
     | { type: "theme"; theme: Theme; accent: string }
-    | { type: "scroll"; scrollY: number }
   >
 ) => {
   const msg = e.data
@@ -553,13 +581,13 @@ function stopLoop() {
   if (msg.type === "init") {
     offscreen = msg.canvas
     ctx = offscreen.getContext("2d")!
-    w = msg.w; h = msg.h; pageH = msg.pageH; dpr = msg.dpr
+    w = msg.w; h = msg.h; dpr = msg.dpr
     reducedMotion = msg.reducedMotion
     offscreen.width = w * dpr
-    offscreen.height = h * dpr
+    offscreen.height = h * 2 * dpr  // 2× viewport height for tiling
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     applyAccent(msg.accent, msg.theme)
-    generate(w, pageH, reducedMotion, msg.density)
+    generate(w, h, reducedMotion, msg.density)
     startLoop()
     return
   }
@@ -567,11 +595,11 @@ function stopLoop() {
   if (msg.type === "resize") {
     stopLoop()
     ready = false
-    w = msg.w; h = msg.h; pageH = msg.pageH; dpr = msg.dpr
+    w = msg.w; h = msg.h; dpr = msg.dpr
     offscreen.width = w * dpr
-    offscreen.height = h * dpr
+    offscreen.height = h * 2 * dpr  // 2× viewport height for tiling
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    generate(w, pageH, reducedMotion, msg.density)
+    generate(w, h, reducedMotion, msg.density)
     startLoop()
     return
   }
@@ -580,9 +608,5 @@ function stopLoop() {
     applyAccent(msg.accent, msg.theme)
     if (reducedMotion && ready) draw(performance.now())
     return
-  }
-
-  if (msg.type === "scroll") {
-    scrollY = msg.scrollY
   }
 }

@@ -52,6 +52,21 @@ body {
   font-family: var(--font-body), system-ui, sans-serif;
 }
 
+/* Circuit background scroll-driven tiling animation.
+ * Compositor-driven — zero JS lag on scroll.
+ * Supported: Chrome 115+, Safari 18+, Firefox 110+ */
+@supports (animation-timeline: scroll()) {
+  .circuit-bg-anim {
+    animation: circuit-tile-scroll linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0% 100%;
+  }
+
+  @keyframes circuit-tile-scroll {
+    to { transform: translateY(-50%); }
+  }
+}
+
 /* Prose styles for MDX content */
 .prose-custom h2 {
   font-family: var(--font-display), system-ui, sans-serif;

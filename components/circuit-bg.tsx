@@ -12,6 +12,10 @@ import { useEffect, useRef } from "react"
  * Fallback path (Safari < 17, older iOS): circuit-generate.ts handles
  * generation in a worker and posts typed arrays back; rendering runs on
  * the main thread via requestAnimationFrame.
+ *
+ * Scroll effect: canvas is 2× viewport height with two identical tiles.
+ * A CSS scroll-driven animation (globals.css .circuit-bg-anim) slides it
+ * from translateY(0) to translateY(-50%) — compositor-driven, zero JS lag.
  */
 export function CircuitBg() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -27,8 +31,6 @@ export function CircuitBg() {
       getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#64ffda"
     const getDensity = () => (window.innerWidth < 768 ? 0.6 : 1.0)
 
-    // Canvas is fixed-position, viewport-sized — avoids GPU buffer overruns on mobile.
-    // Circuit is generated for the full page height; scroll offset is applied in the worker.
     const cw = window.innerWidth
     const ch = window.innerHeight
 
@@ -40,15 +42,9 @@ export function CircuitBg() {
       worker.onerror = (e) => console.error("[circuit-worker]", e)
 
       worker.postMessage(
-        { type: "init", canvas: offscreen, w: cw, h: ch, pageH: document.body.scrollHeight, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), density: getDensity() },
+        { type: "init", canvas: offscreen, w: cw, h: ch, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), density: getDensity() },
         [offscreen],
       )
-
-      if (window.scrollY > 0) {
-        worker.postMessage({ type: "scroll", scrollY: window.scrollY })
-      }
-      const onScroll = () => worker.postMessage({ type: "scroll", scrollY: window.scrollY })
-      window.addEventListener("scroll", onScroll, { passive: true })
 
       let rt: ReturnType<typeof setTimeout>
       const onResize = () => {
@@ -58,7 +54,6 @@ export function CircuitBg() {
             type: "resize",
             w: window.innerWidth,
             h: window.innerHeight,
-            pageH: document.body.scrollHeight,
             dpr: Math.min(window.devicePixelRatio || 1, 2),
             density: getDensity(),
           })
@@ -73,7 +68,6 @@ export function CircuitBg() {
 
       return () => {
         clearTimeout(rt)
-        window.removeEventListener("scroll", onScroll)
         window.removeEventListener("resize", onResize)
         obs.disconnect()
         worker.terminate()
@@ -130,12 +124,12 @@ export function CircuitBg() {
     function requestGenerate() {
       w = window.innerWidth
       h = window.innerHeight
-      canvas.width = w * dpr; canvas.height = h * dpr
+      canvas.width = w * dpr; canvas.height = h * 2 * dpr
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       genId++
       genWorker.postMessage({
         w,
-        h: document.body.scrollHeight,
+        h,
         reducedMotion: reducedMotion || w < 768,
         density: getDensity(),
         id: genId,
@@ -155,15 +149,11 @@ export function CircuitBg() {
       if (reducedMotion) draw(0)
     }
 
-    let currentScrollY = window.scrollY
-
     function draw(time: number) {
-      ctx.clearRect(0, 0, w, h)
+      ctx.clearRect(0, 0, w, h * 2)
       if (!ready) return
 
-      ctx.save()
-      ctx.translate(0, -currentScrollY)
-
+      // Draw tile 1 (y = 0..h)
       ctx.strokeStyle = traceColor
       ctx.lineCap = "round"; ctx.lineJoin = "round"
       for (let i = 0; i < traceCount; i++) {
@@ -233,8 +223,7 @@ export function CircuitBg() {
         }
       }
 
-      ctx.restore()
-
+      // Vignette for tile 1
       const isMobile = w < 768
       const fadeStrength = isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65
       const fadeEdge = isLightMode ? (isMobile ? 0.45 : 0.25) : 0.6
@@ -249,11 +238,12 @@ export function CircuitBg() {
       }
       ctx.fillStyle = bandFade; ctx.fillRect(0, 0, w, h)
       ctx.globalCompositeOperation = "source-over"
+
+      // Copy tile 1 to tile 2 (y = h..2h)
+      ctx.drawImage(canvas, 0, 0, w * dpr, h * dpr, 0, h, w, h)
     }
 
     requestGenerate()
-    const onScroll2 = () => { currentScrollY = window.scrollY }
-    window.addEventListener("scroll", onScroll2, { passive: true })
 
     let rt: ReturnType<typeof setTimeout>
     const onResize = () => { clearTimeout(rt); rt = setTimeout(requestGenerate, 300) }
@@ -265,7 +255,6 @@ export function CircuitBg() {
     if (reducedMotion) {
       return () => {
         genWorker.terminate()
-        window.removeEventListener("scroll", onScroll2)
         window.removeEventListener("resize", onResize)
         obs.disconnect()
       }
@@ -279,7 +268,6 @@ export function CircuitBg() {
       cancelAnimationFrame(fid)
       clearTimeout(rt)
       genWorker.terminate()
-      window.removeEventListener("scroll", onScroll2)
       window.removeEventListener("resize", onResize)
       obs.disconnect()
     }
@@ -289,7 +277,7 @@ export function CircuitBg() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-10 print:hidden"
+      className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[200vh] w-full circuit-bg-anim print:hidden"
     />
   )
 }
