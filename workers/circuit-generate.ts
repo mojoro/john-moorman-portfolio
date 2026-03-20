@@ -10,6 +10,8 @@
  *             glowCount, glowX, glowY, glowR, glowPh, glowSp, pulses }
  */
 
+export {}
+
 const DX = [1, 0, -1, 0, 1, -1, -1, 1]
 const DY = [0, 1, 0, -1, 1, 1, -1, -1]
 

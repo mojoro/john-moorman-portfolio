@@ -11,6 +11,8 @@
  *   { type: 'theme',  theme, accent }
  */
 
+export {}
+
 // ── Types ──────────────────────────────────────────────────────────────────
 
 interface PulseData {
