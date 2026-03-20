@@ -88,8 +88,8 @@ export function CircuitBg() {
     let genId = 0
 
     function requestGenerate() {
-      w = canvas.clientWidth || window.innerWidth
-      h = canvas.clientHeight || window.innerHeight
+      w = window.innerWidth
+      h = window.innerHeight
       canvas.width = w * dpr; canvas.height = h * dpr
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       genId++
@@ -285,7 +285,7 @@ export function CircuitBg() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 h-full w-full print:hidden"
+      className="pointer-events-none fixed inset-0 -z-10 print:hidden"
     />
   )
 }
