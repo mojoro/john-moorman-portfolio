@@ -73,7 +73,7 @@ export function CircuitBg() {
 
     // ── Fallback path: generation worker + main-thread rendering ───────────
 
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d")!
     if (!ctx) return
 
     interface PulseData {
