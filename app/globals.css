@@ -63,7 +63,7 @@ body {
   }
 
   @keyframes circuit-tile-scroll {
-    to { transform: translateY(-50%); }
+    to { transform: translateY(-20%); }
   }
 }
 
