@@ -256,7 +256,11 @@ export function CircuitBg() {
         }
       }
 
-      // Horizontal vignette covers full content height
+      // Tile 2: copy tile 1 before applying vignette so both tiles get identical content
+      ctx.drawImage(canvas, 0, 0, w * dpr, h * dpr, 0, h, w, h)
+
+      // Horizontal vignette applied once across the full canvas so the seam
+      // boundary gets the same treatment as every other row.
       const isMobile = w < 768
       const fadeStrength = isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65
       const fadeEdge = isLightMode ? (isMobile ? 0.45 : 0.25) : 0.6
@@ -269,11 +273,8 @@ export function CircuitBg() {
         bandFade.addColorStop(0.18, `rgba(0,0,0,${fadeEdge})`); bandFade.addColorStop(0.5, `rgba(0,0,0,${fadeStrength})`)
         bandFade.addColorStop(0.82, `rgba(0,0,0,${fadeEdge})`); bandFade.addColorStop(0.9, "rgba(0,0,0,0)"); bandFade.addColorStop(1, "rgba(0,0,0,0)")
       }
-      ctx.fillStyle = bandFade; ctx.fillRect(0, 0, w, h)
+      ctx.fillStyle = bandFade; ctx.fillRect(0, 0, w, h * 2)
       ctx.globalCompositeOperation = "source-over"
-
-      // Tile 2: copy the rendered first tile into the second half of the canvas
-      ctx.drawImage(canvas, 0, 0, w * dpr, h * dpr, 0, h, w, h)
     }
 
     requestGenerate(true)

@@ -608,7 +608,25 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
     ctx.fill()
   }
 
-  // Content readability vignette (per-tile)
+}
+
+function draw(time: number) {
+  ctx.clearRect(0, 0, w, h * 2)
+  if (!ready) return
+
+  const drawablePulses = computePulseStates()
+
+  // Tile 1 at y=0
+  drawScene(time, drawablePulses)
+
+  // Tile 2 at y=h — same frame state, no double-advancing
+  ctx.save()
+  ctx.translate(0, h)
+  drawScene(time, drawablePulses)
+  ctx.restore()
+
+  // Content readability vignette — applied once across the full canvas so the
+  // seam boundary between tiles gets the same treatment as any other row.
   const isMobile = w < 768
   const fadeStrength = isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65
   const fadeEdge = isLightMode ? (isMobile ? 0.45 : 0.25) : 0.6
@@ -628,24 +646,8 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
     bandFade.addColorStop(1, "rgba(0,0,0,0)")
   }
   ctx.fillStyle = bandFade
-  ctx.fillRect(0, 0, w, h)
+  ctx.fillRect(0, 0, w, h * 2)
   ctx.globalCompositeOperation = "source-over"
-}
-
-function draw(time: number) {
-  ctx.clearRect(0, 0, w, h * 2)
-  if (!ready) return
-
-  const drawablePulses = computePulseStates()
-
-  // Tile 1 at y=0
-  drawScene(time, drawablePulses)
-
-  // Tile 2 at y=h — same frame state, no double-advancing
-  ctx.save()
-  ctx.translate(0, h)
-  drawScene(time, drawablePulses)
-  ctx.restore()
 }
 
 // ── Animation loop ─────────────────────────────────────────────────────────
