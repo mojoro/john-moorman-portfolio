@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: "Chats", href: "/admin/chats" },
   { label: "Prompt", href: "/admin/prompt" },
   { label: "Palette", href: "/admin/palette" },
+  { label: "Circuit", href: "/admin/circuit" },
 ] as const
 
 export function AdminNav() {

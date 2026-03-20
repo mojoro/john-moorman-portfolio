@@ -14,6 +14,7 @@
  *   { type: 'init',   canvas: OffscreenCanvas, w, h, dpr, reducedMotion, theme, accent, density }
  *   { type: 'resize', w, h, dpr, density }
  *   { type: 'theme',  theme, accent }
+ *   { type: 'config', reset?, density?, traceAlpha?, padAlpha?, fadeStrength?, maxPulses?, fps? }
  */
 
 export {}
@@ -63,6 +64,14 @@ let glowCount = 0
 
 let pulseData: PulseData[] = []
 
+// ── Admin config overrides (session-only, set via circuit-config CustomEvent) ──
+let currentDensity = 1.0
+let maxPulses = 24
+let traceAlphaOverride: number | null = null
+let padAlphaOverride: number | null = null
+let fadeStrengthOverride: number | null = null
+let fpsOverride: number | null = null
+
 let w = 0
 let h = 0
 let dpr = 1
@@ -94,8 +103,8 @@ function applyAccent(accent: string, theme: Theme) {
     cachedG = parseInt(s[1] + s[1], 16)
     cachedB = parseInt(s[2] + s[2], 16)
   }
-  const traceAlpha = isLightMode ? 0.11 : 0.06
-  const padAlpha = isLightMode ? 0.13 : 0.07
+  const traceAlpha = traceAlphaOverride ?? (isLightMode ? 0.11 : 0.06)
+  const padAlpha = padAlphaOverride ?? (isLightMode ? 0.13 : 0.07)
   traceColor = `rgba(${cachedR},${cachedG},${cachedB},${traceAlpha})`
   padColor = `rgba(${cachedR},${cachedG},${cachedB},${padAlpha})`
 }
@@ -504,7 +513,9 @@ function resamplePulse(pl: PulseData) {
 function computePulseStates(): DrawablePulse[] {
   if (reducedMotion) return []
   const result: DrawablePulse[] = []
-  for (const pl of pulseData) {
+  const limit = Math.min(maxPulses, pulseData.length)
+  for (let _i = 0; _i < limit; _i++) {
+    const pl = pulseData[_i]
     const life =
       pl.pr < pl.ln
         ? pl.pr / pl.ln
@@ -628,7 +639,7 @@ function draw(time: number) {
   // Content readability vignette — applied once across the full canvas so the
   // seam boundary between tiles gets the same treatment as any other row.
   const isMobile = w < 768
-  const fadeStrength = isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65
+  const fadeStrength = fadeStrengthOverride ?? (isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65)
   const fadeEdge = isLightMode ? (isMobile ? 0.45 : 0.25) : 0.6
   ctx.globalCompositeOperation = "destination-out"
   const bandFade = ctx.createLinearGradient(0, 0, w, 0)
@@ -658,7 +669,7 @@ function startLoop() {
     draw(performance.now())
     return
   }
-  animTimer = setInterval(() => draw(performance.now()), 33)
+  animTimer = setInterval(() => draw(performance.now()), fpsOverride != null ? Math.round(1000 / fpsOverride) : 33)
 }
 
 function stopLoop() {
@@ -676,6 +687,7 @@ function stopLoop() {
     | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; density: number }
     | { type: "resize"; w: number; h: number; dpr: number; density: number }
     | { type: "theme"; theme: Theme; accent: string }
+    | { type: "config"; reset?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number }
   >
 ) => {
   const msg = e.data
@@ -689,7 +701,8 @@ function stopLoop() {
     offscreen.height = h * 2 * dpr  // 2× viewport height for CSS animation
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     applyAccent(msg.accent, msg.theme)
-    generate(w, h, reducedMotion, msg.density)
+    currentDensity = msg.density
+    generate(w, h, reducedMotion, currentDensity)
     startLoop()
     return
   }
@@ -701,7 +714,8 @@ function stopLoop() {
     offscreen.width = w * dpr
     offscreen.height = h * 2 * dpr  // 2× viewport height for CSS animation
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    generate(w, h, reducedMotion, msg.density)
+    currentDensity = msg.density
+    generate(w, h, reducedMotion, currentDensity)
     startLoop()
     return
   }
@@ -709,6 +723,43 @@ function stopLoop() {
   if (msg.type === "theme") {
     applyAccent(msg.accent, msg.theme)
     if (reducedMotion && ready) draw(performance.now())
+    return
+  }
+
+  if (msg.type === "config") {
+    if (msg.reset) {
+      traceAlphaOverride = null
+      padAlphaOverride = null
+      fadeStrengthOverride = null
+      fpsOverride = null
+      maxPulses = 24
+      currentDensity = w < 768 ? 0.6 : 1.0
+      const defaultTraceAlpha = isLightMode ? 0.11 : 0.06
+      const defaultPadAlpha = isLightMode ? 0.13 : 0.07
+      traceColor = `rgba(${cachedR},${cachedG},${cachedB},${defaultTraceAlpha})`
+      padColor = `rgba(${cachedR},${cachedG},${cachedB},${defaultPadAlpha})`
+      stopLoop(); ready = false
+      generate(w, h, reducedMotion, currentDensity)
+      startLoop()
+      return
+    }
+    let needsRegen = false
+    if (msg.density !== undefined && msg.density !== currentDensity) {
+      currentDensity = msg.density; needsRegen = true
+    }
+    if (msg.traceAlpha !== undefined) {
+      traceAlphaOverride = msg.traceAlpha
+      traceColor = `rgba(${cachedR},${cachedG},${cachedB},${traceAlphaOverride})`
+    }
+    if (msg.padAlpha !== undefined) {
+      padAlphaOverride = msg.padAlpha
+      padColor = `rgba(${cachedR},${cachedG},${cachedB},${padAlphaOverride})`
+    }
+    if (msg.fadeStrength !== undefined) fadeStrengthOverride = msg.fadeStrength
+    if (msg.maxPulses !== undefined) maxPulses = msg.maxPulses
+    if (msg.fps !== undefined) { fpsOverride = msg.fps; startLoop() }
+    if (needsRegen) { stopLoop(); ready = false; generate(w, h, reducedMotion, currentDensity); startLoop() }
+    else if (reducedMotion && ready) draw(performance.now())
     return
   }
 }

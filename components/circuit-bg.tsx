@@ -70,9 +70,15 @@ export function CircuitBg() {
       })
       obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
 
+      const onConfig = (e: Event) => {
+        worker.postMessage({ type: "config", ...(e as CustomEvent).detail })
+      }
+      window.addEventListener("circuit-config", onConfig)
+
       return () => {
         clearTimeout(rt)
         window.removeEventListener("resize", onResize)
+        window.removeEventListener("circuit-config", onConfig)
         obs.disconnect()
         worker.terminate()
       }
@@ -286,10 +292,22 @@ export function CircuitBg() {
     const obs = new MutationObserver(() => { updateColors(); if (reducedMotion && ready) draw(0) })
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
 
+    // Fallback config handler — subset of worker capabilities
+    const onConfig2 = (e: Event) => {
+      const d = (e as CustomEvent<Record<string, unknown>>).detail
+      if (d.reset) { updateColors(); requestGenerate(true); return }
+      if (typeof d.traceAlpha === "number") traceColor = `rgba(${cachedR},${cachedG},${cachedB},${d.traceAlpha})`
+      if (typeof d.padAlpha === "number") padColor = `rgba(${cachedR},${cachedG},${cachedB},${d.padAlpha})`
+      if (typeof d.density === "number") requestGenerate(true)
+      if (reducedMotion && ready) draw(0)
+    }
+    window.addEventListener("circuit-config", onConfig2)
+
     if (reducedMotion) {
       return () => {
         genWorker.terminate()
         window.removeEventListener("resize", onResize)
+        window.removeEventListener("circuit-config", onConfig2)
         obs.disconnect()
       }
     }
@@ -303,6 +321,7 @@ export function CircuitBg() {
       clearTimeout(rt)
       genWorker.terminate()
       window.removeEventListener("resize", onResize)
+      window.removeEventListener("circuit-config", onConfig2)
       obs.disconnect()
     }
   }, [])
