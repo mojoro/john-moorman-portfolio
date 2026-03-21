@@ -56,7 +56,10 @@ export function MdxEditor({ content, onChange }: MdxEditorProps) {
             rehypePlugins={[rehypeRaw]}
             components={{ audio: MdxAudio as React.ElementType }}
           >
-            {content}
+            {/* rehype-raw uses an HTML parser which ignores self-closing syntax on
+                non-void elements. <Audio .../> becomes an unclosed <audio> that
+                swallows all following content. Pre-convert to explicit closing tags. */}
+            {content.replace(/<Audio\b([^>]*?)\/>/g, "<audio$1></audio>")}
           </ReactMarkdown>
         </div>
       )}
