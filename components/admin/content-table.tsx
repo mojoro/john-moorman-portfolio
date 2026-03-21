@@ -97,6 +97,9 @@ export function ContentTable({ posts }: { posts: ContentRow[] }) {
             <th className="px-4 py-3">
               <span className="font-mono text-xs text-text-muted">Edit</span>
             </th>
+            <th className="px-4 py-3">
+              <span className="font-mono text-xs text-text-muted">View</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -131,13 +134,23 @@ export function ContentTable({ posts }: { posts: ContentRow[] }) {
                     Edit →
                   </Link>
                 </td>
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/${row.type}/${row.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-xs text-text-muted transition-colors hover:text-text-primary"
+                  >
+                    ↗
+                  </Link>
+                </td>
               </tr>
             )
           })}
           {sorted.length === 0 && (
             <tr>
               <td
-                colSpan={5}
+                colSpan={6}
                 className="px-4 py-8 text-center text-sm text-text-muted"
               >
                 No content found.
