@@ -2,12 +2,42 @@
 title: "Drop — Open Source"
 date: "2026-03-17"
 description: "An open-source, self-hostable version of Drop with full model configurability: run it against local models via Ollama, or bring your own API keys for any provider."
-tags: ["Next.js", "TypeScript", "Ollama", "Open Source"]
+tags: ["Next.js", "TypeScript", "Python", "FastAPI", "Docker", "Ollama", "Open Source"]
 status: "in-progress"
 challenge: "10-in-10"
 week: 4
 ---
 
-Work in progress.
+The [hackathon version of Drop](/blog/hackathon-drop) worked as long as three API providers had active credits. This rebuild makes both paths equally valid: drop an OpenRouter key in `.env.local` and be generating in sixty seconds, or run Ollama locally and never touch a cloud API.
 
-[Drop's origin story](/blog/hackathon-drop) — the 2.5-hour hackathon build that kicked this off.
+## What It Does
+
+**Script generation.** Paste a URL or a topic. Drop scrapes the content with Readability, sends it to an LLM to write a script, then synthesizes each line with a TTS backend and stitches it into a single audio file. The whole pipeline streams — you watch each stage complete in real time.
+
+**Monologue and dialogue.** Toggle between two-host conversation and single-speaker narration from the toolbar. The prompt system branches accordingly.
+
+**Generation lengths.** Five options: 1, 5, 10, 30 minutes, or custom. Long episodes use a sliding-window approach, chaining multiple LLM calls so there's no artificial cap.
+
+**LLM cascade.** Four backends: Ollama, OpenRouter, Featherless, Claude Haiku. Auto mode tries them in a configurable order and falls through to the next if one fails or isn't configured. A warning indicator flags misconfigured backends before you hit Generate.
+
+**Voice cloning.** Upload a WAV or record from the microphone, and the local TTS backend clones that voice nearly instantly. Voice state persists between server restarts.
+
+**Library.** Episodes auto-save after every generation. You can browse them, reload a previous generation, or re-voice a saved script with different voices without re-running the LLM.
+
+**Custom prompts.** The full system and user prompts are editable in the UI with template variables. Revert to defaults with one button.
+
+**Encrypted settings profiles.** Named profiles store API keys on disk, encrypted with AES-256-GCM. Multiple profiles for multiple key sets.
+
+## Technical Approach
+
+Drop is two processes: a Next.js app for the UI, API routes, scraping, LLM calls, and audio stitching, and a Python FastAPI sidecar for text-to-speech. They communicate over a fixed HTTP contract (`GET /tts/voices`, `POST /tts/generate`, `GET /health`). The separation keeps the ML ecosystem in Python and the web ecosystem in Node. Docker Compose wires them together; a health check on the TTS container gates app startup.
+
+The audio pipeline was new territory. Every TTS backend outputs different characteristics — pocket-tts returns 24kHz mono float32, ElevenLabs returns MP3 that has to be resampled via ffmpeg. The stitching layer normalizes before concatenating, or you get wrong-pitch playback and clicks at the seams.
+
+A second local TTS option, Qwen3-TTS (nine named speakers, ten languages), lives in a separate sidecar with the same API contract. It's wired in but untested — my GPU isn't powerful enough to run it.
+
+---
+
+[Full write-up on the blog](/blog/drop-oss) — including the architecture decisions, the audio challenges, and what I'd build next.
+
+[GitHub](https://github.com/mojoro/drop)
