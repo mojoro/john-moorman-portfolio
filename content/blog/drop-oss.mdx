@@ -18,6 +18,8 @@ tags:
   - pocket-tts
 draft: false
 ---
+![Drop main UI](/images/blog/drop-oss/main-ui.png)
+
 Six days ago, Drop was a two-voice podcast generator that worked beautifully as long as you had active Needle, Featherless, and ElevenLabs credits. Fine for a hackathon demo. Useless the moment those credits ran out or you were processing something you'd rather not upload to a third-party server. This week I rebuilt it as something you can actually own: open-source, self-hostable, and equally functional whether you're hitting an API or running a local model. The [previous post](/blog/hackathon-drop) covers where it started. This one is about what it took to make it worth running.
 
 ## The Philosophy Shift
@@ -45,7 +47,9 @@ URL or topic
   → TTS             Synthesize each line, stitch into a single WAV
 ```
 
-The whole thing streams. As soon as each stage completes, a server-sent event goes to the browser. You watch the scrape happen, then the script appear, then the UI update as the dialogue is synthesized. 
+The whole thing streams. As soon as each stage completes, a server-sent event goes to the browser. You watch the scrape happen, then the script appear, then the UI update as the dialogue is synthesized.
+
+![A completed generation showing the pipeline, audio player, and transcript](/images/blog/drop-oss/generated.png)
 
 ## The LLM Cascade
 
@@ -67,7 +71,11 @@ The honest answer is: a lot. The hackathon version was, well, hacked together. I
 
 **Voice cloning.** For the local TTS backend, you can upload a WAV file or record directly from the microphone, and pocket-tts will clone that voice and save it for your future use, nearly instantly. For ElevenLabs and OpenAI, you add a voice ID or name from your account. The voice state persists between server restarts via the `voices/` directory mount.
 
+![Settings panel with backend status indicators and profile management](/images/blog/drop-oss/settings.png)
+
 **Encrypted settings profiles.** Named profiles store API keys and backend configuration on disk, encrypted with AES-256-GCM. For users with multiple api keys, they can create multiple settings profiles. The encryption key is auto-generated on first run and stored at `data/.key`. It's not perfect, but it is better than storing credentials in plaintext. If plaintext is fine for you, you can also just fill out and rename the .env.example.
+
+![The library with saved episodes, inline audio players, and load/delete controls](/images/blog/drop-oss/library.png)
 
 **The library.** Episodes auto-save after every generation. You can browse saved episodes, load them back (restoring the script, voices, and audio), delete them, or re-voice the script with different voices without regenerating the transcript. The re-voicing option helps a lot with fine-tuning the final result. Sometimes a voice does better with a certain emotional weight or character and the result is different than your expectations. For those of you who can stand the sound of your own voice, you can even make a clone by recording yourself reading the script aloud in the style you'd like it read in, and pocket-tts does a servicable job in taking it the rest of the way.
 
@@ -75,13 +83,15 @@ The honest answer is: a lot. The hackathon version was, well, hacked together. I
 
 The Prompt panel exposes the full system and user prompts, editable in the UI, with template variables: `{{HOST_A}}`, `{{HOST_B}}`, `{{SOURCE}}`, `{{LANGUAGE}}`, `{{LINES_MIN}}`, `{{LINES_MAX}}`, and a few others. You can write a completely different prompt and the pipeline will use it, or at least do its best. I'm curious to see what people come up with here, as it is one of the areas where you can temporarily break the app if your prompt edits result in a weird input to your TTS server. For that reason, one can revert to defaults with one button.
 
+![The prompt panel with editable system/user prompts and LLM cascade order](/images/blog/drop-oss/prompt-panel.png)
+
 The reason this matters is that the stock prompts are generalist. They work well for turning a news article into a casual conversation. They work less well if you want, say, a Socratic dialogue, or a formal lecture, or something in a specific tone or format. Rather than trying to anticipate every use case in the default prompts, I exposed the controls and let users configure their own.
 
-The LLM cascade order is also configurable from the same panel. Drag and drop to reorder. The order you set persists as part of the profile.
+The LLM cascade order is also configurable from the same panel. Use the arrow buttons to reorder. The order you set persists as part of the profile.
 
 ## A Note on the Qwen3-TTS Integration
 
-At the end of the week I added a second local TTS option alongside pocket-tts: Qwen3-TTS, a recent model from Alibaba with nine named speakers and ten language options. It lives in `qwen-tts-server/` as a separate sidecar with the same API contract as the pocket-tts server, and it slots into the TTS router as a fourth backend: LOCAL / QWEN3 / 11LABS / OPENAI.
+At the end of the week I added a second local TTS option alongside pocket-tts: Qwen3-TTS, a recent model from Alibaba with nine named speakers and ten language options. It lives in `qwen-tts-server/` as a separate sidecar with the same API contract as the pocket-tts server, and it slots into the TTS router as a fourth backend: POCKET-TTS / QWEN3 / 11LABS / OPENAI.
 
 Theoretically it should work, but I don't have the hardware to run it. My GPU isn't powerful enough, so the integration was built against the published API documentation and model specifications without being run end-to-end. The code is theoretically correct. The API contract matches. But I can't promise it works out of the box.
 
