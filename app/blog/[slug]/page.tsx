@@ -3,6 +3,7 @@ import { extractHeadings, slugify } from "@/lib/toc"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { LightboxProvider } from "@/components/lightbox-provider"
 import { MdxImage } from "@/components/mdx-image"
+import { MdxAudio } from "@/components/mdx-audio"
 import { TableOfContents } from "@/components/table-of-contents"
 import { TagPill } from "@/components/tag-pill"
 import { CommentList } from "@/components/comment-list"
@@ -33,6 +34,7 @@ function extractText(children: React.ReactNode): string {
 
 const mdxComponents = {
   img: MdxImage,
+  audio: MdxAudio,
   p: ({ children }: { children: React.ReactNode }) => {
     const hasImage = Array.isArray(children)
       ? children.some((c) => typeof c === "object" && c !== null && "type" in c && (c as React.ReactElement).type === MdxImage)
