@@ -65,7 +65,7 @@ What makes this useful in practice is the ⚠ indicator in the LLM selector. If 
 
 The honest answer is: a lot. The hackathon version was, well, hacked together. It was simple. It worked. With only 2.5 hours to build, we took shortcuts. The current version is a properly structured application with extracted components, a library, encrypted settings profiles, multiple TTS backends, and a configuration system. Some of what grew this week:
 
-**The generation controls.** The original had only one length - about 60-90 seconds of audio. The current version has five: 1 minute, 3 minutes, 7 minutes, custom (any number up to 240), and unlimited, which removes the token cap entirely and extends the server timeout to two hours.
+**The generation controls.** The original had only one length - about 60-90 seconds of audio. The current version has five: 1 minute, 5 minutes, 10 minutes, 30 minutes, and custom (any duration you want). For long episodes, the script generator uses a sliding-window approach — chaining multiple LLM calls, each continuing from where the last left off — so there's no artificial cap on episode length.
 
 **Monologue mode.** Toggle between two-host dialogue and single-speaker narration from the UI. The prompt system branches accordingly, and the script parser accepts HOST_B lines as optional rather than required. A small feature that unlocks a meaningfully different use case.
 
