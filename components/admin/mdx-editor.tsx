@@ -1,7 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import type React from "react"
 import ReactMarkdown from "react-markdown"
+import rehypeRaw from "rehype-raw"
+import { MdxAudio } from "@/components/mdx-audio"
 
 interface MdxEditorProps {
   content: string
@@ -49,7 +52,12 @@ export function MdxEditor({ content, onChange }: MdxEditorProps) {
         />
       ) : (
         <div className="prose-custom mt-4 max-w-none rounded-lg border border-border bg-bg-surface px-6 py-4">
-          <ReactMarkdown>{content}</ReactMarkdown>
+          <ReactMarkdown
+            rehypePlugins={[rehypeRaw]}
+            components={{ audio: MdxAudio as React.ElementType }}
+          >
+            {content}
+          </ReactMarkdown>
         </div>
       )}
     </div>
