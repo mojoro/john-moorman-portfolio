@@ -23,7 +23,7 @@ import { useEffect, useRef, useState } from "react"
  * which re-keys the canvas element (fresh DOM node) and re-runs the effect
  * cleanly. Production is unaffected (effect runs once, no throw).
  */
-export function CircuitBg() {
+export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [generation, setGeneration] = useState(0)
 
@@ -37,8 +37,10 @@ export function CircuitBg() {
     const getAccent = () =>
       getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#64ffda"
     const getDensity = () => (window.innerWidth < 768 ? 0.6 : 1.0)
+    // Use canvas's actual rendered width so navOffset is respected
+    const getCanvasW = () => Math.round(canvas.getBoundingClientRect().width) || window.innerWidth
 
-    const cw = window.innerWidth
+    const cw = getCanvasW()
     const ch = window.innerHeight
 
     // ── Primary path: OffscreenCanvas ──────────────────────────────────────
@@ -67,7 +69,7 @@ export function CircuitBg() {
       const onResize = () => {
         clearTimeout(rt)
         rt = setTimeout(() => {
-          const newW = window.innerWidth
+          const newW = getCanvasW()
           if (newW === lastW) return  // height-only change (mobile toolbar) — skip
           lastW = newW
           worker.postMessage({
@@ -149,7 +151,7 @@ export function CircuitBg() {
     let genId = 0
 
     function requestGenerate(forceRegen = false) {
-      const newW = window.innerWidth
+      const newW = getCanvasW()
       if (!forceRegen && newW === lastW && ready) return  // height-only change — skip
       lastW = newW
       w = newW
@@ -347,7 +349,7 @@ export function CircuitBg() {
       key={generation}
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[200svh] w-full circuit-bg-anim print:hidden"
+      className={`pointer-events-none fixed left-0 right-0 top-0 -z-10 h-[200svh] circuit-bg-anim print:hidden${navOffset ? " md:left-60 md:right-60" : ""}`}
     />
   )
 }

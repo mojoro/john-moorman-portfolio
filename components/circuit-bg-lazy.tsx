@@ -7,6 +7,6 @@ const CircuitBg = dynamic(
   { ssr: false },
 )
 
-export function CircuitBgLazy() {
-  return <CircuitBg />
+export function CircuitBgLazy({ navOffset }: { navOffset?: boolean } = {}) {
+  return <CircuitBg navOffset={navOffset} />
 }
