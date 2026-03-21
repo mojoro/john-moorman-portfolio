@@ -15,6 +15,8 @@ export function MdxAudio({
   ...audioProps
 }: React.ComponentProps<"audio"> & { title?: string }) {
   const audioRef = useRef<HTMLAudioElement>(null)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const isDraggingRef = useRef(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -26,7 +28,9 @@ export function MdxAudio({
     const onPlay = () => setIsPlaying(true)
     const onPause = () => setIsPlaying(false)
     const onEnded = () => setIsPlaying(false)
-    const onTimeUpdate = () => setCurrentTime(audio.currentTime)
+    const onTimeUpdate = () => {
+      if (!isDraggingRef.current) setCurrentTime(audio.currentTime)
+    }
     const onLoadedMetadata = () => setDuration(audio.duration)
 
     audio.addEventListener("play", onPlay)
@@ -50,14 +54,33 @@ export function MdxAudio({
     isPlaying ? audio.pause() : audio.play()
   }, [isPlaying])
 
-  const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current
-    if (!audio) return
-    const time = Number(e.target.value)
-    audio.currentTime = time
-    // Update state immediately so the thumb doesn't snap back
-    // while waiting for the next timeupdate event
-    setCurrentTime(time)
+  const seekToClientX = useCallback(
+    (clientX: number) => {
+      const track = trackRef.current
+      const audio = audioRef.current
+      if (!track || !audio || !duration) return
+      const rect = track.getBoundingClientRect()
+      const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+      const time = ratio * duration
+      audio.currentTime = time
+      setCurrentTime(time)
+    },
+    [duration],
+  )
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    isDraggingRef.current = true
+    e.currentTarget.setPointerCapture(e.pointerId)
+    seekToClientX(e.clientX)
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) return
+    seekToClientX(e.clientX)
+  }
+
+  const handlePointerUp = () => {
+    isDraggingRef.current = false
   }
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
@@ -77,22 +100,33 @@ export function MdxAudio({
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-accent/40 text-accent transition-all hover:border-accent/70 hover:bg-accent/10"
           >
             {isPlaying ? (
-              /* Pause — two rects, optically centered in 16×16 */
               <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                 <rect x="3.5" y="2.5" width="3" height="11" rx="0.75" />
                 <rect x="9.5" y="2.5" width="3" height="11" rx="0.75" />
               </svg>
             ) : (
-              /* Play — triangle whose centroid sits at (8,8) */
               <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                 <path d="M5 2.5L14 8L5 13.5Z" />
               </svg>
             )}
           </button>
 
-          {/* Progress track */}
-          <div className="relative flex h-5 flex-1 items-center">
-            {/* Track */}
+          {/* Progress track — pointer events handle seeking */}
+          <div
+            ref={trackRef}
+            role="slider"
+            aria-label="Seek"
+            aria-valuemin={0}
+            aria-valuemax={Math.floor(duration)}
+            aria-valuenow={Math.floor(currentTime)}
+            tabIndex={0}
+            className="relative flex h-5 flex-1 cursor-pointer items-center select-none"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+          >
+            {/* Track bar */}
             <div className="h-px w-full rounded-full bg-bg-elevated">
               <div
                 className="h-full rounded-full bg-accent/50"
@@ -103,17 +137,6 @@ export function MdxAudio({
             <div
               className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-accent/80 shadow-[0_0_6px_rgba(100,255,218,0.35)]"
               style={{ left: `${progress}%` }}
-            />
-            {/* Invisible interactive range */}
-            <input
-              type="range"
-              min={0}
-              max={duration || 0}
-              step={0.1}
-              value={currentTime}
-              onChange={seek}
-              aria-label="Seek"
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             />
           </div>
 
