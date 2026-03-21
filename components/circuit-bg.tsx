@@ -37,8 +37,12 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
     const getAccent = () =>
       getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#64ffda"
     const getDensity = () => (window.innerWidth < 768 ? 0.6 : 1.0)
-    // Use canvas's actual rendered width so navOffset is respected
-    const getCanvasW = () => Math.round(canvas.getBoundingClientRect().width) || window.innerWidth
+    // Sidebar is w-60 = 240px. Subtract it explicitly rather than relying on
+    // getBoundingClientRect (which may return 0 before first paint).
+    const getCanvasW = () =>
+      navOffset && window.innerWidth >= 768
+        ? window.innerWidth - 240
+        : window.innerWidth
 
     const cw = getCanvasW()
     const ch = window.innerHeight
@@ -349,7 +353,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       key={generation}
       ref={canvasRef}
       aria-hidden="true"
-      className={`pointer-events-none fixed left-0 right-0 top-0 -z-10 h-[200svh] circuit-bg-anim print:hidden${navOffset ? " md:left-60 md:right-60" : ""}`}
+      className={`pointer-events-none fixed left-0 right-0 top-0 -z-10 h-[200svh] circuit-bg-anim print:hidden${navOffset ? " md:left-60" : ""}`}
     />
   )
 }
