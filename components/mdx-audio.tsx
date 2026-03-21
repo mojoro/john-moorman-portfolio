@@ -53,7 +53,11 @@ export function MdxAudio({
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current
     if (!audio) return
-    audio.currentTime = Number(e.target.value)
+    const time = Number(e.target.value)
+    audio.currentTime = time
+    // Update state immediately so the thumb doesn't snap back
+    // while waiting for the next timeupdate event
+    setCurrentTime(time)
   }
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
@@ -73,25 +77,34 @@ export function MdxAudio({
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-accent/40 text-accent transition-all hover:border-accent/70 hover:bg-accent/10"
           >
             {isPlaying ? (
-              <svg width="11" height="13" viewBox="0 0 11 13" fill="currentColor" aria-hidden="true">
-                <rect x="0" y="0" width="3.5" height="13" rx="1" />
-                <rect x="7.5" y="0" width="3.5" height="13" rx="1" />
+              /* Pause — two rects, optically centered in 16×16 */
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <rect x="3.5" y="2.5" width="3" height="11" rx="0.75" />
+                <rect x="9.5" y="2.5" width="3" height="11" rx="0.75" />
               </svg>
             ) : (
-              <svg width="11" height="13" viewBox="0 0 11 13" fill="currentColor" aria-hidden="true">
-                <path d="M0 0L11 6.5L0 13Z" />
+              /* Play — triangle whose centroid sits at (8,8) */
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M5 2.5L14 8L5 13.5Z" />
               </svg>
             )}
           </button>
 
           {/* Progress track */}
           <div className="relative flex h-5 flex-1 items-center">
-            <div className="h-px w-full overflow-hidden rounded-full bg-bg-elevated">
+            {/* Track */}
+            <div className="h-px w-full rounded-full bg-bg-elevated">
               <div
                 className="h-full rounded-full bg-accent/50"
                 style={{ width: `${progress}%` }}
               />
             </div>
+            {/* Thumb */}
+            <div
+              className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-accent/80 shadow-[0_0_6px_rgba(100,255,218,0.35)]"
+              style={{ left: `${progress}%` }}
+            />
+            {/* Invisible interactive range */}
             <input
               type="range"
               min={0}
