@@ -44,7 +44,7 @@ export function TableOfContents({ items }: Props) {
   return (
     <nav
       aria-label="Table of contents"
-      className="hidden 2xl:block absolute top-0 bottom-0 right-[calc(100%+2rem)] w-44"
+      className="hidden lg:block lg:w-44 lg:shrink-0 2xl:absolute 2xl:top-0 2xl:bottom-0 2xl:right-[calc(100%+2rem)]"
     >
       <div className="sticky top-24">
         <p className="font-mono text-[11px] uppercase tracking-widest text-text-muted mb-4">

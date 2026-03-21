@@ -78,7 +78,7 @@ export default async function WorkPost({ params }: Props) {
   const headings = extractHeadings(post.content)
 
   return (
-    <article className="py-20 mx-auto max-w-[680px]">
+    <article className="py-20 mx-auto max-w-[680px] lg:max-w-none 2xl:max-w-[680px]">
       <Link
         href="/work"
         className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
@@ -102,13 +102,16 @@ export default async function WorkPost({ params }: Props) {
         )}
       </header>
 
-      <div className="relative mt-12">
+      {/* Prose + TOC — relative context keeps absolute TOC flush with prose top */}
+      <div className="relative mt-12 lg:flex lg:gap-8 2xl:block">
+        <div className="min-w-0 lg:flex-1">
+          <LightboxProvider>
+            <div className="prose-custom">
+              <MDXRemote source={post.content} components={mdxComponents} />
+            </div>
+          </LightboxProvider>
+        </div>
         <TableOfContents items={headings} />
-        <LightboxProvider>
-          <div className="prose-custom">
-            <MDXRemote source={post.content} components={mdxComponents} />
-          </div>
-        </LightboxProvider>
       </div>
     </article>
   )
