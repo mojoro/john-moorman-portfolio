@@ -691,7 +691,7 @@ function stopLoop() {
     | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; density: number }
     | { type: "resize"; w: number; h: number; dpr: number; density: number }
     | { type: "theme"; theme: Theme; accent: string }
-    | { type: "config"; reset?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number; glowIntensity?: number; pulseBrightness?: number; pulseSpeed?: number; traceWidth?: number }
+    | { type: "config"; reset?: boolean; paused?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number; glowIntensity?: number; pulseBrightness?: number; pulseSpeed?: number; traceWidth?: number }
   >
 ) => {
   const msg = e.data
@@ -765,6 +765,7 @@ function stopLoop() {
     }
     if (msg.fadeStrength !== undefined) fadeStrengthOverride = msg.fadeStrength
     if (msg.maxPulses !== undefined) maxPulses = msg.maxPulses
+    if (msg.paused !== undefined) { if (msg.paused) stopLoop(); else startLoop() }
     if (msg.fps !== undefined) { fpsOverride = msg.fps; startLoop() }
     if (msg.glowIntensity !== undefined) glowIntensityMult = msg.glowIntensity
     if (msg.pulseBrightness !== undefined) pulseBrightnessMult = msg.pulseBrightness

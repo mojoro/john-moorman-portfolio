@@ -16,15 +16,14 @@ interface SliderProps {
   step: number
   onChange: (v: number) => void
   format?: (v: number) => string
-  debounce?: boolean
 }
 
 function Slider({ label, value, min, max, step, onChange, format }: SliderProps) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between">
-        <span className="font-mono text-xs text-text-secondary">{label}</span>
-        <span className="font-mono text-xs text-accent tabular-nums">
+        <span className="font-mono text-[13px] text-text-secondary">{label}</span>
+        <span className="font-mono text-[13px] text-accent tabular-nums">
           {format ? format(value) : value}
         </span>
       </div>
@@ -47,7 +46,7 @@ function Slider({ label, value, min, max, step, onChange, format }: SliderProps)
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
-      <p className="font-mono text-[10px] uppercase tracking-widest text-text-muted">{label}</p>
+      <p className="font-mono text-[11px] uppercase tracking-widest text-text-muted">{label}</p>
       {children}
     </div>
   )
@@ -61,15 +60,15 @@ function FpsPicker({ value, onChange }: { value: number; onChange: (v: number) =
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between">
-        <span className="font-mono text-xs text-text-secondary">Frame rate</span>
-        <span className="font-mono text-xs text-accent">{value} fps</span>
+        <span className="font-mono text-[13px] text-text-secondary">Frame rate</span>
+        <span className="font-mono text-[13px] text-accent">{value} fps</span>
       </div>
       <div className="flex gap-1.5">
         {FPS_OPTIONS.map((f) => (
           <button
             key={f}
             onClick={() => onChange(f)}
-            className={`flex-1 rounded border py-1 font-mono text-[11px] transition-colors ${
+            className={`flex-1 rounded border py-1 font-mono text-[12px] transition-colors ${
               value === f
                 ? "border-accent bg-accent/10 text-accent"
                 : "border-border text-text-muted hover:border-text-muted hover:text-text-secondary"
@@ -83,12 +82,56 @@ function FpsPicker({ value, onChange }: { value: number; onChange: (v: number) =
   )
 }
 
+// ── Duration picker ───────────────────────────────────────────────────────────
+
+const DURATIONS: { label: string; value: number | null }[] = [
+  { label: "1m",  value: 1 },
+  { label: "5m",  value: 5 },
+  { label: "10m", value: 10 },
+  { label: "30m", value: 30 },
+  { label: "∞",   value: null },
+]
+
+function DurationPicker({
+  value,
+  onChange,
+}: {
+  value: number | null
+  onChange: (v: number | null) => void
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between">
+        <span className="font-mono text-[13px] text-text-secondary">Run time</span>
+        <span className="font-mono text-[13px] text-accent">
+          {value === null ? "∞" : `${value}m`}
+        </span>
+      </div>
+      <div className="flex gap-1.5">
+        {DURATIONS.map(({ label, value: v }) => (
+          <button
+            key={label}
+            onClick={() => onChange(v)}
+            className={`flex-1 rounded border py-1 font-mono text-[12px] transition-colors ${
+              value === v
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-border text-text-muted hover:border-text-muted hover:text-text-secondary"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Draggable/resizable panel ─────────────────────────────────────────────────
 
 const MIN_W = 260
 const MIN_H = 160
 const DEFAULT_W = 296
-const DEFAULT_H = 520
+const DEFAULT_H = 560
 
 export default function CircuitConfigPage() {
   // Panel geometry
@@ -144,12 +187,14 @@ export default function CircuitConfigPage() {
   const [pulseSpeed, setPulseSpeed] = useState(1.0)
   const [fps, setFps] = useState(30)
   const [density, setDensity] = useState(1.0)
+  const [duration, setDuration] = useState<number | null>(null) // null = ∞
 
   const densityTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const durationTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const handle = useCallback((key: string, setter: (v: number) => void, debouncedKey?: string) => (v: number) => {
+  const handle = useCallback((key: string, setter: (v: number) => void) => (v: number) => {
     setter(v)
-    dispatch({ [debouncedKey ?? key]: v })
+    dispatch({ [key]: v })
   }, [])
 
   const onTraceAlpha = handle("traceAlpha", setTraceAlpha)
@@ -168,10 +213,22 @@ export default function CircuitConfigPage() {
     densityTimer.current = setTimeout(() => dispatch({ density: v }), 400)
   }, [])
 
+  const onDuration = useCallback((d: number | null) => {
+    setDuration(d)
+    if (durationTimer.current) clearTimeout(durationTimer.current)
+    // Always unpause first (in case a prior timer had stopped the loop)
+    dispatch({ paused: false })
+    if (d !== null) {
+      durationTimer.current = setTimeout(() => dispatch({ paused: true }), d * 60 * 1000)
+    }
+  }, [])
+
   const handleReset = () => {
     setTraceAlpha(0.06); setTraceWidth(1.0); setPadAlpha(0.07)
     setGlowIntensity(1.0); setFadeStrength(0.65); setMaxPulses(24)
     setPulseBrightness(1.0); setPulseSpeed(1.0); setFps(30); setDensity(1.0)
+    setDuration(null)
+    if (durationTimer.current) clearTimeout(durationTimer.current)
     dispatch({ reset: true })
   }
 
@@ -203,12 +260,12 @@ export default function CircuitConfigPage() {
               <rect x="0" y="5" width="2" height="2" rx="0.5"/><rect x="5" y="5" width="2" height="2" rx="0.5"/><rect x="10" y="5" width="2" height="2" rx="0.5"/>
               <rect x="0" y="9" width="2" height="2" rx="0.5"/><rect x="5" y="9" width="2" height="2" rx="0.5"/><rect x="10" y="9" width="2" height="2" rx="0.5"/>
             </svg>
-            <span className="font-mono text-xs font-medium text-text-primary">Circuit Config</span>
+            <span className="font-mono text-[13px] font-medium text-text-primary">Circuit Config</span>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={handleReset}
-              className="rounded px-1.5 py-0.5 font-mono text-[10px] text-text-muted transition-colors hover:text-text-primary"
+              className="rounded px-1.5 py-0.5 font-mono text-[11px] text-text-muted transition-colors hover:text-text-primary"
               title="Reset all to defaults"
             >
               reset
@@ -254,8 +311,9 @@ export default function CircuitConfigPage() {
 
             <Section label="Performance">
               <FpsPicker value={fps} onChange={onFps} />
+              <DurationPicker value={duration} onChange={onDuration} />
               <Slider label="Density" value={density} min={0.1} max={2.0} step={0.05} onChange={onDensity} format={fixed2} />
-              <p className="font-mono text-[10px] text-text-muted">Density triggers regen after 400 ms</p>
+              <p className="font-mono text-[11px] text-text-muted">Density triggers regen after 400 ms</p>
             </Section>
           </div>
         )}
