@@ -54,7 +54,7 @@ export function MdxEditor({ content, onChange }: MdxEditorProps) {
         <div className="prose-custom mt-4 max-w-none rounded-lg border border-border bg-bg-surface px-6 py-4">
           <ReactMarkdown
             rehypePlugins={[rehypeRaw]}
-            components={{ audio: MdxAudio as React.ElementType }}
+            components={{ audio: MdxAudio as React.ElementType, Audio: MdxAudio as React.ElementType }}
           >
             {content}
           </ReactMarkdown>
