@@ -40,8 +40,8 @@ The pipeline itself is three stages:
 
 ```
 URL or topic
-  → lib/scrape.ts    Extract content (Readability + linkedom)
-  → LLM             Generate monologue or HOST_A / HOST_B dialogue script
+  → lib/scrape.ts   Extract content (Readability + linkedom)
+  → LLM             Generate monologue or dialogue script
   → TTS             Synthesize each line, stitch into a single WAV
 ```
 
@@ -55,7 +55,7 @@ The cascade solves a practical problem. Not everyone has the same set of API key
 
 And if someone doesn't want any of these, the app should be dev-friendly enough that they can plug their own solution in.
 
-What makes this useful in practice is the `⚠` indicator in the LLM selector. If you've manually chosen a backend and the corresponding API key isn't configured, the toolbar tells you immediately rather than letting you hit Generate and find out two minutes later.
+What makes this useful in practice is the ⚠ indicator in the LLM selector. If you've manually chosen a backend and the corresponding API key isn't configured, the toolbar tells you immediately rather than letting you hit Generate and find out two minutes later.
 
 ## What Got Built
 
