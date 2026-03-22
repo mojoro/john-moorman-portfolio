@@ -3,7 +3,7 @@ import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Sidebar } from "@/components/sidebar"
 import { ChatPanelLazy } from "@/components/chat-panel-lazy"
-import { CursorGlow } from "@/components/cursor-glow"
+
 import { Analytics } from "@vercel/analytics/react"
 import { CircuitBgLazy } from "@/components/circuit-bg-lazy"
 import { PrefetchRoutes } from "@/components/prefetch-routes"
@@ -129,7 +129,6 @@ export default async function RootLayout({
             <>{children}</>
           ) : (
             <>
-              <CursorGlow />
               <Sidebar />
               <div className="relative pt-14 md:ml-60 md:pt-0 print:ml-0 print:pt-0">
                 <CircuitBgLazy navOffset />

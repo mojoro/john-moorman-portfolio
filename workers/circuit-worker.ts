@@ -741,6 +741,36 @@ function draw(time: number) {
   drawScene(time, drawablePulses)
   ctx.restore()
 
+  // ── Trace proximity highlight (segment-level, viewport space) ──────
+  if (mouseActive && mouseX >= 0) {
+    const highlightRadius = 100
+    const hrSq = highlightRadius * highlightRadius
+    const baseAlpha = isLightMode ? 0.15 : 0.10
+    ctx.strokeStyle = `rgba(${cachedR},${cachedG},${cachedB},${baseAlpha})`
+    ctx.lineCap = "round"
+    ctx.lineJoin = "round"
+    for (let i = 0; i < traceCount; i++) {
+      const startIdx = traceMeta[i * 3]
+      const ptCount = traceMeta[i * 3 + 1]
+      ctx.lineWidth = traceMeta[i * 3 + 2] * traceWidthMult
+      let inSegment = false
+      for (let j = 0; j < ptCount; j++) {
+        const px = tracePts[startIdx + j * 2]
+        const py = tracePts[startIdx + j * 2 + 1]
+        const dx = px - mouseX, dy = py - mouseY
+        const near = dx * dx + dy * dy < hrSq
+        if (near) {
+          if (!inSegment) { ctx.beginPath(); ctx.moveTo(px, py); inSegment = true }
+          else ctx.lineTo(px, py)
+        } else {
+          // One extra segment past the boundary for a smooth exit
+          if (inSegment) { ctx.lineTo(px, py); ctx.stroke(); inSegment = false }
+        }
+      }
+      if (inSegment) ctx.stroke()
+    }
+  }
+
   // Content readability vignette — applied once across the full canvas so the
   // seam boundary between tiles gets the same treatment as any other row.
   const isMobile = w < 768
