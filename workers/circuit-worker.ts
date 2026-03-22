@@ -64,6 +64,7 @@ let glowSp = new Float32Array(0)
 let glowCount = 0
 
 let pulseData: PulseData[] = []
+let clickPulses: PulseData[] = []
 
 // ── Admin config overrides (session-only, set via circuit-config CustomEvent) ──
 let currentDensity = 1.0
@@ -570,32 +571,24 @@ function spawnClickPulse(x: number, y: number) {
   }
   if (totalLen < 10) return
 
-  const newPulse: PulseData = {
+  // Randomize speed — some fast, some slow, some crawl
+  const speedTier = Math.random()
+  const sp = speedTier < 0.3
+    ? 0.001 + Math.random() * 0.002
+    : speedTier < 0.7
+    ? 0.003 + Math.random() * 0.004
+    : 0.008 + Math.random() * 0.006
+
+  clickPulses.push({
     pts,
     segLens,
     totalLen,
     pr: nearest.distAlongPath,
-    sp: 0.003,
+    sp,
     ln: 0.08,
     w: traceMeta[ti * 3 + 2],
     ti,
-  }
-
-  if (pulseData.length >= maxPulses) {
-    // Replace the pulse closest to completion
-    let bestIdx = 0
-    let bestProgress = -1
-    for (let i = 0; i < pulseData.length; i++) {
-      const completionRatio = pulseData[i].pr / (1.0 + pulseData[i].ln)
-      if (completionRatio > bestProgress) {
-        bestProgress = completionRatio
-        bestIdx = i
-      }
-    }
-    pulseData[bestIdx] = newPulse
-  } else {
-    pulseData.push(newPulse)
-  }
+  })
 }
 
 // Advance pulse positions once per frame and return drawable states.
@@ -604,6 +597,8 @@ function spawnClickPulse(x: number, y: number) {
 function computePulseStates(): DrawablePulse[] {
   if (reducedMotion) return []
   const result: DrawablePulse[] = []
+
+  // Regular pulses (capped by maxPulses, resample on completion)
   const limit = Math.min(maxPulses, pulseData.length)
   for (let _i = 0; _i < limit; _i++) {
     const pl = pulseData[_i]
@@ -614,20 +609,39 @@ function computePulseStates(): DrawablePulse[] {
         ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)
         : 1.0
     pl.pr += pl.sp * pulseSpeedMult
-    // Pulse completed its journey — reset to start a new pass on a fresh trace.
-    // Must NOT reset inside `life <= 0` because pr=0 also gives life=0,
-    // which would trap the pulse in an infinite reset loop.
     if (pl.pr >= 1.0 + pl.ln) {
       pl.pr = 0
       resamplePulse(pl)
       continue
     }
-    if (life <= 0) continue  // still in the initial fade-in ramp (pr: 0 → ln)
+    if (life <= 0) continue
     const hd = Math.min(pl.pr, 1.0) * pl.totalLen
     const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
     if (hd - td < 1) continue
     result.push({ pl, life, hd, td })
   }
+
+  // Click-spawned pulses (no cap, removed on completion)
+  for (let i = clickPulses.length - 1; i >= 0; i--) {
+    const pl = clickPulses[i]
+    const life =
+      pl.pr < pl.ln
+        ? pl.pr / pl.ln
+        : pl.pr > 1.0
+        ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)
+        : 1.0
+    pl.pr += pl.sp * pulseSpeedMult
+    if (pl.pr >= 1.0 + pl.ln) {
+      clickPulses.splice(i, 1)
+      continue
+    }
+    if (life <= 0) continue
+    const hd = Math.min(pl.pr, 1.0) * pl.totalLen
+    const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
+    if (hd - td < 1) continue
+    result.push({ pl, life, hd, td })
+  }
+
   return result
 }
 
@@ -726,48 +740,6 @@ function draw(time: number) {
   ctx.translate(0, h)
   drawScene(time, drawablePulses)
   ctx.restore()
-
-  // ── Hover glow (viewport space, before vignette) ─────────────────────
-  if (mouseActive && mouseX >= 0) {
-    const hoverRadius = 120
-    const r = cachedR, g = cachedG, b = cachedB
-    const hg = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, hoverRadius)
-    hg.addColorStop(0, `rgba(${r},${g},${b},${isLightMode ? 0.06 : 0.04})`)
-    hg.addColorStop(0.5, `rgba(${r},${g},${b},${isLightMode ? 0.03 : 0.02})`)
-    hg.addColorStop(1, `rgba(${r},${g},${b},0)`)
-    ctx.fillStyle = hg
-    ctx.beginPath()
-    ctx.arc(mouseX, mouseY, hoverRadius, 0, 6.2832)
-    ctx.fill()
-  }
-
-  // ── Trace proximity highlight (viewport space, before vignette) ──────
-  if (mouseActive && mouseX >= 0) {
-    const highlightRadius = 100
-    const highlightRadiusSq = highlightRadius * highlightRadius
-    const baseAlpha = isLightMode ? 0.15 : 0.10
-    ctx.strokeStyle = `rgba(${cachedR},${cachedG},${cachedB},${baseAlpha})`
-    ctx.lineCap = "round"
-    ctx.lineJoin = "round"
-    for (let i = 0; i < traceCount; i++) {
-      const startIdx = traceMeta[i * 3]
-      const ptCount = traceMeta[i * 3 + 1]
-      let near = false
-      for (let j = 0; j < ptCount; j++) {
-        const dx = tracePts[startIdx + j * 2] - mouseX
-        const dy = tracePts[startIdx + j * 2 + 1] - mouseY
-        if (dx * dx + dy * dy < highlightRadiusSq) { near = true; break }
-      }
-      if (!near) continue
-      ctx.lineWidth = traceMeta[i * 3 + 2] * traceWidthMult
-      ctx.beginPath()
-      ctx.moveTo(tracePts[startIdx], tracePts[startIdx + 1])
-      for (let j = 1; j < ptCount; j++) {
-        ctx.lineTo(tracePts[startIdx + j * 2], tracePts[startIdx + j * 2 + 1])
-      }
-      ctx.stroke()
-    }
-  }
 
   // Content readability vignette — applied once across the full canvas so the
   // seam boundary between tiles gets the same treatment as any other row.
