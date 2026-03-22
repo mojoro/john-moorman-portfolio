@@ -76,6 +76,32 @@ let pulseBrightnessMult = 1.0
 let pulseSpeedMult = 1.0
 let traceWidthMult = 1.0
 
+// Generation math overrides (trigger regen)
+let gridSizeOverride: number | null = null
+let straightnessOverride: number | null = null
+let maxStepsOverride: number | null = null
+let maxPathsOverride: number | null = null
+let bundleSizeMinOverride: number | null = null
+let bundleSizeMaxOverride: number | null = null
+let pathLenMinOverride: number | null = null
+let pathLenMaxOverride: number | null = null
+let branchChanceOverride: number | null = null
+let padChanceOverride: number | null = null
+let padSizeMinOverride: number | null = null
+let padSizeMaxOverride: number | null = null
+let seamSpacingOverride: number | null = null
+let glowCountOverride: number | null = null
+
+// Glow rendering overrides
+let glowRadiusMult = 1.0
+let glowSpeedMult = 1.0
+
+// Pulse physics overrides
+let pulseTailMinOverride: number | null = null
+let pulseTailMaxOverride: number | null = null
+let pulseHeadSizeOverride: number | null = null
+let pulseSegmentsOverride: number | null = null
+
 let w = 0
 let h = 0
 let dpr = 1
@@ -119,7 +145,7 @@ const DX = [1, 0, -1, 0, 1, -1, -1, 1]
 const DY = [0, 1, 0, -1, 1, 1, -1, -1]
 
 function generate(gw: number, gh: number, rm: boolean, density: number) {
-  const gridSize = 10
+  const gridSize = gridSizeOverride ?? 10
   const cols = Math.ceil(gw / gridSize)
   const rows = Math.ceil(gh / gridSize)
   const grid = new Uint8Array(cols * rows)
@@ -134,7 +160,7 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
 
   // ── Path storage ──
 
-  const MAX_PATHS = 2000
+  const MAX_PATHS = maxPathsOverride ?? 2000
   const MAX_HISTORY = 100
   const px = new Int16Array(MAX_PATHS)
   const py = new Int16Array(MAX_PATHS)
@@ -159,8 +185,12 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
   }
 
   function seedBundle(startX: number, startY: number, dir: number, perpDx: number, perpDy: number) {
-    const bundleSize = 3 + Math.floor(Math.random() * 5)
-    const pathLen = 40 + Math.floor(Math.random() * 50)
+    const bMin = bundleSizeMinOverride ?? 3
+    const bMax = bundleSizeMaxOverride ?? 7
+    const bundleSize = bMin + Math.floor(Math.random() * (bMax - bMin + 1))
+    const plMin = pathLenMinOverride ?? 40
+    const plMax = pathLenMaxOverride ?? 90
+    const pathLen = plMin + Math.floor(Math.random() * (plMax - plMin))
     const bw = 0.6 + Math.random() * 0.5
     for (let i = 0; i < bundleSize; i++) {
       seedPath(startX + perpDx * i, startY + perpDy * i, dir, pathLen, bw)
@@ -177,7 +207,7 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
   // All other generation branches out independently from the stub endpoints.
 
   const seamRows = Math.max(3, Math.ceil(rows * 0.05))
-  const seamStep = 8  // one stub pair every 8 grid columns (~80 px)
+  const seamStep = seamSpacingOverride ?? 8  // one stub pair every N grid columns
 
   for (let sx = 4; sx < cols - 4; sx += seamStep) {
     const sw = 0.5 + ((sx * 3 + 7) % 15) / 30  // deterministic width 0.5..1.0
@@ -222,8 +252,10 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
   for (let y = 3; y < rows - 10; y += 6 + Math.floor(Math.random() * 6)) seedBundle(0, y, 0, 0, 1)
   for (let y = 3; y < rows - 10; y += 6 + Math.floor(Math.random() * 6)) seedBundle(cols - 1, y, 2, 0, 1)
   for (let y = 2; y < rows - 2; y += 4 + Math.floor(Math.random() * 3)) {
-    seedPath(0, y, 0, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
-    seedPath(cols - 1, y, 2, 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.5)
+    const eplMin = pathLenMinOverride ?? 30
+    const eplMax = pathLenMaxOverride ?? 70
+    seedPath(0, y, 0, eplMin + Math.floor(Math.random() * (eplMax - eplMin)), 0.5 + Math.random() * 0.5)
+    seedPath(cols - 1, y, 2, eplMin + Math.floor(Math.random() * (eplMax - eplMin)), 0.5 + Math.random() * 0.5)
   }
 
   // Interior seeds (density-scaled)
@@ -241,13 +273,15 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
   for (let i = 0; i < intSeeds; i++) {
     const x = 3 + Math.floor(Math.random() * (cols - 6))
     const y = 3 + Math.floor(Math.random() * (rows - 6))
-    seedPath(x, y, Math.floor(Math.random() * 4), 30 + Math.floor(Math.random() * 40), 0.5 + Math.random() * 0.8)
+    const iplMin = pathLenMinOverride ?? 30
+    const iplMax = pathLenMaxOverride ?? 70
+    seedPath(x, y, Math.floor(Math.random() * 4), iplMin + Math.floor(Math.random() * (iplMax - iplMin)), 0.5 + Math.random() * 0.8)
   }
 
   // ── Round-robin growth ──
 
-  const STRAIGHTNESS = 0.93
-  const maxSteps = 80
+  const STRAIGHTNESS = straightnessOverride ?? 0.93
+  const maxSteps = maxStepsOverride ?? 80
   const shuffleArr = new Uint16Array(MAX_PATHS)
 
   for (let step = 0; step < maxSteps; step++) {
@@ -286,7 +320,7 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
         pblocked[pi]++
         if (pblocked[pi] >= 2) {
           palive[pi] = 0
-          if (phistLen[pi] > 4 && Math.random() < 0.5) {
+          if (phistLen[pi] > 4 && Math.random() < (branchChanceOverride ?? 0.5)) {
             const perpDir = (pdir[pi] + (Math.random() < 0.5 ? 1 : 3)) % 4
             seedPath(px[pi] + DX[perpDir], py[pi] + DY[perpDir], perpDir, 8 + Math.floor(Math.random() * 15), pwidth[pi] * 0.8)
           }
@@ -334,13 +368,15 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
 
     if (simplified.length >= 4) {
       tempTraces.push({ pts: simplified, w: pwidth[pi] })
+      const psMin = padSizeMinOverride ?? 1.5
+      const psMax = padSizeMaxOverride ?? 3.5
       tempPads.push({
         x: simplified[simplified.length - 2],
         y: simplified[simplified.length - 1],
-        r: 1.5 + Math.random() * 2,
+        r: psMin + Math.random() * (psMax - psMin),
       })
-      if (Math.random() < 0.3) {
-        tempPads.push({ x: simplified[0], y: simplified[1], r: 1.5 + Math.random() * 1.5 })
+      if (Math.random() < (padChanceOverride ?? 0.3)) {
+        tempPads.push({ x: simplified[0], y: simplified[1], r: psMin + Math.random() * (psMax - psMin) * 0.75 })
       }
     }
   }
@@ -371,7 +407,7 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
   }
 
   // Pack glows
-  const gc = Math.min(Math.floor(tc / 8), 20)
+  const gc = glowCountOverride ?? Math.min(Math.floor(tc / 8), 20)
   const gx = new Float32Array(gc)
   const gy = new Float32Array(gc)
   const gr = new Float32Array(gc)
@@ -428,13 +464,15 @@ function generate(gw: number, gh: number, rm: boolean, density: number) {
           ? 0.002 + Math.random() * 0.002
           : 0.005 + Math.random() * 0.004
 
+      const ptlMin = pulseTailMinOverride ?? 0.04
+      const ptlMax = pulseTailMaxOverride ?? 0.10
       pulses.push({
         pts,
         segLens,
         totalLen,
         pr: Math.random() * (1.0 + sp * 200),
         sp,
-        ln: 0.04 + Math.random() * 0.06,
+        ln: ptlMin + Math.random() * (ptlMax - ptlMin),
         w: tm[ti * 3 + 2],
         ti,
       })
@@ -507,7 +545,9 @@ function resamplePulse(pl: PulseData) {
   pl.segLens = segLens
   pl.totalLen = totalLen
   pl.w = traceMeta[ti * 3 + 2]
-  pl.ln = 0.04 + Math.random() * 0.06
+  const rptlMin = pulseTailMinOverride ?? 0.04
+  const rptlMax = pulseTailMaxOverride ?? 0.10
+  pl.ln = rptlMin + Math.random() * (rptlMax - rptlMin)
   pl.ti = ti
 }
 
@@ -580,8 +620,8 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
   // Glows
   const glowMult = isLightMode ? 1.0 : 0.8
   for (let i = 0; i < glowCount; i++) {
-    const pulse = reducedMotion ? 0.6 : 0.4 + Math.sin(t * glowSp[i] + glowPh[i]) * 0.3
-    const radius = glowR[i] * 5
+    const pulse = reducedMotion ? 0.6 : 0.4 + Math.sin(t * glowSp[i] * glowSpeedMult + glowPh[i]) * 0.3
+    const radius = glowR[i] * 5 * glowRadiusMult
     const gradR = ctx.createRadialGradient(glowX[i], glowY[i], 0, glowX[i], glowY[i], radius)
     gradR.addColorStop(0, `rgba(${r},${g},${b},${(0.2 * pulse * glowMult * glowIntensityMult).toFixed(3)})`)
     gradR.addColorStop(0.5, `rgba(${r},${g},${b},${(0.06 * pulse * glowMult * glowIntensityMult).toFixed(3)})`)
@@ -599,11 +639,12 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
   // Pulses (desktop only, pre-computed states — no position advancement here)
   for (const { pl, life, hd, td } of drawablePulses) {
     const pulseMult = (isLightMode ? 0.8 : 0.7) * life * pulseBrightnessMult
+    const segs = pulseSegmentsOverride ?? 8
     ctx.lineCap = "round"
-    for (let s = 0; s < 8; s++) {
-      const f = s / 8
+    for (let s = 0; s < segs; s++) {
+      const f = s / segs
       const [x1, y1] = ptAt(pl, td + (hd - td) * f)
-      const [x2, y2] = ptAt(pl, td + (hd - td) * ((s + 1) / 8))
+      const [x2, y2] = ptAt(pl, td + (hd - td) * ((s + 1) / segs))
       ctx.beginPath()
       ctx.moveTo(x1, y1)
       ctx.lineTo(x2, y2)
@@ -613,13 +654,14 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
     }
     const [hx, hy] = ptAt(pl, hd)
     const headAlpha = 0.5 * life
-    const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 8)
+    const headR = pulseHeadSizeOverride ?? 8
+    const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, headR)
     headGrad.addColorStop(0, `rgba(${r},${g},${b},${headAlpha})`)
     headGrad.addColorStop(0.3, `rgba(${r},${g},${b},${(headAlpha * 0.4).toFixed(3)})`)
     headGrad.addColorStop(1, `rgba(${r},${g},${b},0)`)
     ctx.fillStyle = headGrad
     ctx.beginPath()
-    ctx.arc(hx, hy, 8, 0, 6.2832)
+    ctx.arc(hx, hy, headR, 0, 6.2832)
     ctx.fill()
   }
 
@@ -691,7 +733,7 @@ function stopLoop() {
     | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; density: number }
     | { type: "resize"; w: number; h: number; dpr: number; density: number }
     | { type: "theme"; theme: Theme; accent: string }
-    | { type: "config"; reset?: boolean; paused?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number; glowIntensity?: number; pulseBrightness?: number; pulseSpeed?: number; traceWidth?: number }
+    | { type: "config"; reset?: boolean; paused?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number; glowIntensity?: number; pulseBrightness?: number; pulseSpeed?: number; traceWidth?: number; glowRadius?: number; glowSpeed?: number; pulseTailMin?: number; pulseTailMax?: number; pulseHeadSize?: number; pulseSegments?: number; gridSize?: number; straightness?: number; maxSteps?: number; maxPaths?: number; bundleSizeMin?: number; bundleSizeMax?: number; pathLenMin?: number; pathLenMax?: number; branchChance?: number; padChance?: number; padSizeMin?: number; padSizeMax?: number; seamSpacing?: number; glowCount?: number }
   >
 ) => {
   const msg = e.data
@@ -741,6 +783,26 @@ function stopLoop() {
       pulseBrightnessMult = 1.0
       pulseSpeedMult = 1.0
       traceWidthMult = 1.0
+      glowRadiusMult = 1.0
+      glowSpeedMult = 1.0
+      gridSizeOverride = null
+      straightnessOverride = null
+      maxStepsOverride = null
+      maxPathsOverride = null
+      bundleSizeMinOverride = null
+      bundleSizeMaxOverride = null
+      pathLenMinOverride = null
+      pathLenMaxOverride = null
+      branchChanceOverride = null
+      padChanceOverride = null
+      padSizeMinOverride = null
+      padSizeMaxOverride = null
+      seamSpacingOverride = null
+      glowCountOverride = null
+      pulseTailMinOverride = null
+      pulseTailMaxOverride = null
+      pulseHeadSizeOverride = null
+      pulseSegmentsOverride = null
       currentDensity = w < 768 ? 0.6 : 1.0
       const defaultTraceAlpha = isLightMode ? 0.11 : 0.06
       const defaultPadAlpha = isLightMode ? 0.13 : 0.07
@@ -771,6 +833,28 @@ function stopLoop() {
     if (msg.pulseBrightness !== undefined) pulseBrightnessMult = msg.pulseBrightness
     if (msg.pulseSpeed !== undefined) pulseSpeedMult = msg.pulseSpeed
     if (msg.traceWidth !== undefined) traceWidthMult = msg.traceWidth
+    // Rendering-time overrides (immediate, no regen)
+    if (msg.glowRadius !== undefined) glowRadiusMult = msg.glowRadius
+    if (msg.glowSpeed !== undefined) glowSpeedMult = msg.glowSpeed
+    if (msg.pulseTailMin !== undefined) pulseTailMinOverride = msg.pulseTailMin
+    if (msg.pulseTailMax !== undefined) pulseTailMaxOverride = msg.pulseTailMax
+    if (msg.pulseHeadSize !== undefined) pulseHeadSizeOverride = msg.pulseHeadSize
+    if (msg.pulseSegments !== undefined) pulseSegmentsOverride = msg.pulseSegments
+    // Generation overrides (trigger regen)
+    if (msg.gridSize !== undefined) { gridSizeOverride = msg.gridSize; needsRegen = true }
+    if (msg.straightness !== undefined) { straightnessOverride = msg.straightness; needsRegen = true }
+    if (msg.maxSteps !== undefined) { maxStepsOverride = msg.maxSteps; needsRegen = true }
+    if (msg.maxPaths !== undefined) { maxPathsOverride = msg.maxPaths; needsRegen = true }
+    if (msg.bundleSizeMin !== undefined) { bundleSizeMinOverride = msg.bundleSizeMin; needsRegen = true }
+    if (msg.bundleSizeMax !== undefined) { bundleSizeMaxOverride = msg.bundleSizeMax; needsRegen = true }
+    if (msg.pathLenMin !== undefined) { pathLenMinOverride = msg.pathLenMin; needsRegen = true }
+    if (msg.pathLenMax !== undefined) { pathLenMaxOverride = msg.pathLenMax; needsRegen = true }
+    if (msg.branchChance !== undefined) { branchChanceOverride = msg.branchChance; needsRegen = true }
+    if (msg.padChance !== undefined) { padChanceOverride = msg.padChance; needsRegen = true }
+    if (msg.padSizeMin !== undefined) { padSizeMinOverride = msg.padSizeMin; needsRegen = true }
+    if (msg.padSizeMax !== undefined) { padSizeMaxOverride = msg.padSizeMax; needsRegen = true }
+    if (msg.seamSpacing !== undefined) { seamSpacingOverride = msg.seamSpacing; needsRegen = true }
+    if (msg.glowCount !== undefined) { glowCountOverride = msg.glowCount === 0 ? null : msg.glowCount; needsRegen = true }
     if (needsRegen) { stopLoop(); ready = false; generate(w, h, reducedMotion, currentDensity); startLoop() }
     else if (reducedMotion && ready) draw(performance.now())
     return
