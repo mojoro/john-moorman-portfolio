@@ -15,6 +15,7 @@
  *   { type: 'resize', w, h, dpr, density }
  *   { type: 'theme',  theme, accent }
  *   { type: 'config', reset?, density?, traceAlpha?, padAlpha?, fadeStrength?, maxPulses?, fps? }
+ *   { type: 'pointer', x, y, pressed }
  */
 
 export {}
@@ -81,6 +82,11 @@ let h = 0
 let dpr = 1
 let reducedMotion = false
 let ready = false
+
+// Mouse state
+let mouseX = -1
+let mouseY = -1
+let mouseActive = false
 
 // Color cache
 let cachedR = 100
@@ -511,6 +517,87 @@ function resamplePulse(pl: PulseData) {
   pl.ti = ti
 }
 
+// ── Cursor interaction helpers ────────────────────────────────────────────
+
+function findNearestTrace(x: number, y: number): { traceIdx: number; distAlongPath: number; dist: number } | null {
+  let bestDist = Infinity
+  let bestTraceIdx = -1
+  let bestJ = 0
+  let bestPtCount = 0
+
+  for (let i = 0; i < traceCount; i++) {
+    const startIdx = traceMeta[i * 3]
+    const ptCount = traceMeta[i * 3 + 1]
+    for (let j = 0; j < ptCount; j++) {
+      const dx = tracePts[startIdx + j * 2] - x
+      const dy = tracePts[startIdx + j * 2 + 1] - y
+      const d2 = dx * dx + dy * dy
+      if (d2 < bestDist) {
+        bestDist = d2
+        bestTraceIdx = i
+        bestJ = j
+        bestPtCount = ptCount
+      }
+    }
+  }
+
+  const dist = Math.sqrt(bestDist)
+  if (dist > 300 || bestTraceIdx < 0) return null
+  const distAlongPath = bestPtCount > 1 ? bestJ / (bestPtCount - 1) : 0
+  return { traceIdx: bestTraceIdx, distAlongPath, dist }
+}
+
+function spawnClickPulse(x: number, y: number) {
+  const nearest = findNearestTrace(x, y)
+  if (!nearest || nearest.dist >= 200) return
+
+  const ti = nearest.traceIdx
+  const startIdx = traceMeta[ti * 3]
+  const ptCount = traceMeta[ti * 3 + 1]
+  if (ptCount < 2) return
+
+  const pts = new Float32Array(ptCount * 2)
+  for (let j = 0; j < ptCount * 2; j++) pts[j] = tracePts[startIdx + j]
+
+  const segLens = new Float32Array(ptCount - 1)
+  let totalLen = 0
+  for (let j = 0; j < ptCount - 1; j++) {
+    const ddx = pts[(j + 1) * 2] - pts[j * 2]
+    const ddy = pts[(j + 1) * 2 + 1] - pts[j * 2 + 1]
+    const slen = Math.sqrt(ddx * ddx + ddy * ddy)
+    segLens[j] = slen
+    totalLen += slen
+  }
+  if (totalLen < 10) return
+
+  const newPulse: PulseData = {
+    pts,
+    segLens,
+    totalLen,
+    pr: nearest.distAlongPath,
+    sp: 0.003,
+    ln: 0.08,
+    w: traceMeta[ti * 3 + 2],
+    ti,
+  }
+
+  if (pulseData.length >= maxPulses) {
+    // Replace the pulse closest to completion
+    let bestIdx = 0
+    let bestProgress = -1
+    for (let i = 0; i < pulseData.length; i++) {
+      const completionRatio = pulseData[i].pr / (1.0 + pulseData[i].ln)
+      if (completionRatio > bestProgress) {
+        bestProgress = completionRatio
+        bestIdx = i
+      }
+    }
+    pulseData[bestIdx] = newPulse
+  } else {
+    pulseData.push(newPulse)
+  }
+}
+
 // Advance pulse positions once per frame and return drawable states.
 // Separating update from draw allows drawScene to be called twice per frame
 // (once per tile) without double-advancing the animation.
@@ -640,6 +727,48 @@ function draw(time: number) {
   drawScene(time, drawablePulses)
   ctx.restore()
 
+  // ── Hover glow (viewport space, before vignette) ─────────────────────
+  if (mouseActive && mouseX >= 0) {
+    const hoverRadius = 120
+    const r = cachedR, g = cachedG, b = cachedB
+    const hg = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, hoverRadius)
+    hg.addColorStop(0, `rgba(${r},${g},${b},${isLightMode ? 0.06 : 0.04})`)
+    hg.addColorStop(0.5, `rgba(${r},${g},${b},${isLightMode ? 0.03 : 0.02})`)
+    hg.addColorStop(1, `rgba(${r},${g},${b},0)`)
+    ctx.fillStyle = hg
+    ctx.beginPath()
+    ctx.arc(mouseX, mouseY, hoverRadius, 0, 6.2832)
+    ctx.fill()
+  }
+
+  // ── Trace proximity highlight (viewport space, before vignette) ──────
+  if (mouseActive && mouseX >= 0) {
+    const highlightRadius = 100
+    const highlightRadiusSq = highlightRadius * highlightRadius
+    const baseAlpha = isLightMode ? 0.15 : 0.10
+    ctx.strokeStyle = `rgba(${cachedR},${cachedG},${cachedB},${baseAlpha})`
+    ctx.lineCap = "round"
+    ctx.lineJoin = "round"
+    for (let i = 0; i < traceCount; i++) {
+      const startIdx = traceMeta[i * 3]
+      const ptCount = traceMeta[i * 3 + 1]
+      let near = false
+      for (let j = 0; j < ptCount; j++) {
+        const dx = tracePts[startIdx + j * 2] - mouseX
+        const dy = tracePts[startIdx + j * 2 + 1] - mouseY
+        if (dx * dx + dy * dy < highlightRadiusSq) { near = true; break }
+      }
+      if (!near) continue
+      ctx.lineWidth = traceMeta[i * 3 + 2] * traceWidthMult
+      ctx.beginPath()
+      ctx.moveTo(tracePts[startIdx], tracePts[startIdx + 1])
+      for (let j = 1; j < ptCount; j++) {
+        ctx.lineTo(tracePts[startIdx + j * 2], tracePts[startIdx + j * 2 + 1])
+      }
+      ctx.stroke()
+    }
+  }
+
   // Content readability vignette — applied once across the full canvas so the
   // seam boundary between tiles gets the same treatment as any other row.
   const isMobile = w < 768
@@ -692,9 +821,18 @@ function stopLoop() {
     | { type: "resize"; w: number; h: number; dpr: number; density: number }
     | { type: "theme"; theme: Theme; accent: string }
     | { type: "config"; reset?: boolean; paused?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number; glowIntensity?: number; pulseBrightness?: number; pulseSpeed?: number; traceWidth?: number }
+    | { type: "pointer"; x: number; y: number; pressed: boolean }
   >
 ) => {
   const msg = e.data
+
+  if (msg.type === "pointer") {
+    mouseX = msg.x
+    mouseY = msg.y
+    if (msg.pressed) spawnClickPulse(msg.x, msg.y)
+    mouseActive = true
+    return
+  }
 
   if (msg.type === "init") {
     offscreen = msg.canvas

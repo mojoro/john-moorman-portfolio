@@ -97,10 +97,29 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       }
       window.addEventListener("circuit-config", onConfig)
 
+      // ── Cursor responsiveness ────────────────────────────────────────────
+      let lastPointerSend = 0
+      const translateX = (clientX: number) =>
+        navOffset && window.innerWidth >= 768 ? clientX - 240 : clientX
+
+      const onMouseMove = (e: MouseEvent) => {
+        const now = performance.now()
+        if (now - lastPointerSend < 33) return // ~30fps throttle
+        lastPointerSend = now
+        worker.postMessage({ type: "pointer", x: translateX(e.clientX), y: e.clientY, pressed: false })
+      }
+      const onClick = (e: MouseEvent) => {
+        worker.postMessage({ type: "pointer", x: translateX(e.clientX), y: e.clientY, pressed: true })
+      }
+      window.addEventListener("mousemove", onMouseMove)
+      window.addEventListener("click", onClick)
+
       return () => {
         clearTimeout(rt)
         window.removeEventListener("resize", onResize)
         window.removeEventListener("circuit-config", onConfig)
+        window.removeEventListener("mousemove", onMouseMove)
+        window.removeEventListener("click", onClick)
         obs.disconnect()
         worker.terminate()
       }
