@@ -40,12 +40,12 @@ That separation was a deliberate choice. Python has the ML ecosystem. Node has t
 
 The pipeline itself is three stages:
 
-```
+
 URL or topic
   → lib/scrape.ts   Extract content (Readability + linkedom)
   → LLM             Generate monologue or dialogue script
   → TTS             Synthesize each line, stitch into a single WAV
-```
+
 
 The whole thing streams. As soon as each stage completes, a server-sent event goes to the browser. You watch the scrape happen, then the script appear, then the UI update as the dialogue is synthesized.
 
