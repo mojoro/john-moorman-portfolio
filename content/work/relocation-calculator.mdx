@@ -1,0 +1,27 @@
+---
+title: "Berlin Relocation Cost Planner"
+date: "2026-03-23"
+description: "Interactive multi-step wizard that calculates net salary, estimates living costs by Berlin district, and walks you through visa and admin steps. Angular frontend, Kotlin/Spring Boot backend."
+tags: ["Angular", "TypeScript", "Kotlin", "Spring Boot", "Tailwind CSS"]
+status: "in-progress"
+challenge: "10-in-10"
+week: 5
+---
+
+A four-step planner for anyone relocating to Berlin. Paste your gross salary, pick a district, and get a realistic picture of what your life will actually cost.
+
+## What It Does
+
+**Salary calculator.** Enter gross annual salary, tax class, and church tax preference. The backend runs real German tax math (Lohnsteuer, Solidaritätszuschlag, Sozialversicherung, Kirchensteuer) and returns a net monthly breakdown.
+
+**Cost estimator.** Select a Berlin Bezirk and see rent ranges, utilities, transport, and grocery estimates for that area.
+
+**Neighborhood explorer.** District cards with character descriptions, average commute times, and general vibes to help narrow the search.
+
+**Visa and admin checklist.** Interactive checklists for EU Blue Card, freelance visa, and job seeker visa paths, covering Anmeldung, bank accounts, health insurance, and the rest of the bureaucratic gauntlet.
+
+## Technical Approach
+
+Angular 21 frontend with standalone components, reactive forms, and Signals for state management. Kotlin/Spring Boot backend handles the tax calculation logic and serves cost data. The two communicate over typed API contracts shared between frontend and backend.
+
+Built to mirror the patterns used at Europace's Rechner product team: `OnPush` change detection, typed form groups, and clean frontend-backend contract design.
