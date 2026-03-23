@@ -15,6 +15,7 @@
  *   { type: 'resize', w, h, dpr, density }
  *   { type: 'theme',  theme, accent }
  *   { type: 'config', reset?, density?, traceAlpha?, padAlpha?, fadeStrength?, maxPulses?, fps? }
+ *   { type: 'pointer', x, y, pressed }
  */
 
 export {}
@@ -63,6 +64,7 @@ let glowSp = new Float32Array(0)
 let glowCount = 0
 
 let pulseData: PulseData[] = []
+let clickPulses: PulseData[] = []
 
 // ── Admin config overrides (session-only, set via circuit-config CustomEvent) ──
 let currentDensity = 1.0
@@ -107,6 +109,11 @@ let h = 0
 let dpr = 1
 let reducedMotion = false
 let ready = false
+
+// Mouse state
+let mouseX = -1
+let mouseY = -1
+let mouseActive = false
 
 // Color cache
 let cachedR = 100
@@ -551,12 +558,91 @@ function resamplePulse(pl: PulseData) {
   pl.ti = ti
 }
 
+// ── Cursor interaction helpers ────────────────────────────────────────────
+
+function findNearestTrace(x: number, y: number): { traceIdx: number; distAlongPath: number; dist: number } | null {
+  let bestDist = Infinity
+  let bestTraceIdx = -1
+  let bestJ = 0
+  let bestPtCount = 0
+
+  for (let i = 0; i < traceCount; i++) {
+    const startIdx = traceMeta[i * 3]
+    const ptCount = traceMeta[i * 3 + 1]
+    for (let j = 0; j < ptCount; j++) {
+      const dx = tracePts[startIdx + j * 2] - x
+      const dy = tracePts[startIdx + j * 2 + 1] - y
+      const d2 = dx * dx + dy * dy
+      if (d2 < bestDist) {
+        bestDist = d2
+        bestTraceIdx = i
+        bestJ = j
+        bestPtCount = ptCount
+      }
+    }
+  }
+
+  const dist = Math.sqrt(bestDist)
+  if (dist > 300 || bestTraceIdx < 0) return null
+  const distAlongPath = bestPtCount > 1 ? bestJ / (bestPtCount - 1) : 0
+  return { traceIdx: bestTraceIdx, distAlongPath, dist }
+}
+
+function spawnClickPulse(x: number, y: number) {
+  const nearest = findNearestTrace(x, y)
+  if (!nearest || nearest.dist >= 200) return
+
+  const ti = nearest.traceIdx
+  const startIdx = traceMeta[ti * 3]
+  const ptCount = traceMeta[ti * 3 + 1]
+  if (ptCount < 2) return
+
+  const pts = new Float32Array(ptCount * 2)
+  for (let j = 0; j < ptCount * 2; j++) pts[j] = tracePts[startIdx + j]
+
+  const segLens = new Float32Array(ptCount - 1)
+  let totalLen = 0
+  for (let j = 0; j < ptCount - 1; j++) {
+    const ddx = pts[(j + 1) * 2] - pts[j * 2]
+    const ddy = pts[(j + 1) * 2 + 1] - pts[j * 2 + 1]
+    const slen = Math.sqrt(ddx * ddx + ddy * ddy)
+    segLens[j] = slen
+    totalLen += slen
+  }
+  if (totalLen < 10) return
+
+  // Randomize speed — some fast, some slow, some crawl
+  const speedTier = Math.random()
+  const sp = speedTier < 0.3
+    ? 0.001 + Math.random() * 0.002
+    : speedTier < 0.7
+    ? 0.003 + Math.random() * 0.004
+    : 0.008 + Math.random() * 0.006
+
+  // Clamp start position so the pulse always has at least 30% of the
+  // path left to travel — avoids spawning at the destination.
+  const pr = Math.min(nearest.distAlongPath, 0.7)
+
+  clickPulses.push({
+    pts,
+    segLens,
+    totalLen,
+    pr,
+    sp,
+    ln: 0.08,
+    w: traceMeta[ti * 3 + 2],
+    ti,
+  })
+}
+
 // Advance pulse positions once per frame and return drawable states.
 // Separating update from draw allows drawScene to be called twice per frame
 // (once per tile) without double-advancing the animation.
 function computePulseStates(): DrawablePulse[] {
   if (reducedMotion) return []
   const result: DrawablePulse[] = []
+
+  // Regular pulses (capped by maxPulses, resample on completion)
   const limit = Math.min(maxPulses, pulseData.length)
   for (let _i = 0; _i < limit; _i++) {
     const pl = pulseData[_i]
@@ -567,20 +653,39 @@ function computePulseStates(): DrawablePulse[] {
         ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)
         : 1.0
     pl.pr += pl.sp * pulseSpeedMult
-    // Pulse completed its journey — reset to start a new pass on a fresh trace.
-    // Must NOT reset inside `life <= 0` because pr=0 also gives life=0,
-    // which would trap the pulse in an infinite reset loop.
     if (pl.pr >= 1.0 + pl.ln) {
       pl.pr = 0
       resamplePulse(pl)
       continue
     }
-    if (life <= 0) continue  // still in the initial fade-in ramp (pr: 0 → ln)
+    if (life <= 0) continue
     const hd = Math.min(pl.pr, 1.0) * pl.totalLen
     const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
     if (hd - td < 1) continue
     result.push({ pl, life, hd, td })
   }
+
+  // Click-spawned pulses (no cap, removed on completion)
+  for (let i = clickPulses.length - 1; i >= 0; i--) {
+    const pl = clickPulses[i]
+    const life =
+      pl.pr < pl.ln
+        ? pl.pr / pl.ln
+        : pl.pr > 1.0
+        ? Math.max(0, 1 - (pl.pr - 1.0) / pl.ln)
+        : 1.0
+    pl.pr += pl.sp * pulseSpeedMult
+    if (pl.pr >= 1.0 + pl.ln) {
+      clickPulses.splice(i, 1)
+      continue
+    }
+    if (life <= 0) continue
+    const hd = Math.min(pl.pr, 1.0) * pl.totalLen
+    const td = Math.max(0, (pl.pr - pl.ln) * pl.totalLen)
+    if (hd - td < 1) continue
+    result.push({ pl, life, hd, td })
+  }
+
   return result
 }
 
@@ -682,6 +787,52 @@ function draw(time: number) {
   drawScene(time, drawablePulses)
   ctx.restore()
 
+  // ── Trace proximity highlight (segment-level, both tiles) ──────────
+  if (mouseActive && mouseX >= 0) {
+    const highlightRadius = 200
+    const hrSq = highlightRadius * highlightRadius
+    const maxAlpha = isLightMode ? 0.44 : 0.33
+    const tileMouseY = ((mouseY % h) + h) % h
+    ctx.lineCap = "round"
+    ctx.lineJoin = "round"
+
+    for (let tile = 0; tile < 2; tile++) {
+      const yOff = tile * h
+      for (let i = 0; i < traceCount; i++) {
+        const startIdx = traceMeta[i * 3]
+        const ptCount = traceMeta[i * 3 + 1]
+        ctx.lineWidth = traceMeta[i * 3 + 2] * traceWidthMult
+
+        for (let j = 0; j < ptCount - 1; j++) {
+          const px1 = tracePts[startIdx + j * 2]
+          const py1 = tracePts[startIdx + j * 2 + 1]
+          const px2 = tracePts[startIdx + (j + 1) * 2]
+          const py2 = tracePts[startIdx + (j + 1) * 2 + 1]
+
+          // Use midpoint of segment for distance calc
+          const mx = (px1 + px2) * 0.5
+          const my = (py1 + py2) * 0.5
+          const dx = mx - mouseX
+          const dy = my - tileMouseY
+          const distSq = dx * dx + dy * dy
+
+          if (distSq >= hrSq) continue
+
+          // Smooth falloff: 1.0 at center, 0.0 at edge (quadratic)
+          const dist = Math.sqrt(distSq)
+          const t = 1 - dist / highlightRadius
+          const alpha = maxAlpha * t * t
+
+          ctx.strokeStyle = `rgba(${cachedR},${cachedG},${cachedB},${alpha.toFixed(3)})`
+          ctx.beginPath()
+          ctx.moveTo(px1, py1 + yOff)
+          ctx.lineTo(px2, py2 + yOff)
+          ctx.stroke()
+        }
+      }
+    }
+  }
+
   // Content readability vignette — applied once across the full canvas so the
   // seam boundary between tiles gets the same treatment as any other row.
   const isMobile = w < 768
@@ -734,9 +885,18 @@ function stopLoop() {
     | { type: "resize"; w: number; h: number; dpr: number; density: number }
     | { type: "theme"; theme: Theme; accent: string }
     | { type: "config"; reset?: boolean; paused?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number; glowIntensity?: number; pulseBrightness?: number; pulseSpeed?: number; traceWidth?: number; glowRadius?: number; glowSpeed?: number; pulseTailMin?: number; pulseTailMax?: number; pulseHeadSize?: number; pulseSegments?: number; gridSize?: number; straightness?: number; maxSteps?: number; maxPaths?: number; bundleSizeMin?: number; bundleSizeMax?: number; pathLenMin?: number; pathLenMax?: number; branchChance?: number; padChance?: number; padSizeMin?: number; padSizeMax?: number; seamSpacing?: number; glowCount?: number }
+    | { type: "pointer"; x: number; y: number; pressed: boolean }
   >
 ) => {
   const msg = e.data
+
+  if (msg.type === "pointer") {
+    mouseX = msg.x
+    mouseY = msg.y
+    if (msg.pressed) spawnClickPulse(msg.x, ((msg.y % h) + h) % h)
+    mouseActive = true
+    return
+  }
 
   if (msg.type === "init") {
     offscreen = msg.canvas
