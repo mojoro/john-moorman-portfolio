@@ -6,10 +6,11 @@ import Link from "next/link"
 import { ThemeToggle } from "./theme-toggle"
 
 const NAV_ITEMS = [
-  { number: "01", label: "Work",    hash: "work",    page: "/work" },
-  { number: "02", label: "Blog",    hash: "blog",    page: "/blog" },
-  { number: "03", label: "Resume",  hash: "resume",  page: "/resume" },
-  { number: "04", label: "Contact", hash: "contact", page: null },
+  { number: "01", label: "Work",     hash: "work",     page: "/work" },
+  { number: "02", label: "Blog",     hash: "blog",     page: "/blog" },
+  { number: "03", label: "Resume",   hash: "resume",   page: "/resume" },
+  { number: "04", label: "Schedule", hash: "schedule",  page: null },
+  { number: "05", label: "Contact",  hash: "contact",  page: null },
 ] as const
 
 const SOCIAL_LINKS = [

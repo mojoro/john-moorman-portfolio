@@ -317,10 +317,42 @@ export function HomeClient({
         </SectionReveal>
       </section>
 
+      {/* ── Schedule ── */}
+      <section id="schedule" className="py-24">
+        <SectionReveal>
+          <SectionHeading number="04">Schedule</SectionHeading>
+          <p className="mt-4 text-text-secondary">
+            Want to talk about a project, a role, or just say hello?
+            Pick a time that works for you.
+          </p>
+        </SectionReveal>
+
+        <SectionReveal delay={0.1}>
+          <div className="mt-10">
+            {process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ? (
+              <div className="overflow-hidden rounded-lg border border-border">
+                <iframe
+                  src={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL}
+                  className="h-[600px] w-full border-0"
+                  loading="lazy"
+                  title="Schedule a meeting with John Moorman"
+                />
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-border p-8 text-center">
+                <p className="text-sm text-text-muted">
+                  Calendar booking is being set up. In the meantime, reach out below.
+                </p>
+              </div>
+            )}
+          </div>
+        </SectionReveal>
+      </section>
+
       {/* ── Contact ── */}
       <section id="contact" className="py-24">
         <SectionReveal>
-          <SectionHeading number="04">Contact</SectionHeading>
+          <SectionHeading number="05">Contact</SectionHeading>
           <p className="mt-6 max-w-xl text-text-secondary">
             I&apos;m currently looking for mid-level fullstack or frontend roles
             at Berlin startups. Whether you have a specific role in mind or just
