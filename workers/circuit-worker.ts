@@ -579,11 +579,15 @@ function spawnClickPulse(x: number, y: number) {
     ? 0.003 + Math.random() * 0.004
     : 0.008 + Math.random() * 0.006
 
+  // Clamp start position so the pulse always has at least 30% of the
+  // path left to travel — avoids spawning at the destination.
+  const pr = Math.min(nearest.distAlongPath, 0.7)
+
   clickPulses.push({
     pts,
     segLens,
     totalLen,
-    pr: nearest.distAlongPath,
+    pr,
     sp,
     ln: 0.08,
     w: traceMeta[ti * 3 + 2],
@@ -741,33 +745,49 @@ function draw(time: number) {
   drawScene(time, drawablePulses)
   ctx.restore()
 
-  // ── Trace proximity highlight (segment-level, viewport space) ──────
+  // ── Trace proximity highlight (segment-level, both tiles) ──────────
   if (mouseActive && mouseX >= 0) {
-    const highlightRadius = 100
+    const highlightRadius = 200
     const hrSq = highlightRadius * highlightRadius
-    const baseAlpha = isLightMode ? 0.15 : 0.10
-    ctx.strokeStyle = `rgba(${cachedR},${cachedG},${cachedB},${baseAlpha})`
+    const maxAlpha = isLightMode ? 0.44 : 0.33
+    const tileMouseY = ((mouseY % h) + h) % h
     ctx.lineCap = "round"
     ctx.lineJoin = "round"
-    for (let i = 0; i < traceCount; i++) {
-      const startIdx = traceMeta[i * 3]
-      const ptCount = traceMeta[i * 3 + 1]
-      ctx.lineWidth = traceMeta[i * 3 + 2] * traceWidthMult
-      let inSegment = false
-      for (let j = 0; j < ptCount; j++) {
-        const px = tracePts[startIdx + j * 2]
-        const py = tracePts[startIdx + j * 2 + 1]
-        const dx = px - mouseX, dy = py - mouseY
-        const near = dx * dx + dy * dy < hrSq
-        if (near) {
-          if (!inSegment) { ctx.beginPath(); ctx.moveTo(px, py); inSegment = true }
-          else ctx.lineTo(px, py)
-        } else {
-          // One extra segment past the boundary for a smooth exit
-          if (inSegment) { ctx.lineTo(px, py); ctx.stroke(); inSegment = false }
+
+    for (let tile = 0; tile < 2; tile++) {
+      const yOff = tile * h
+      for (let i = 0; i < traceCount; i++) {
+        const startIdx = traceMeta[i * 3]
+        const ptCount = traceMeta[i * 3 + 1]
+        ctx.lineWidth = traceMeta[i * 3 + 2] * traceWidthMult
+
+        for (let j = 0; j < ptCount - 1; j++) {
+          const px1 = tracePts[startIdx + j * 2]
+          const py1 = tracePts[startIdx + j * 2 + 1]
+          const px2 = tracePts[startIdx + (j + 1) * 2]
+          const py2 = tracePts[startIdx + (j + 1) * 2 + 1]
+
+          // Use midpoint of segment for distance calc
+          const mx = (px1 + px2) * 0.5
+          const my = (py1 + py2) * 0.5
+          const dx = mx - mouseX
+          const dy = my - tileMouseY
+          const distSq = dx * dx + dy * dy
+
+          if (distSq >= hrSq) continue
+
+          // Smooth falloff: 1.0 at center, 0.0 at edge (quadratic)
+          const dist = Math.sqrt(distSq)
+          const t = 1 - dist / highlightRadius
+          const alpha = maxAlpha * t * t
+
+          ctx.strokeStyle = `rgba(${cachedR},${cachedG},${cachedB},${alpha.toFixed(3)})`
+          ctx.beginPath()
+          ctx.moveTo(px1, py1 + yOff)
+          ctx.lineTo(px2, py2 + yOff)
+          ctx.stroke()
         }
       }
-      if (inSegment) ctx.stroke()
     }
   }
 
@@ -831,7 +851,7 @@ function stopLoop() {
   if (msg.type === "pointer") {
     mouseX = msg.x
     mouseY = msg.y
-    if (msg.pressed) spawnClickPulse(msg.x, msg.y)
+    if (msg.pressed) spawnClickPulse(msg.x, ((msg.y % h) + h) % h)
     mouseActive = true
     return
   }

@@ -97,7 +97,34 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       }
       window.addEventListener("circuit-config", onConfig)
 
+      // ── Scroll-travel capping ─────────────────────────────────────────
+      // The CSS scroll-driven animation maps 0–100% scroll progress to
+      // translateY(var(--circuit-max-translate)). On short pages we cap the
+      // travel so the background doesn't zoom past at high speed.
+      const updateScrollTravel = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight
+        if (scrollable <= 0) {
+          canvas.style.setProperty("--circuit-max-translate", "0%")
+          return
+        }
+        const ratio = Math.min(scrollable / window.innerHeight, 1)
+        canvas.style.setProperty("--circuit-max-translate", `${(-ratio * 50).toFixed(2)}%`)
+      }
+      updateScrollTravel()
+
+      const bodyResizeObs = new ResizeObserver(updateScrollTravel)
+      bodyResizeObs.observe(document.body)
+
       // ── Cursor responsiveness ────────────────────────────────────────────
+      const getScrollOffsetY = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight
+        if (scrollable <= 0) return 0
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
+        const progress = Math.min(scrollTop / scrollable, 1)
+        const maxTravelPx = Math.min(scrollable, window.innerHeight)
+        return progress * maxTravelPx
+      }
+
       let lastPointerSend = 0
       const translateX = (clientX: number) =>
         navOffset && window.innerWidth >= 768 ? clientX - 240 : clientX
@@ -106,10 +133,10 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
         const now = performance.now()
         if (now - lastPointerSend < 33) return // ~30fps throttle
         lastPointerSend = now
-        worker.postMessage({ type: "pointer", x: translateX(e.clientX), y: e.clientY, pressed: false })
+        worker.postMessage({ type: "pointer", x: translateX(e.clientX), y: e.clientY + getScrollOffsetY(), pressed: false })
       }
       const onClick = (e: MouseEvent) => {
-        worker.postMessage({ type: "pointer", x: translateX(e.clientX), y: e.clientY, pressed: true })
+        worker.postMessage({ type: "pointer", x: translateX(e.clientX), y: e.clientY + getScrollOffsetY(), pressed: true })
       }
       window.addEventListener("mousemove", onMouseMove)
       window.addEventListener("click", onClick)
@@ -120,6 +147,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
         window.removeEventListener("circuit-config", onConfig)
         window.removeEventListener("mousemove", onMouseMove)
         window.removeEventListener("click", onClick)
+        bodyResizeObs.disconnect()
         obs.disconnect()
         worker.terminate()
       }
