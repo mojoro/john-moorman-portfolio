@@ -328,24 +328,30 @@ export function HomeClient({
         </SectionReveal>
 
         <SectionReveal delay={0.1}>
-          <div className="mt-10">
-            {process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ? (
-              <div className="overflow-hidden rounded-lg border border-border">
-                <iframe
-                  src={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL}
-                  className="h-[600px] w-full border-0"
-                  loading="lazy"
-                  title="Schedule a meeting with John Moorman"
-                />
-              </div>
-            ) : (
-              <div className="rounded-lg border border-dashed border-border p-8 text-center">
-                <p className="text-sm text-text-muted">
-                  Calendar booking is being set up. In the meantime, reach out below.
+          <a
+            href={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ?? "#contact"}
+            target={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ? "_blank" : undefined}
+            rel={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ? "noopener noreferrer" : undefined}
+            className="group mt-10 block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-mono text-xs text-accent">
+                  Google Calendar
+                </p>
+                <p className="mt-2 font-medium text-text-primary transition-colors group-hover:text-accent">
+                  Book a 30-minute chat
+                </p>
+                <p className="mt-1 text-sm text-text-secondary">
+                  Pick a slot that suits your schedule. I&apos;m generally available
+                  weekday mornings and afternoons (CET).
                 </p>
               </div>
-            )}
-          </div>
+              <span className="shrink-0 rounded border border-accent px-5 py-2.5 font-mono text-sm text-accent transition-colors group-hover:bg-accent/10">
+                View available times &rarr;
+              </span>
+            </div>
+          </a>
         </SectionReveal>
       </section>
 
