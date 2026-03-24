@@ -317,10 +317,48 @@ export function HomeClient({
         </SectionReveal>
       </section>
 
+      {/* ── Schedule ── */}
+      <section id="schedule" className="py-24">
+        <SectionReveal>
+          <SectionHeading number="04">Schedule</SectionHeading>
+          <p className="mt-4 text-text-secondary">
+            Want to talk about a project, a role, or just say hello?
+            Pick a time that works for you.
+          </p>
+        </SectionReveal>
+
+        <SectionReveal delay={0.1}>
+          <a
+            href={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ?? "#contact"}
+            target={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ? "_blank" : undefined}
+            rel={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ? "noopener noreferrer" : undefined}
+            className="group mt-10 block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-mono text-xs text-accent">
+                  Google Calendar
+                </p>
+                <p className="mt-2 font-medium text-text-primary transition-colors group-hover:text-accent">
+                  Book a 30-minute chat
+                </p>
+                <p className="mt-1 text-sm text-text-secondary">
+                  Pick a slot that suits your schedule. I&apos;m generally available
+                  weekday mornings and afternoons (CET).
+                </p>
+              </div>
+              <span className="shrink-0 rounded border border-accent px-5 py-2.5 font-mono text-sm text-accent transition-colors group-hover:bg-accent/10">
+                View available times &rarr;
+              </span>
+            </div>
+          </a>
+        </SectionReveal>
+      </section>
+
       {/* ── Contact ── */}
       <section id="contact" className="py-24">
         <SectionReveal>
-          <SectionHeading number="04">Contact</SectionHeading>
+          <SectionHeading number="05">Contact</SectionHeading>
           <p className="mt-6 max-w-xl text-text-secondary">
             I&apos;m currently looking for mid-level fullstack or frontend roles
             at Berlin startups. Whether you have a specific role in mind or just
