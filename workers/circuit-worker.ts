@@ -836,8 +836,8 @@ function draw(time: number) {
   // Content readability vignette — applied once across the full canvas so the
   // seam boundary between tiles gets the same treatment as any other row.
   const isMobile = w < 768
-  const fadeStrength = fadeStrengthOverride ?? (isLightMode ? (isMobile ? 0.55 : 0.35) : 0.65)
-  const fadeEdge = isLightMode ? (isMobile ? 0.45 : 0.25) : 0.6
+  const fadeStrength = fadeStrengthOverride ?? (isLightMode ? (isMobile ? 0.66 : 0.42) : 0.78)
+  const fadeEdge = isLightMode ? (isMobile ? 0.54 : 0.30) : 0.72
   ctx.globalCompositeOperation = "destination-out"
   const bandFade = ctx.createLinearGradient(0, 0, w, 0)
   if (isLightMode && isMobile) {
