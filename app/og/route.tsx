@@ -29,14 +29,14 @@ export async function GET(request: Request) {
           }}
         >
           <div
-            style={{ color: "#64ffda", fontFamily: "monospace", fontSize: 18 }}
+            style={{ color: "#64ffda", fontFamily: "monospace", fontSize: 40 }}
           >
             johnmoorman.com
           </div>
           <div
             style={{
               color: "#ccd6f6",
-              fontSize: 72,
+              fontSize: 74,
               fontWeight: 800,
               marginTop: 16,
               lineHeight: 1.1,
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
           >
             John Moorman
           </div>
-          <div style={{ color: "#8892b0", fontSize: 28, marginTop: 12 }}>
+          <div style={{ color: "#8892b0", fontSize: 42, marginTop: 12 }}>
             Software Engineer · Berlin
           </div>
         </div>
