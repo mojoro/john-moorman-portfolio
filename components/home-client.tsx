@@ -227,7 +227,7 @@ export function HomeClient({
           <div className="mt-10">
             <Link
               href="/work"
-              className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
+              className="inline-flex items-center gap-2 font-mono text-md text-accent transition-colors hover:underline"
             >
               View all projects &rarr;
             </Link>
@@ -273,7 +273,7 @@ export function HomeClient({
           <div className="mt-10">
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
+              className="inline-flex items-center gap-2 font-mono text-md text-accent transition-colors hover:underline"
             >
               Read all posts &rarr;
             </Link>
@@ -347,7 +347,7 @@ export function HomeClient({
                   weekday mornings and afternoons (CET).
                 </p>
               </div>
-              <span className="shrink-0 rounded border border-accent px-5 py-2.5 font-mono text-sm text-accent transition-colors group-hover:bg-accent/10">
+              <span className="shrink-0 px-5 py-2.5 font-mono text-sm text-accent">
                 View available times &rarr;
               </span>
             </div>
@@ -423,32 +423,37 @@ function ProjectCard({
       whileHover={shouldReduceMotion ? {} : { y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <span className="absolute top-4 right-4 text-text-muted text-sm transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+      <span className="absolute top-4 right-4 text-2xl text-text-muted transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
         ↗
       </span>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1">
-          <p className="mb-2 font-mono text-xs text-accent">Featured</p>
-          <h3 className="text-xl font-medium text-text-primary transition-colors group-hover:text-accent">
-            {project.title}
-          </h3>
+          <div className="flex flex-col sm:flex-row">
+            <div className="flex flex-col sm:mr-6">
+              <p className="mb-2 font-mono text-xs text-accent">Featured</p>
+              <h3 className="text-xl font-medium text-text-primary transition-colors group-hover:text-accent">
+                {project.title}
+              </h3>
+            </div>
+            {project.stats.length > 0 && (
+              <div className="flex gap-6 mt-3 sm:mt-0 sm:text-right sm:mr-4 sm:pl-6 sm:border-l sm:border-text-muted">
+                {project.stats.map((stat) => (
+                  <div key={stat.label}>
+                    <p className="font-display text-2xl font-bold text-accent">
+                      {stat.value}
+                    </p>
+                    <p className="font-mono text-xs text-text-muted">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <p className="mt-2 text-sm text-text-secondary">{project.summary}</p>
         </div>
 
-        {project.stats.length > 0 && (
-          <div className="flex gap-6 sm:text-right">
-            {project.stats.map((stat) => (
-              <div key={stat.label}>
-                <p className="font-display text-2xl font-bold text-accent">
-                  {stat.value}
-                </p>
-                <p className="font-mono text-xs text-text-muted">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+        
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -501,7 +506,7 @@ function CurrentProjectCard({
       <p className={`mt-2 text-sm font-medium ${project.href ? "text-text-primary" : "italic text-text-muted"}`}>
         {project.title}
         {project.href && (
-          <span className="ml-1.5 inline-block text-text-muted transition-all duration-300 group-hover:text-accent group-hover:translate-x-0.5">
+          <span className="ml-1.5 inline-block text-xl text-text-muted transition-all duration-300 group-hover:text-accent group-hover:translate-x-0.5">
             →
           </span>
         )}

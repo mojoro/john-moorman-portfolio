@@ -93,6 +93,62 @@ export default function AboutPage() {
         </p>
       </div>
 
+      {/* Projects I'm proud of */}
+      <div className="mt-16 max-w-[680px]">
+        <h2 className="font-display text-xl font-semibold">
+          Projects I&apos;m proud of
+        </h2>
+        <div className="mt-6 grid gap-6 sm:grid-cols-2">
+          <Link
+            href="/work/shortlist"
+            className="group rounded-lg border border-white/[0.06] bg-bg-surface p-5 transition-colors hover:border-accent/20 hover:bg-bg-elevated"
+          >
+            <p className="font-mono text-xs text-accent">Shortlist</p>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              AI job search tool that scrapes listings from major ATS platforms,
+              scores them against your profile, and tailors your resume on
+              demand. 16k lines of TypeScript, built in seven days.
+            </p>
+            <p className="mt-3 flex flex-wrap gap-1.5">
+              {["Next.js", "Prisma", "Neon", "Anthropic API", "Clerk"].map(
+                (tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-accent/10 px-2 py-0.5 font-mono text-[10px] text-accent"
+                  >
+                    {tag}
+                  </span>
+                )
+              )}
+            </p>
+          </Link>
+
+          <Link
+            href="/work/drop-oss"
+            className="group rounded-lg border border-white/[0.06] bg-bg-surface p-5 transition-colors hover:border-accent/20 hover:bg-bg-elevated"
+          >
+            <p className="font-mono text-xs text-accent">Drop</p>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              Open-source podcast generator. Paste a URL, get a scripted audio
+              episode with voice cloning and multi-host dialogue. Next.js
+              frontend, Python FastAPI sidecar, Docker Compose.
+            </p>
+            <p className="mt-3 flex flex-wrap gap-1.5">
+              {["Next.js", "Python", "FastAPI", "Docker", "Ollama"].map(
+                (tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-accent/10 px-2 py-0.5 font-mono text-[10px] text-accent"
+                  >
+                    {tag}
+                  </span>
+                )
+              )}
+            </p>
+          </Link>
+        </div>
+      </div>
+
       {/* Skills snapshot */}
       <div className="mt-16 max-w-[680px]">
         <h2 className="font-display text-xl font-semibold">What I work with</h2>
