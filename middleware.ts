@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
   response.headers.set("x-pathname", pathname)
 
   // Protect admin routes (except login)
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
     const session = request.cookies.get(COOKIE_NAME)
     if (!session) {
       return NextResponse.redirect(new URL("/admin/login", request.url))
