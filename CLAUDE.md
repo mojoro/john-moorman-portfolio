@@ -24,16 +24,19 @@ Make a Berlin startup CTO or hiring manager think "I want this person on my team
 
 ## Tech Stack
 
-- **Framework:** Next.js 15 (App Router, RSC where appropriate)
+- **Framework:** Next.js 15.5.12 (App Router, RSC where appropriate, Turbopack dev server)
 - **Language:** TypeScript throughout — strict mode, no `any`
 - **Styling:** Tailwind CSS v4
 - **Animations:** Framer Motion
+- **Background:** Animated PCB circuit board canvas (Web Workers + OffscreenCanvas, CSS scroll-driven animation)
 - **AI Feature:** Anthropic API (Claude Haiku 4.5) for the chatbot, Gemini fallback via OpenRouter
 - **Database:** Neon PostgreSQL (serverless, Edge-compatible) — stores chatbot conversations + blog comments
 - **Rate limiting:** Upstash Redis (`@upstash/ratelimit`) — 20 requests/IP/hour
 - **Captcha:** Cloudflare Turnstile (blog comments)
+- **Email:** Resend (contact form)
 - **Deployment:** Vercel with custom domain (johnmoorman.com)
 - **Package manager:** pnpm
+- **Node:** v24
 
 ---
 
@@ -41,16 +44,20 @@ Make a Berlin startup CTO or hiring manager think "I want this person on my team
 
 ```
 app/
-  page.tsx                  — homepage (hero, work, blog, resume, contact)
-  layout.tsx                — root layout (sidebar nav, fonts, theme, analytics)
+  page.tsx                  — homepage (hero, work, blog, resume, schedule, contact)
+  layout.tsx                — root layout (sidebar nav, fonts, theme, circuit bg, analytics)
                               conditionally hides site shell on /admin routes
   about/page.tsx
   blog/page.tsx             — blog index
+  blog/loading.tsx          — skeleton loading state
   blog/[slug]/page.tsx      — individual post (MDX + comments section)
   work/page.tsx             — work/case study index
+  work/loading.tsx          — skeleton loading state
   work/[slug]/page.tsx      — individual case study (MDX)
   resume/page.tsx           — printable resume
   og/route.tsx              — OG image generation (next/og)
+  robots.ts                 — robots.txt generation
+  sitemap.ts                — dynamic sitemap from blog + work posts
   api/chat/route.ts         — Ask John chatbot (Edge runtime, streaming)
   api/contact/route.ts      — contact form handler
   not-found.tsx
@@ -69,18 +76,23 @@ app/
       chats/[id]/page.tsx   — full conversation thread view
       prompt/page.tsx       — chatbot system prompt editor
       palette/page.tsx      — live color palette editor (dark + light mode)
+      circuit/page.tsx      — circuit background config panel (sliders for generation params)
 
 components/
   sidebar.tsx               — fixed left nav (desktop), hamburger menu (mobile)
+  home-client.tsx           — homepage client component (hero, sections, animations)
   chat-panel.tsx            — Ask John chat UI
   chat-panel-lazy.tsx       — dynamic import wrapper
+  circuit-bg.tsx            — PCB circuit board animated background (OffscreenCanvas + fallback)
+  circuit-bg-lazy.tsx       — dynamic import wrapper
   theme-provider.tsx        — dark/light mode context
   theme-toggle.tsx          — toggle button
   section-reveal.tsx        — Framer Motion scroll-reveal wrapper
-  cursor-glow.tsx           — subtle cursor effect
+  cursor-glow.tsx           — subtle cursor effect (legacy, circuit-bg is primary)
   image-lightbox.tsx        — lightbox for blog images
   lightbox-provider.tsx
   mdx-image.tsx             — Next.js Image wrapper for MDX content
+  mdx-audio.tsx             — custom styled audio player for MDX content
   contact-form.tsx
   comment-form.tsx          — anonymous blog comment form with Turnstile
   comment-list.tsx          — server component rendering comments per post
@@ -102,12 +114,17 @@ components/
     chat-preview.tsx        — chat session preview card
     delete-chat-button.tsx  — two-click chat deletion
 
+workers/
+  circuit-worker.ts         — OffscreenCanvas circuit generation + animation (modern browsers)
+  circuit-generate.ts       — fallback: generation in worker, rendering on main thread (Safari < 17)
+
 lib/
   content.ts                — MDX file loader (getPosts, getPost) with includeDrafts param
   chatbot-prompt.ts         — system prompt for the Ask John chatbot
   ratelimit.ts              — Upstash Redis rate limiter
   sanitize.ts               — input sanitization (stripDangerous + sanitizeInput)
   db.ts                     — Neon PostgreSQL client (conversations, comments, admin queries)
+  toc.ts                    — TOC helpers (slugify, TocItem type)
   actions/comments.ts       — server action for blog comment submission
 
   admin/
@@ -124,6 +141,7 @@ content/
     real-estate-ai-tool.mdx
     hackathon-drop.mdx
     shortlist.mdx
+    drop-oss.mdx
   work/
     boa-automation.mdx
     real-estate-pipeline.mdx
@@ -132,11 +150,15 @@ content/
     portfolio-site.mdx
     shortlist.mdx
     drop-oss.mdx
+    tts-reader.mdx
+    relocation-calculator.mdx
 
 public/
   images/
     blog/real-estate-ai-tool/
     blog/shortlist/
+    blog/drop-oss/
+    blog/hackathon-drop/
 ```
 
 ---
@@ -184,12 +206,23 @@ All loaded via `next/font/google` (not a `<link>` tag).
 - Admin: no sidebar, top nav, max-width 1100px
 - Case study body text: max-width 680px
 - Mobile: sidebar hidden, fixed top bar (56px) with hamburger overlay
-- Section numbers: monospace, accent-colored — "01.", "02.", "03.", "04."
-- Homepage sections match sidebar nav: Work, Blog, Resume, Contact
+- Section numbers: monospace, accent-colored — "01.", "02.", "03.", "04.", "05."
+- Homepage sections: Work, Blog, Resume, Schedule, Contact
+
+### Background (Circuit Board)
+
+Animated PCB-style circuit board rendered on a canvas behind all content.
+
+- **Primary path (modern browsers):** OffscreenCanvas transferred to `workers/circuit-worker.ts`. Generation, rendering, and animation run entirely off the main thread.
+- **Fallback path (Safari < 17, older iOS):** `workers/circuit-generate.ts` handles generation in a worker; rendering runs on the main thread via requestAnimationFrame.
+- **Scroll effect:** canvas is 2x viewport height with two identical tiles. A CSS scroll-driven animation slides it from `translateY(0)` to `translateY(-50%)`, compositor-driven with zero JS lag.
+- **Interactivity:** cursor proximity highlighting on circuit segments, click-to-pulse effects.
+- **Admin controls:** `/admin/circuit` provides sliders for generation math parameters (local dev only).
+- Canvas width adjusts for the sidebar offset on desktop.
 
 ### Motion (Framer Motion)
 
-- Page load: staggered reveal (nav → hero elements), 80–100ms delays
+- Page load: staggered reveal (nav -> hero elements), 80-100ms delays
 - Scroll: `whileInView` fade-up, `once: true`
 - Chatbot: spring-physics open/close (`stiffness: 300, damping: 30`)
 - Cards: subtle lift on hover (`y: -4`)
@@ -209,6 +242,7 @@ RESEND_API_KEY=             # Contact form email (Resend)
 ADMIN_PASSWORD=             # Admin dashboard login + session signing key
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=  # Cloudflare Turnstile (blog comments, client-side)
 TURNSTILE_SECRET_KEY=       # Cloudflare Turnstile (server-side verification)
+NEXT_PUBLIC_GOOGLE_CALENDAR_URL= # Google Calendar appointment scheduling link
 ```
 
 ---
@@ -224,8 +258,9 @@ Password-protected at `/admin`. Auth via `ADMIN_PASSWORD` env var with HMAC-sign
 - **Chats** — browse chatbot conversations with message previews and visitor location (city/country from Vercel geo headers), view full threads, delete sessions
 - **Prompt** — edit the chatbot system prompt with a warning banner
 - **Palette** — live color picker for all design tokens (dark + light mode) with inline preview
+- **Circuit** — sliders for circuit background generation parameters (grid size, trace density, etc.)
 
-**Important:** Content editing, prompt editing, and palette editing write to the filesystem. They only work in local dev (`pnpm dev`). On Vercel production, these are read-only. DB-backed features (comments, chats, dashboard stats) work everywhere.
+**Important:** Content editing, prompt editing, palette editing, and circuit config write to the filesystem. They only work in local dev (`pnpm dev`). On Vercel production, these are read-only. DB-backed features (comments, chats, dashboard stats) work everywhere.
 
 ---
 
@@ -233,7 +268,7 @@ Password-protected at `/admin`. Auth via `ADMIN_PASSWORD` env var with HMAC-sign
 
 The most important feature. Lives at `POST /api/chat` (Edge runtime, streaming).
 
-**Provider chain:** Anthropic Claude Haiku 4.5 (primary) → OpenRouter Gemini (fallback).
+**Provider chain:** Anthropic Claude Haiku 4.5 (primary) -> OpenRouter Gemini (fallback).
 
 **Cost protection layers (all implemented):**
 1. Upstash Redis: 20 requests/IP/hour, sliding window
@@ -261,19 +296,30 @@ All content lives as MDX files in `content/blog/` and `content/work/`. No CMS.
 
 **Two workflows for authoring:**
 
-1. **Admin dashboard** (preferred for quick edits): `/admin/content` → edit in browser → Cmd+S to save. Can also create new posts via the "+ New post" button. Only works in local dev.
+1. **Admin dashboard** (preferred for quick edits): `/admin/content` -> edit in browser -> Cmd+S to save. Can also create new posts via the "+ New post" button. Only works in local dev.
 
 2. **Manual**: Create `content/blog/your-slug.mdx` with frontmatter, set `draft: true`, preview at `localhost:3000/blog/your-slug`, remove draft flag when ready.
 
-**Frontmatter:**
+**Frontmatter (blog):**
 ```mdx
 ---
 title: ""
 date: ""             # YYYY-MM-DD
-description: ""      # 1–2 sentences for index and meta description
+description: ""      # 1-2 sentences for index and meta description
 tags: []             # e.g. ["Next.js", "TypeScript", "n8n"]
 draft: true          # Remove or set false when ready to publish
 ---
+```
+
+**Frontmatter (work):** same as blog, plus optional fields:
+```mdx
+featured: true       # Show on homepage featured section
+status: "shipped"    # "shipped" | "in-progress" | "upcoming"
+challenge: "10-in-10"  # Links to the 10-in-10 challenge tracker
+week: 3              # Challenge week number
+stats:               # Displayed on featured project cards
+  - value: "€74K"
+    label: "Annual savings"
 ```
 
 Copy `content/blog/_template.mdx` as a starting point.
@@ -281,6 +327,8 @@ Copy `content/blog/_template.mdx` as a starting point.
 **Draft rule:** `lib/content.ts` filters out `draft: true` posts in `NODE_ENV === 'production'` unless `includeDrafts` is passed (used by admin). Files prefixed with `_` are always excluded.
 
 **Blog images:** Put them in `public/images/blog/your-slug/`. Reference with absolute paths: `/images/blog/your-slug/image.png`. The `mdx-image.tsx` component wraps Next.js `<Image>` for optimization.
+
+**Audio in MDX:** Use the `MdxAudio` component (`components/mdx-audio.tsx`) for embedded audio players.
 
 **Blog comments:** Anonymous with optional name, Cloudflare Turnstile captcha, stored in Neon PostgreSQL. Manageable via `/admin/comments`.
 
@@ -305,6 +353,8 @@ Guard Upstash init against placeholder env values
 Wire image lightbox into blog and work MDX pages
 Fix session token verification splitting on wrong delimiter
 Extract TagPill component and unify pill styles site-wide
+Replace calendar iframe with styled booking card
+Replace CursorGlow with segment-level trace proximity highlight
 ```
 
 ---
@@ -314,9 +364,12 @@ Extract TagPill component and unify pill styles site-wide
 - TypeScript strictness is non-negotiable
 - Don't over-engineer — this is a portfolio site. Reach for simplicity
 - The chatbot system prompt is the most important piece of copy on the site — treat it with care
-- SEO: `generateMetadata` on every page, OG image at `/og`, JSON-LD Person schema on homepage, sitemap and robots.txt in place
+- SEO: `generateMetadata` on every page, OG image at `/og`, JSON-LD Person schema on homepage, `robots.ts` and `sitemap.ts` generate dynamically
 - Performance target: Lighthouse 95+ / Core Web Vitals green
 - `@vercel/analytics` is active — check Vercel dashboard for real visitor data
 - Eager prefetching: all site routes are prefetched after first page load via `components/prefetch-routes.tsx`
 - `TagPill` component (`components/tag-pill.tsx`) is the single source of truth for tag badge styles — use it everywhere
 - `middleware.ts` sets an `x-pathname` header used by the root layout to detect admin routes
+- Circuit background is off-main-thread by design. Keep it that way. All heavy computation stays in `workers/`
+- Blog and work index pages have skeleton `loading.tsx` states for Suspense boundaries
+- The 10-in-10 challenge tracker on the homepage reads `challenge` and `week` frontmatter from work posts
