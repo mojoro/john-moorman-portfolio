@@ -1,10 +1,19 @@
 ---
-title: "Berlin Relocation Cost Planner"
-date: "2026-03-23"
-description: "Interactive multi-step wizard that calculates net salary, estimates living costs by Berlin district, and walks you through visa and admin steps. Angular frontend, Kotlin/Spring Boot backend."
-tags: ["Angular", "TypeScript", "Kotlin", "Spring Boot", "Tailwind CSS"]
-status: "in-progress"
-challenge: "10-in-10"
+title: Berlin Relocation Calculator
+date: '2026-03-23'
+description: >-
+  Interactive multi-step wizard that calculates net salary, estimates living
+  costs by Berlin district, and walks you through visa and admin steps. Angular
+  frontend, Kotlin/Spring Boot backend, OpenAPI validation.
+tags:
+  - Angular
+  - TypeScript
+  - Kotlin
+  - OpenAPI
+  - Spring Boot
+  - Tailwind CSS
+status: shipped
+challenge: 10-in-10
 week: 5
 ---
 
@@ -22,6 +31,13 @@ A four-step planner for anyone relocating to Berlin. Paste your gross salary, pi
 
 ## Technical Approach
 
-Angular 21 frontend with standalone components, reactive forms, and Signals for state management. Kotlin/Spring Boot backend handles the tax calculation logic and serves cost data. The two communicate over typed API contracts shared between frontend and backend.
+Angular 21 frontend with standalone components, reactive forms, and Signals for state management. Kotlin/Spring Boot backend handles the tax calculation logic and serves cost data. The two generate their data models from an OpenAPI specification in a shared repo at the root of the monorepo. 
 
-Built to mirror the patterns used at Europace's Rechner product team: `OnPush` change detection, typed form groups, and clean frontend-backend contract design.
+Built to mirror the patterns used at many large companies: `OnPush` change detection, typed form groups, and clean frontend-backend contract design, and much more.
+
+### Links
+
+- [Live Site](https://relocation-calculator.vercel.app)
+- [GitHub](https://github.com/mojoro/relocation-calculator)
+- [Full write-up on blog](/blog/relocation-calculator/)
+
