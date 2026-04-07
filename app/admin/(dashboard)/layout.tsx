@@ -8,7 +8,7 @@ export default function DashboardLayout({
   return (
     <>
       <AdminNav />
-      <main className="mx-auto max-w-[1100px] px-6 py-8">
+      <main className="mx-auto max-w-[92vw] px-6 py-8">
         {children}
       </main>
     </>

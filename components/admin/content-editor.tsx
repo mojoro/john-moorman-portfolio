@@ -108,9 +108,9 @@ export function ContentEditor({
       </div>
 
       {/* Two-column layout */}
-      <div className="grid gap-8 lg:grid-cols-[340px_1fr]">
+      <div className="grid gap-8 lg:grid-cols-[340px_1fr] xl:h-[calc(100vh-13rem)]">
         {/* Frontmatter */}
-        <div className="rounded-lg border border-border bg-bg-surface/50 p-5">
+        <div className="rounded-lg border border-border bg-bg-surface/50 p-5 xl:overflow-y-auto">
           <h2 className="mb-4 font-mono text-xs font-medium text-text-muted">
             Frontmatter
           </h2>
@@ -122,7 +122,7 @@ export function ContentEditor({
         </div>
 
         {/* MDX Editor */}
-        <div>
+        <div className="xl:min-h-0">
           <MdxEditor content={content} onChange={setContent} />
         </div>
       </div>

@@ -13,6 +13,13 @@ interface MdxEditorProps {
 
 type Tab = "edit" | "preview"
 
+/* rehype-raw uses an HTML parser which ignores self-closing syntax on
+   non-void elements. <Audio .../> becomes an unclosed <audio> that
+   swallows all following content. Pre-convert to explicit closing tags. */
+function normalizeContent(raw: string) {
+  return raw.replace(/<Audio\b([^>]*?)\/>/g, "<audio$1></audio>")
+}
+
 export function MdxEditor({ content, onChange }: MdxEditorProps) {
   const [activeTab, setActiveTab] = useState<Tab>("edit")
 
@@ -22,9 +29,9 @@ export function MdxEditor({ content, onChange }: MdxEditorProps) {
   ]
 
   return (
-    <div className="flex flex-col">
-      {/* Tab bar */}
-      <div className="flex gap-4 border-b border-border pb-0">
+    <div className="flex flex-col xl:h-full">
+      {/* Tab bar — hidden on wide screens where both panels are visible */}
+      <div className="flex gap-4 border-b border-border pb-0 xl:hidden">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -41,28 +48,33 @@ export function MdxEditor({ content, onChange }: MdxEditorProps) {
         ))}
       </div>
 
-      {/* Content area */}
-      {activeTab === "edit" ? (
-        <textarea
-          value={content}
-          onChange={(e) => onChange(e.target.value)}
-          spellCheck={false}
-          className="mt-4 min-h-[500px] w-full resize-y rounded-lg border border-border bg-bg-surface px-4 py-3 font-mono text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none"
-          rows={20}
-        />
-      ) : (
-        <div className="prose-custom mt-4 max-w-none rounded-lg border border-border bg-bg-surface px-6 py-4">
-          <ReactMarkdown
-            rehypePlugins={[rehypeRaw]}
-            components={{ audio: MdxAudio as React.ElementType }}
-          >
-            {/* rehype-raw uses an HTML parser which ignores self-closing syntax on
-                non-void elements. <Audio .../> becomes an unclosed <audio> that
-                swallows all following content. Pre-convert to explicit closing tags. */}
-            {content.replace(/<Audio\b([^>]*?)\/>/g, "<audio$1></audio>")}
-          </ReactMarkdown>
+      {/* Side-by-side on xl+, tabbed below */}
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:mt-0 xl:flex-1 xl:min-h-0 xl:grid-cols-2 xl:grid-rows-[1fr]">
+        {/* Editor */}
+        <div className={`min-h-0 ${activeTab !== "edit" ? "hidden xl:block" : ""}`}>
+          <textarea
+            value={content}
+            onChange={(e) => onChange(e.target.value)}
+            spellCheck={false}
+            className="min-h-[500px] w-full resize-y rounded-lg border border-border bg-bg-surface px-4 py-3 font-mono text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none xl:h-full xl:resize-none"
+            rows={20}
+          />
         </div>
-      )}
+
+        {/* Preview */}
+        <div className={`min-h-0 ${activeTab !== "preview" ? "hidden xl:block" : ""}`}>
+          <div className="h-full overflow-y-auto rounded-lg border border-border bg-bg-surface">
+            <div className="prose-custom max-w-none px-6 py-4">
+              <ReactMarkdown
+                rehypePlugins={[rehypeRaw]}
+                components={{ audio: MdxAudio as React.ElementType }}
+              >
+                {normalizeContent(content)}
+              </ReactMarkdown>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
