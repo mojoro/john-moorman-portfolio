@@ -145,6 +145,13 @@ body {
   font-style: italic;
 }
 
+.prose-custom img {
+  max-height: 28rem;
+  width: auto;
+  margin-inline: auto;
+  object-fit: contain;
+}
+
 .prose-custom hr {
   border-color: var(--border);
   margin: 2rem 0;
