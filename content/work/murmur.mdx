@@ -1,0 +1,45 @@
+---
+title: Murmur
+date: '2026-04-04'
+description: >-
+  Open-source, self-hosted text-to-speech reader with five swappable TTS
+  engines, voice cloning, and offline PWA support.
+tags:
+  - Nuxt
+  - Vue
+  - TypeScript
+  - Python
+  - FastAPI
+  - Docker
+  - Open Source
+status: shipped
+challenge: 10-in-10
+week: 6
+featured: true
+---
+
+A self-hosted TTS reader born from a friend's request: "You're so close! Can you make something like this, but more directly for text-to-speech?" Murmur lets you paste text, upload documents (PDF, EPUB, DOCX), or feed it a URL, then listen with any of five swappable TTS engines. Everything runs locally. No API keys, no subscriptions.
+
+## What It Does
+
+**Five TTS engines.** Pocket TTS ships as the default (CPU-friendly, eight built-in voices, 1.5 to 2.5x real-time generation). Four clone-capable engines are installable on-demand: CosyVoice 2, F5 TTS, XTTS v2, and GPT-SoVITS. Only one runs at a time to conserve resources.
+
+**Document intelligence.** Extracts text and embedded images from PDFs, EPUBs, and DOCX files. URL imports use Mozilla Readability to pull article content. Images render inline in the reader.
+
+**Voice cloning.** Upload a WAV file and any of the four clone-capable engines will synthesize new speech from it. Voices persist across sessions and transfer between engines.
+
+**Offline PWA.** Installs on phones via Caddy's self-signed LAN HTTPS (no VPN or tunnel needed). Audio segments are cached locally via a service worker with background sync. Content is available offline once generated.
+
+**Multi-user support.** JWT-based auth with httpOnly cookies. Each account's reads, voices, bookmarks, and settings are fully isolated.
+
+## Technical Approach
+
+Murmur is three layers: a Nuxt 3 PWA as a thin frontend client, a Nitro BFF that validates JWTs and proxies requests, and a FastAPI orchestrator in Python that owns the SQLite database, manages engine lifecycles as subprocesses, and runs a FIFO job queue with SSE progress streaming. Generations survive browser crashes and laptop closings.
+
+The hardest part was dockerizing all five engines into a single container. Each runs in its own virtual environment, installed on-demand. The Python ML ecosystem in containers produced nearly 20 distinct issues: torchcodec pulling CUDA dependencies into CPU-only builds, phantom packages yanked from PyPI, undocumented environment variables, and dependency cascades that revealed themselves one missing module at a time.
+
+---
+
+[Full write-up on the blog](/blog/murmur) — including the architecture evolution, honest engine comparisons with audio samples, and the dockerizing ordeal.
+
+[GitHub](https://github.com/mojoro/pocket-tts-ui)
