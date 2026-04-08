@@ -1,0 +1,44 @@
+---
+title: Open Source Contributions
+date: '2026-03-30'
+description: >-
+  Bug fixes and features contributed to projects I use. Maia Chess (U Toronto,
+  Cornell, Microsoft, Harvard AI platform) and Dash to Dock (GNOME Shell
+  extension, 4.3K stars).
+tags:
+  - React
+  - TypeScript
+  - JavaScript
+  - GNOME
+  - Linux
+  - Open Source
+status: shipped
+---
+
+It is always exciting when I see something that I know I could improve in Open Source projects that I use. Here are some PRs I have done in that vein.
+
+---
+
+## Maia Chess
+
+[Maia](https://maiachess.com) is a chess AI platform built in collaboration among researchers from University of Toronto, Cornell, Microsoft, Harvard, and University of Waterloo. I play on it regularly. Their opening drill feature has a guided tour that walks new users through the interface, and it was broken on both mobile and desktop.
+
+The tour steps targeted elements that were hidden at certain breakpoints or shared duplicate IDs across the mobile and desktop layouts. On mobile, the drill modal splits content across tabs, but the tour never switched tabs before pointing at something on the other tab. And the two-column desktop layout collapsed between 768px and 1024px because the Tailwind breakpoint (`md:`) didn't match the app's own `TABLET_BREAKPOINT_PX` constant at 1024px.
+
+I converted the static tour step array into a function that returns different configurations based on viewport width. Added a `beforeAction` callback to the `TourStep` interface so individual steps can manipulate the DOM (switch a tab, scroll to an element) before Joyride tries to target anything. Bumped the layout-critical breakpoints from `md:` to `lg:` to match the existing constant. Fixed the duplicate IDs.
+
+3 files changed. 5 atomic commits. Full before/after screenshots and test plan in the PR.
+
+[PR #285](https://github.com/CSSLab/maia-platform-frontend/pull/285)
+
+---
+
+## Dash to Dock
+
+[Dash to Dock](https://github.com/micheleg/dash-to-dock) is a GNOME Shell extension for customizing the Ubuntu/GNOME dock. 4.3K stars on GitHub. I run a dual-monitor setup (1080p + ultrawide) and needed a way to control the dock's margin from the screen edge when running in panel mode. The extension didn't support it.
+
+I added a new GSettings key (`dock-margin-size`), wired a slider into the settings UI (0 to 300px), and updated the dock positioning logic in `docking.js` to apply the margin in both vertical and horizontal orientations. Default is 0px, so existing behavior doesn't change.
+
+4 files changed. Tested on GNOME Shell 46 with both monitors.
+
+[PR #2390](https://github.com/micheleg/dash-to-dock/pull/2390)
