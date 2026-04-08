@@ -129,6 +129,24 @@ body {
   text-decoration-color: var(--accent);
 }
 
+.prose-custom pre {
+  background: var(--bg-surface);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.prose-custom pre code {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.875em;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
 .prose-custom code {
   font-family: var(--font-mono), monospace;
   font-size: 0.875em;
