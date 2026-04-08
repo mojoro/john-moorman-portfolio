@@ -150,7 +150,7 @@ content/
     portfolio-site.mdx
     shortlist.mdx
     drop-oss.mdx
-    tts-reader.mdx
+    murmur.mdx
     relocation-calculator.mdx
 
 public/
