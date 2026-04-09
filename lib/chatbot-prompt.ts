@@ -17,22 +17,39 @@ Berlin Opera Academy (2023-2025), Software Engineer:
 
 Freelance Software Engineer (2025-Present):
 - Full-stack client work with end-to-end ownership, adapting to each project's preferred stack
-- A key pattern across all engagements: every client has brought a new technology to learn, and I have always come in, learned their stack quickly, and delivered in their preferred tools. Examples: Google Apps Script at BOA, Vue + TypeScript at finalflow, PHP at Serenity Retreat, n8n for the real estate pipeline
+- A key pattern across all engagements: every client has brought a new technology to learn, and I have always come in, learned their stack quickly, and delivered in their preferred tools. Examples: Google Apps Script at BOA, Vue + TypeScript at finalflow, PHP at Serenity Retreat, n8n for the real estate pipeline, Python FastAPI + Docker for Drop
 - Built an AI-powered real estate data pipeline using n8n, Apify, and Gemini (for cost-effective data analysis). Scraped, structured, and AI-analyzed property listings for automated daily investment recommendations. Used Claude Code with two MCPs to build the dashboard. Blog post at johnmoorman.com/blog/real-estate-ai-tool
 - Serenity Retreat: pro bono contribution. Rebuilt frontend, implemented analytics, migrated data pipelines, built custom PHP calendar sync plugin
 - finalflow: marketing site and education platform foundation for a music tech startup. Pixel-perfect Figma execution in Vue + TypeScript + Tailwind. Also built waitlist signup and Firebase authentication. Worked within strict design constraints and delivered exactly to spec
+- Built Shortlist (shortlist.johnmoorman.com), a full-stack AI job search tool: ATS scraping, AI scoring, real-time resume tailoring with writing rule guardrails, Kanban pipeline. 16K lines of TypeScript in seven days. Uses Prisma, Neon PostgreSQL, Clerk, Anthropic API via OpenRouter
+- Built Drop (github.com/mojoro/drop), an open-source self-hostable podcast generator. Two-process architecture (Next.js + Python FastAPI TTS sidecar), four LLM backends with automatic cascade, voice cloning, encrypted settings profiles, Docker Compose deployment. Grew from a hackathon project into a properly architected application
+- Participated in AI Mini Hackathon Berlin (March 2026, ~140 attendees). Led a three-person team, owned frontend + API pipeline + pitch. First hackathon
 - CI/CD pipelines via GitHub Actions + Docker, reducing deployment times 30% across projects
 - 1,000+ monthly active users across deployed applications
 
-CURRENT PROJECT:
-John is currently doing a "10 projects in 10 weeks" challenge from a mentor. Building and shipping one project every week. Week 1 was the Real Estate AI Pipeline. Week 2 was this portfolio site rebuild (Next.js, TypeScript, AI chatbot). The challenge runs through May 2026. This shows his commitment to rapid shipping and continuous learning.
+CURRENT PROJECT — 10 IN 10 CHALLENGE:
+John is doing a "10 projects in 10 weeks" challenge from a mentor. Building and shipping one project every week. The challenge runs through May 2026. Completed so far:
+
+Week 1 — Real Estate AI Pipeline: n8n + Apify + Gemini data pipeline that scrapes property listings, analyzes them with AI, and delivers daily investment recommendations. Blog post at johnmoorman.com/blog/real-estate-ai-tool
+
+Week 2 — Portfolio Site Rebuild: This site. Next.js 15, TypeScript, AI chatbot (the thing you're talking to), Neon PostgreSQL, admin dashboard with content editing, comment system with Turnstile captcha.
+
+Week 2.5 — Drop (Hackathon): Built a two-voice podcast generator at the AI Mini Hackathon Berlin (~140 people, ~40 teams). Paste a URL, get a podcast episode in 60 seconds. John led a team of three: owned the frontend, full API pipeline, ElevenLabs integration, and delivered the pitch. Built and patched the app in 2.5 hours. First hackathon ever. Didn't place, but connected with one of Needle's founders who praised the pitch.
+
+Week 3 — Shortlist: Full-stack AI job search tool. Scrapes listings from Greenhouse, Lever, and Ashby, scores them against your profile with AI (0–100), tailors your resume on demand with real-time streaming, and tracks your pipeline on a Kanban board. Writing rules let you define protected phrases, banned phrases, verified metrics, and off-limits claims so the AI can't hallucinate your resume. 16,000 lines of TypeScript, 326 commits, built in seven days. Stack: Next.js, Prisma over Neon PostgreSQL, Clerk auth, Tailwind v4, OpenRouter to Anthropic models. Includes rate limiting, CSP headers, Playwright test suite. Live at shortlist.johnmoorman.com. John actively uses it for his own job search.
+
+Week 4 — Drop OSS: Rebuilt the hackathon project as an open-source, self-hostable application. Two-process architecture: Next.js app + Python FastAPI TTS sidecar with pocket-tts (local speech model). Supports four LLM backends (Ollama, OpenRouter, Featherless, Claude Haiku) with an automatic cascade that falls through to the next available backend. Features: voice cloning from microphone or WAV upload, monologue/dialogue modes, generation lengths from 1 to 30+ minutes, episode library with re-voicing, encrypted settings profiles (AES-256-GCM), fully editable prompt system. Docker Compose for one-command setup. Open source at github.com/mojoro/drop.
+
+Week 5 — TTS Reader (in progress): Open-source alternative to ElevenReader. Paste text, a URL, or a document and get audio synthesized with a cloned voice, locally. No subscription, no cloud required.
 
 TECHNICAL SKILLS:
 Primary: TypeScript, JavaScript (ES6+), Next.js, React, Tailwind CSS
-Also proficient: Vue.js, Nuxt, Node.js, Python, PHP, Bash
-Backend/DB: Node.js, REST APIs, Firebase, MongoDB, PostgreSQL
-DevOps: Docker, CI/CD (GitHub Actions), Vercel, Linux/UNIX
-AI/Automation: Anthropic API, Claude Code, Cursor, n8n, Apify, Google Apps Script, agentic workflows
+Also proficient: Vue.js, Nuxt, Node.js, Python, FastAPI, PHP, Bash
+Backend/DB: Node.js, REST APIs, Prisma, Firebase, MongoDB, PostgreSQL (Neon), Clerk auth
+DevOps: Docker, Docker Compose, CI/CD (GitHub Actions), Vercel, Linux/UNIX
+AI/Automation: Anthropic API, OpenRouter, Claude Code, Cursor, n8n, Apify, Google Apps Script, agentic workflows, LLM cascade architectures, prompt engineering for structured output
+Audio/ML: TTS integration (ElevenLabs, pocket-tts, OpenAI TTS), audio pipeline normalization, voice cloning
+Testing: Playwright end-to-end testing
 Performance: Core Web Vitals, Lighthouse optimization, technical SEO
 
 LANGUAGES: English (C2, native), German (B2)
