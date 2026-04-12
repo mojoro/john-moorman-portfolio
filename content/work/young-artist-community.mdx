@@ -1,0 +1,43 @@
+---
+title: Young Artist Community
+date: '2026-04-12'
+description: >-
+  Community-maintained directory and review platform for Young Artist Programs in
+  classical music and opera. Browse, filter, review, and contribute program data,
+  Wikipedia-style. AI-powered scraping pipeline for keeping listings current.
+tags:
+  - Next.js
+  - TypeScript
+  - Prisma
+  - Neon
+  - AI
+  - Claude Code
+status: shipped
+challenge: 10-in-10
+week: 7
+featured: true
+---
+
+A directory and review platform for Young Artist Programs in classical music and opera, built from personal experience on both sides of the table: as a singer who auditioned for these programs, and as an engineer who automated the admin behind one.
+
+## What It Does
+
+**Program directory.** Browse and filter programs by instrument, category, location, tuition, scholarship availability, and application deadline. Slug-based URLs and cursor pagination throughout.
+
+**Reviews.** Read and submit alumni reviews with star ratings, year attended, and written feedback. The reviews that exist informally in Facebook groups and word of mouth, collected in one searchable place.
+
+**Wikipedia-style editing.** Anyone can create a program, edit any field, or submit audition details. No account required. Every edit creates a versioned snapshot for rollback. A report system handles inaccurate data or inappropriate content.
+
+**AI import pipeline.** A multi-stage scraping system fetches program websites, extracts structured data via Claude Haiku 4.5, and queues candidates for human review. Content hash diffing skips unchanged pages. Gzipped HTML storage allows re-extraction without re-fetching. 27 import sources across 11 programs, running monthly via Vercel Cron.
+
+## Technical Approach
+
+API-first development: an OpenAPI 3.0.3 spec (~1,200 lines) was the first file committed. The API follows Zalando RESTful Guidelines pragmatically (snake_case, sub-resources, RFC 9457 errors, cursor pagination). Next.js 16 with async server components querying Prisma 7 directly. Neon serverless PostgreSQL. Tailwind CSS v4 with a swappable palette system (five named themes in CSS custom properties). Zod 4 validates both LLM extraction output and form submissions.
+
+72 commits, roughly 21.5 hours. The speed came from upfront system design: ER diagram, OpenAPI spec, and API conventions decided before implementation began.
+
+### Links
+
+- [Live Site](https://youngartist.community)
+- [GitHub](https://github.com/mojoro/yactracker)
+- [Full write-up on blog](/blog/yactracker)

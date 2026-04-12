@@ -1,0 +1,175 @@
+---
+title: '10-in-10, Week 7: Young Artist Community'
+date: '2026-04-12'
+description: >-
+  A directory and review platform for Young Artist Programs in classical music,
+  built in 21.5 hours. The system design work I did before writing a single
+  component is the reason it came together so quickly.
+tags:
+  - Next.js
+  - TypeScript
+  - Prisma
+  - Neon
+  - AI
+  - Opera
+  - Claude Code
+draft: false
+---
+
+In 2016 I drove to a Young Artist Program at the Butler Opera Center because it was close to my hometown and I hadn't fully committed to opera yet. In 2017 I did Boston Conservatory's program in Valencia because I'd just been accepted to the school, and it made sense to get to know the faculty before the semester started. In 2018 I found Opera in the Ozarks through a combination of word of mouth and YAP Tracker, the main directory site for these programs. 2019 I needed money, so I worked through the summer to save up for a program in Germany. 2020 was 2020. 2021, same story as 2019. Then in 2022, after graduating, I went to the Berlin Opera Academy to pave the way for my move to Germany. That one was also word of mouth and YAP Tracker.
+
+Then I changed careers. And instead of auditioning at BOA, I was running its admin function, automating the operations that kept the whole thing moving. I went from one side of Young Artist Programs to the other.
+
+**Young Artist Community** comes from both sides.
+
+## What It Is
+
+[Young Artist Community](https://youngartist.community) is a directory and review platform for Young Artist Programs in classical music and opera. YAPs are competitive summer residencies, apprenticeships, and training intensives where emerging professional singers and instrumentalists develop their craft. Programs like [Aspen Music Festival](https://www.aspenmusicfestival.com/), [Tanglewood Music Center](https://www.bso.org/tmc), [Santa Fe Opera](https://www.santafeopera.org/), and [Merola Opera Program](https://merola.org/).
+
+The platform lets users browse and filter programs by instrument, category, location, tuition, scholarship availability, and application deadline. They can read and submit reviews from program alumni. They can view audition details. And they can submit new programs or edit existing ones, Wikipedia-style, with no account required. (Hopefully this will work out and nothing crazy will creep its way into the site!)
+
+There are many platforms that index these programs, but all of them are proprietary. All of them are for-profit businesses where the listings are the product, and thus having public reviews of the programs behind the listings is not a good business tactic. So we're left with a situation where the average student, already up to their eyeballs in debt, has to pay to access the list of programs that they need to pay more money to attend. 
+
+If you're a student who doesn't want to pay and is willing to research and decide for yourself, the information problem here is real. Program details are scattered across individual websites with inconsistent formatting. Tuition and fee information is often buried in PDFs or behind application portals. Alumni reviews exist informally in Facebook groups and through word of mouth but aren't collected anywhere searchable. If you're a singer trying to compare Aspen's tuition against Brevard's, or trying to figure out whether AIMS in Graz is worth the now $7,500 price tag (could be! but how can you know? do they offer accommodation? travel? insurance? food? what about scholarship?), you're opening at least a dozen tabs, keeping a spreadsheet if you're savvy, and hoping the information is current and your judgment sound. 
+
+This work is then repeated for every student looking for a place to spend their summer. Because you're going to spend your summer performing somewhere. Your directors expect it. Your teacher expects it. Your future casting panel expects to see it in your resume. So you make your decision and hope that you chose the best one and read between the lines of all the marketing out there. 
+
+Young Artist Community aims to be the community-maintained directory that this niche doesn't have yet. Think Glassdoor or RateMyProfessors, but for summer music programs.
+
+![Young Artist Community landing page with Mediterranean palette and tuning fork logo](/images/blog/yactracker/landing.png)
+
+## Why It Came Together So Fast
+
+72 commits. Roughly 21.5 hours. A deployed application with 11 verified programs, 18 API endpoints, a scraping pipeline, an admin panel, public editing, versioning, and a reporting system.
+
+The speed wasn't from cutting corners. It was from planning.
+
+This was the first project in the 10-in-10 series where I invested serious time in system design before writing a single component. I started with an [OpenAPI 3.0.3 specification](https://swagger.io/specification/) (about 1,200 lines) that defined every endpoint, every request body, every response shape. I drew an ER diagram to map out the database schema in advance. And I studied [Zalando's RESTful API Guidelines](https://opensource.zalando.com/restful-api-guidelines/) to inform my API conventions.
+
+The payoff was immediate. With the data model defined, the API spec written, and the conventions decided, the implementation phase was almost mechanical. The 10 route handler files for the entire API layer went in within about 10 minutes. The seed script, the UI pages, and the filtering logic all followed the shapes that were already decided. There was very little backtracking because the major decisions were made upfront, not discovered mid-build. When an addition or revision was needed, it was simple to implement because the foundation was solid.
+
+I noticed this pattern starting with the [Berlin Relocation Planner](/blog/relocation-calculator) a couple of weeks ago. Having the data defined in advance made that project go noticably more smoothly. This was even more so. The lesson is becoming a conviction: time spent on system design before implementation isn't overhead. It's the reason the implementation goes fast.
+
+## Under the Hood
+>**Warning!** Jargon ahead: 
+
+### API Design
+
+The API follows Zalando's guidelines pragmatically. That means:
+
+- **snake_case** for all JSON properties and query parameters
+- Plural resource names in URLs (`/programs`, `/reviews`)
+- Sub-resources for owned entities (`/programs/{id}/reviews`)
+- [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem+json for all error responses
+- POST returns 201 with a Location header
+- Cursor pagination with opaque base64url tokens
+
+Pragmatic deviations from the guidelines include keeping `total_items` in pagination metadata (the dataset is small enough that counting is free) and skipping Zalando's rules around API evolution and deprecation, because they're designed for a scale this project will never reach.
+
+Also, no security isn't an oversight, but an optimistic (if perhaps foolish) approach toward a community-built resource that students and young professionals can contribute to with minimal friction.
+
+The OpenAPI spec is the source of truth. Every endpoint was built to match it. If you want to know what the API does, read the spec, not the code.
+
+### The Import Pipeline
+
+The scraping pipeline is the most architecturally interesting piece. It's a multi-stage, human-in-the-loop system:
+
+```
+ImportSource (URL) → Fetch HTML → Hash Diff → LLM Extract → ProgramCandidate → Human Review → Upsert Program
+```
+
+Each program can have multiple import source URLs pointing to different pages on its website: the main program page, the application and fees page, the scholarship page, specific track pages. The pipeline fetches them independently, then combines all the HTML into one [Claude Haiku 4.5](https://docs.anthropic.com/en/docs/about-claude/models) extraction call via [OpenRouter](https://openrouter.ai/), producing a more complete structured record than any single page could provide.
+
+Key design decisions:
+
+- **Nothing writes directly to Program.** All scraped data flows through a candidate queue for human review.
+- **Content hash diffing.** If a page hasn't changed since the last fetch, skip the extraction entirely. Saves LLM costs.
+- **Gzipped HTML storage.** Raw HTML is stored compressed so I can re-extract with a better prompt or model later without re-fetching.
+- **Per-host rate limiting.** Five-second minimum delay between requests to the same host.
+- **robots.txt compliance.** Checked before every fetch, cached for 15 minutes.
+- **Token tracking.** Every extraction records the model name, input tokens, and output tokens for cost analysis.
+
+The pipeline runs on a Vercel Cron job monthly, and the admin panel has a manual scrape button for when I want to trigger it immediately. There's also a re-extract button that re-runs the LLM on stored HTML without re-fetching, which is useful for testing prompt improvements.
+
+{/* TODO: admin import panel screenshot — needs auth */}
+
+### Wikipedia-Style Editing
+
+Programs can be edited by anyone without authentication. Anyone can create a program, even with just a name. Anyone can edit any field on any program. Changes go live immediately.
+
+This is a deliberate "trust first, moderate after" approach. The target community (classical musicians, voice teachers, program administrators) is small, invested, and unlikely to vandalize a directory of summer programs. The safety nets are edit versioning (every edit creates a ProgramRevision with a JSON snapshot of the previous state), a report system for flagging inaccurate data or inappropriate content, and admin oversight.
+
+If this proves naive, approval gates can be added later without changing the data model. But I think it won't. This community polices itself already in Facebook groups and forums. Give them the tools and they'll maintain the data.
+
+### The Stack
+
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Framework | [Next.js 16](https://nextjs.org/) | App Router, Server Components |
+| Runtime | React 19 | With React Compiler |
+| ORM | [Prisma 7](https://www.prisma.io/) | Neon serverless adapter |
+| Database | [Neon](https://neon.tech/) PostgreSQL | Serverless, us-east-1 |
+| Styling | [Tailwind CSS v4](https://tailwindcss.com/) | New `@theme inline` syntax |
+| Validation | [Zod 4](https://zod.dev/) | LLM output + form validation |
+| LLM | Claude Haiku 4.5 | Via OpenRouter |
+| Deployment | [Vercel](https://vercel.com/) | With Cron for monthly scraping |
+
+
+All pages are async server components that query Prisma directly. No HTTP self-fetch from server to server. Client components are used only where interaction is needed: forms, dropdowns, report buttons. This eliminates loading spinners and client-side data fetching waterfalls entirely.
+
+## Breaking Out of Teal
+
+I notice a lot of my designs drift toward the same teal and blue palette. This time I wanted to break from that intentionally.
+
+Young Artist Community has five named color palettes defined in CSS custom properties, but I eventually decided on the current Mediterranean palette:
+
+- **Curtain Call** (plum, gold, rose, sage)
+- **Score & Quill** (ink, burnt orange, slate-blue, olive)
+- **Steinway** (rich black, brass, walnut, forest)
+- **Mediterranean** (terracotta, saffron, lavender, olive) — *currently active*
+- **Philharmonic** (teal (I couldn't resist and almost chose it), coral, ochre, emerald)
+
+Each palette fills four color roles (brand, accent, tag, success) through CSS custom properties. Switching palettes is a one-block CSS change. The Tailwind classes reference the tokens (`bg-brand-500`, `text-accent-500`), so every component follows whichever palette is active without touching a single class name. 
+
+It was fun to cycle among them and refine my eye for color pairings. Outside of the teal and blue, nice light mode palettes seem to evade me more than dark mode ones, so I intentionally made myself work with that constraint.
+
+I'm especially proud of the logo: a resonating tuning fork, implemented as inline SVG using the palette tokens so it shifts with whatever theme is active. It felt right for a music platform. Not a treble clef (overdone), not a music note (too generic). A stylized tuning fork as a Y to match the first letter of the site (perfect).
+
+![Young Artist Community program directory with filters](/images/blog/yactracker/directory.png)
+
+## What's There and What's Not
+
+What's deployed:
+
+- 11 verified programs with sourced, accurate data
+- Full program directory with filtering, sorting, and cursor pagination
+- Program detail pages with review submission, audition info, and reporting
+- Public program creation and editing with revision history
+- An admin panel for import management, data editing, and report review
+- 27 import sources across the 11 programs (multiple per program)
+- Slug-based URLs (`/programs/aspen-music-festival-and-school`)
+- Mailing list signup
+
+What's not built yet: user accounts, email notifications, program comparison, season-based data (programs repeat annually with different dates and fees), and full-text search. The edit history is stored but not yet browsable in the UI.
+
+These are all real gaps. But the foundation is solid, the data model supports all of them, and none require rethinking the architecture.
+
+## Full Circle
+
+I've been thinking about building this for years. Literally. My old notes have market research on YAP Tracker, Audition Oracle, the YAC Tracker Facebook group, and CSMusic. Competitive analysis, traffic numbers, monetization ideas. The last line of those notes: "The core idea still seems solid. I want this to exist, and I think I should be the one to build it."
+
+That was written when I was still early in my transition from opera to engineering. I didn't have the skills to build it yet. Now I do, and building it in 21.5 hours with a stack I'm genuinely confident in felt like a quiet milestone. Not dramatic. Just satisfying. A thing I wanted to make for a long time, made.
+
+There's still a long way to go. This is a v1 in every sense. The data needs to grow (there are hundreds of programs globally, not just 11). The community features need to prove themselves. The scraping pipeline needs to run through a few monthly cycles before I trust it fully.
+
+But the thing exists now. It works. And the up-front system design investment that made it possible to do so quickly and stably will be a habit going forward.
+
+A note on the name. This project originally started as "YACTracker," inspired by the YAC (Young Artist Community) Tracker Facebook group that has been a tremendous resource for singers navigating this world. The group's leader is preparing to launch something of their own at [yactracker.com](https://yactracker.com), and I'm looking forward to seeing what it becomes. Young Artist Community at [youngartist.community](https://youngartist.community) is its own thing, but I wanted to acknowledge a big part of the inspiration.
+
+![A program detail page with reviews and audition cards](/images/blog/yactracker/program-detail.png)
+
+## Links
+
+The repo is on [GitHub](https://github.com/mojoro/yactracker), and the app is live at [youngartist.community](https://youngartist.community).
+
+If you read the whole post, thank you, and I hope to see you in the next one. If you're a singer, teacher, or program administrator and you'd like to contribute data or feedback, I would love to hear from you. Reach out on [LinkedIn](https://www.linkedin.com/in/john-moorman) or at [john@johnmoorman.com](mailto:john@johnmoorman.com), or even [schedule a meeting](https://johnmoorman.com/#schedule).
