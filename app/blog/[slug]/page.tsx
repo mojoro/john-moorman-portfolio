@@ -1,6 +1,7 @@
 import { getPosts, getPost } from "@/lib/content"
 import { extractHeadings, slugify } from "@/lib/toc"
 import { MDXRemote } from "next-mdx-remote/rsc"
+import remarkGfm from "remark-gfm"
 import { LightboxProvider } from "@/components/lightbox-provider"
 import { MdxImage } from "@/components/mdx-image"
 import { MdxAudio } from "@/components/mdx-audio"
@@ -54,6 +55,11 @@ const mdxComponents = {
   ),
   h3: ({ children }: { children: React.ReactNode }) => (
     <h3 id={slugify(extractText(children))}>{children}</h3>
+  ),
+  table: (props: React.ComponentProps<"table">) => (
+    <div className="overflow-x-auto">
+      <table {...props} />
+    </div>
   ),
 }
 
@@ -125,7 +131,7 @@ export default async function BlogPost({ params }: Props) {
           <div className="min-w-0 lg:flex-1">
             <LightboxProvider>
               <div className="prose-custom">
-                <MDXRemote source={post.content} components={mdxComponents} />
+                <MDXRemote source={post.content} components={mdxComponents} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
               </div>
             </LightboxProvider>
           </div>

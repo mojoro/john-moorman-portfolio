@@ -4,6 +4,7 @@ import { useState } from "react"
 import type React from "react"
 import ReactMarkdown from "react-markdown"
 import rehypeRaw from "rehype-raw"
+import remarkGfm from "remark-gfm"
 import { MdxAudio } from "@/components/mdx-audio"
 
 interface MdxEditorProps {
@@ -66,8 +67,16 @@ export function MdxEditor({ content, onChange }: MdxEditorProps) {
           <div className="h-full overflow-y-auto rounded-lg border border-border bg-bg-surface">
             <div className="prose-custom max-w-none px-6 py-4">
               <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
-                components={{ audio: MdxAudio as React.ElementType }}
+                components={{
+                  audio: MdxAudio as React.ElementType,
+                  table: (props: React.ComponentProps<"table">) => (
+                    <div className="overflow-x-auto">
+                      <table {...props} />
+                    </div>
+                  ),
+                }}
               >
                 {normalizeContent(content)}
               </ReactMarkdown>
