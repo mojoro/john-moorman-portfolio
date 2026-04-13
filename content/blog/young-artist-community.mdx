@@ -22,9 +22,11 @@ Then I changed careers. And instead of auditioning at BOA, I was running its adm
 
 **Young Artist Community** comes from both sides.
 
+<OgLink url="https://youngartist.community/" /> 
+
 ## What It Is
 
-[Young Artist Community](https://youngartist.community) is a directory and review platform for Young Artist Programs in classical music and opera. YAPs are competitive summer residencies, apprenticeships, and training intensives where emerging professional singers and instrumentalists develop their craft. Programs like [Aspen Music Festival](https://www.aspenmusicfestival.com/), [Tanglewood Music Center](https://www.bso.org/tmc), [Santa Fe Opera](https://www.santafeopera.org/), and [Merola Opera Program](https://merola.org/).
+[Young Artist Community](https://youngartist.community/) is a directory and review platform for Young Artist Programs in classical music and opera. YAPs are competitive summer residencies, apprenticeships, and training intensives where emerging professional singers and instrumentalists develop their craft. Programs like [Aspen Music Festival](https://www.aspenmusicfestival.com/), [Tanglewood Music Center](https://www.bso.org/tmc), [Santa Fe Opera](https://www.santafeopera.org/), and [Merola Opera Program](https://merola.org/).
 
 The platform lets users browse and filter programs by instrument, category, location, tuition, scholarship availability, and application deadline. They can read and submit reviews from program alumni. They can view audition details. And they can submit new programs or edit existing ones, Wikipedia-style, with no account required. (Hopefully this will work out and nothing crazy will creep its way into the site!)
 
@@ -44,9 +46,11 @@ Young Artist Community aims to be the community-maintained directory that this n
 
 The speed wasn't from cutting corners. It was from planning.
 
-This was the first project in the 10-in-10 series where I invested serious time in system design before writing a single component. I started with an [OpenAPI 3.0.3 specification](https://swagger.io/specification/) (about 1,200 lines) that defined every endpoint, every request body, every response shape. I drew an ER diagram to map out the database schema in advance. And I studied [Zalando's RESTful API Guidelines](https://opensource.zalando.com/restful-api-guidelines/) to inform my API conventions.
+This was the first project in the 10-in-10 series where I invested serious time in system design before writing a single component. I started with a simple [C4 diagram](https://c4model.com/diagrams) (L1 and L2) to define the users and broad shape of the application. An [OpenAPI 3.0.3 specification](https://swagger.io/specification/) (about 1,200 lines) that defined every endpoint, every request body, every response shape, adhering to the relevant rules from [Zalando's RESTful API Guidelines](https://opensource.zalando.com/restful-api-guidelines/). I drew an ERD (Entity Relationship Diagram) with [Mermaid](https://mermaid.ai/open-source/intro/syntax-reference.html) to map out the database schema in advance. 
 
-The payoff was immediate. With the data model defined, the API spec written, and the conventions decided, the implementation phase was almost mechanical. The 10 route handler files for the entire API layer went in within about 10 minutes. The seed script, the UI pages, and the filtering logic all followed the shapes that were already decided. There was very little backtracking because the major decisions were made upfront, not discovered mid-build. When an addition or revision was needed, it was simple to implement because the foundation was solid.
+![Entity-relationship diagram for the Young Artist Community database schema](/images/blog/young-artist-community/erd.png)
+
+After the hours of initial planning, the payoff was immediate. With the data model defined, the API spec written, and the conventions decided, the implementation phase was almost mechanical. The 10 route handler files for the entire API layer went in within about 10 minutes. The seed script, the UI pages, and the filtering logic all followed the shapes that were already decided. There was very little backtracking because the major decisions were made upfront, not discovered mid-build. When an addition or revision was needed, it was simple to implement because the foundation was solid.
 
 I noticed this pattern starting with the [Berlin Relocation Planner](/blog/relocation-calculator) a couple of weeks ago. Having the data defined in advance made that project go noticably more smoothly. This was even more so. The lesson is becoming a conviction: time spent on system design before implementation isn't overhead. It's the reason the implementation goes fast.
 
@@ -91,8 +95,6 @@ Key design decisions:
 
 The pipeline runs on a Vercel Cron job monthly, and the admin panel has a manual scrape button for when I want to trigger it immediately. There's also a re-extract button that re-runs the LLM on stored HTML without re-fetching, which is useful for testing prompt improvements.
 
-{/* TODO: admin import panel screenshot — needs auth */}
-
 ### Wikipedia-Style Editing
 
 Programs can be edited by anyone without authentication. Anyone can create a program, even with just a name. Anyone can edit any field on any program. Changes go live immediately.
@@ -133,7 +135,7 @@ Each palette fills four color roles (brand, accent, tag, success) through CSS cu
 
 It was fun to cycle among them and refine my eye for color pairings. Outside of the teal and blue, nice light mode palettes seem to evade me more than dark mode ones, so I intentionally made myself work with that constraint.
 
-I'm especially proud of the logo: a resonating tuning fork, implemented as inline SVG using the palette tokens so it shifts with whatever theme is active. It felt right for a music platform. Not a treble clef (overdone), not a music note (too generic). A stylized tuning fork as a Y to match the first letter of the site (perfect).
+I'm especially happy with the logo: a resonating tuning fork, implemented as inline SVG using the palette tokens so it shifts with whatever theme is active. It felt right for a music platform. Not a treble clef (overdone), not a music note (too generic). A stylized tuning fork as a Y to match the first letter of the site (perfect).
 
 ![Young Artist Community program directory with filters](/images/blog/young-artist-community/directory.png)
 
