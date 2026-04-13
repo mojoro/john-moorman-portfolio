@@ -1,11 +1,138 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type React from "react"
 import ReactMarkdown from "react-markdown"
 import rehypeRaw from "rehype-raw"
 import remarkGfm from "remark-gfm"
 import { MdxAudio } from "@/components/mdx-audio"
+import type { OgData } from "@/lib/og"
+
+// ── OG Link live preview ────────────────────────────────────────────────────
+
+const ogCache = new Map<string, OgData | null>()
+
+function OgLinkPreview({ url }: { url?: string }) {
+  const [og, setOg] = useState<OgData | null>(
+    url ? (ogCache.get(url) ?? null) : null,
+  )
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!url) return
+    if (ogCache.has(url)) {
+      setOg(ogCache.get(url)!)
+      return
+    }
+    setLoading(true)
+    fetch(`/api/og?url=${encodeURIComponent(url)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: OgData | null) => {
+        ogCache.set(url, data)
+        setOg(data)
+      })
+      .catch(() => {
+        ogCache.set(url, null)
+        setOg(null)
+      })
+      .finally(() => setLoading(false))
+  }, [url])
+
+  if (!url) return null
+
+  if (loading) {
+    return (
+      <div className="my-6 animate-pulse rounded-lg border border-border bg-bg-surface p-4">
+        <div className="h-3 w-24 rounded bg-bg-elevated" />
+        <div className="mt-2 h-4 w-48 rounded bg-bg-elevated" />
+      </div>
+    )
+  }
+
+  if (!og || !og.title) {
+    return (
+      <div className="og-link-card my-6 rounded-lg border border-border bg-bg-surface p-4">
+        <a
+          href={url}
+          className="block truncate text-sm text-accent"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {url}
+        </a>
+      </div>
+    )
+  }
+
+  const domain = new URL(url).hostname.replace(/^www\./, "")
+  const isBanner =
+    !!og.image &&
+    og.imageWidth >= 600 &&
+    og.imageHeight > 0 &&
+    og.imageWidth / og.imageHeight >= 1.5
+
+  const meta = (
+    <div className="flex min-w-0 flex-col justify-center gap-1.5 p-4">
+      <span className="font-mono text-xs text-text-muted">
+        {og.siteName || domain}
+      </span>
+      <span className="line-clamp-2 font-display font-semibold text-text-primary">
+        {og.title}
+      </span>
+      {og.description && (
+        <span className="line-clamp-2 text-sm text-text-secondary">
+          {og.description}
+        </span>
+      )}
+    </div>
+  )
+
+  if (isBanner) {
+    return (
+      <div className="og-link-card my-6 overflow-hidden rounded-lg border border-border bg-bg-surface">
+        <div
+          className="w-full overflow-hidden"
+          style={{ aspectRatio: `${og.imageWidth} / ${og.imageHeight}` }}
+        >
+          <img
+            src={og.image}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </div>
+        {meta}
+      </div>
+    )
+  }
+
+  if (og.image) {
+    return (
+      <div className="og-link-card my-6 flex flex-col overflow-hidden rounded-lg border border-border bg-bg-surface sm:flex-row">
+        <div className="h-[120px] shrink-0 sm:h-auto sm:w-[160px]">
+          <img
+            src={og.image}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </div>
+        {meta}
+      </div>
+    )
+  }
+
+  return (
+    <div className="og-link-card my-6 overflow-hidden rounded-lg border border-border bg-bg-surface">
+      {meta}
+    </div>
+  )
+}
+
+/* Custom element components that aren't in ReactMarkdown's type map */
+const customElements: Record<string, React.ElementType> = {
+  oglink: OgLinkPreview,
+}
+
+// ── Editor ──────────────────────────────────────────────────────────────────
 
 interface MdxEditorProps {
   content: string
@@ -18,7 +145,9 @@ type Tab = "edit" | "preview"
    non-void elements. <Audio .../> becomes an unclosed <audio> that
    swallows all following content. Pre-convert to explicit closing tags. */
 function normalizeContent(raw: string) {
-  return raw.replace(/<Audio\b([^>]*?)\/>/g, "<audio$1></audio>")
+  return raw
+    .replace(/<Audio\b([^>]*?)\/>/g, "<audio$1></audio>")
+    .replace(/<OgLink\b([^>]*?)\/>/g, "<oglink$1></oglink>")
 }
 
 export function MdxEditor({ content, onChange }: MdxEditorProps) {
@@ -70,6 +199,7 @@ export function MdxEditor({ content, onChange }: MdxEditorProps) {
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
                 components={{
+                  ...customElements,
                   audio: MdxAudio as React.ElementType,
                   table: (props: React.ComponentProps<"table">) => (
                     <div className="overflow-x-auto">
