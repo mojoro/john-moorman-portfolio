@@ -835,24 +835,42 @@ function draw(time: number) {
 
   // Content readability vignette — applied once across the full canvas so the
   // seam boundary between tiles gets the same treatment as any other row.
+  // Range 0–1: controls peak knockout alpha at center.
+  // Range 1–2: the fully-opaque zone expands outward toward the edges until
+  //            the entire canvas is knocked out at 2.0.
   const isMobile = w < 768
-  const fadeStrength = fadeStrengthOverride ?? (isLightMode ? (isMobile ? 0.66 : 0.42) : 0.78)
-  const fadeEdge = isLightMode ? (isMobile ? 0.54 : 0.30) : 0.72
+  const raw = fadeStrengthOverride ?? (isLightMode ? (isMobile ? 1.16 : 1.16) : 0.78)
+  const peak = Math.min(raw, 1)
+  const spread = Math.max(0, raw - 1)
+
   ctx.globalCompositeOperation = "destination-out"
   const bandFade = ctx.createLinearGradient(0, 0, w, 0)
+
   if (isLightMode && isMobile) {
-    bandFade.addColorStop(0, `rgba(0,0,0,${fadeEdge})`)
-    bandFade.addColorStop(0.5, `rgba(0,0,0,${fadeStrength})`)
-    bandFade.addColorStop(1, `rgba(0,0,0,${fadeEdge})`)
+    const baseEdge = 0.54
+    const edgeA = Math.min(baseEdge + spread * (peak - baseEdge), 1)
+    bandFade.addColorStop(0, `rgba(0,0,0,${edgeA.toFixed(3)})`)
+    bandFade.addColorStop(0.5, `rgba(0,0,0,${peak})`)
+    bandFade.addColorStop(1, `rgba(0,0,0,${edgeA.toFixed(3)})`)
   } else {
+    const baseEdge = isLightMode ? 0.30 : 0.72
+    const edgeA = Math.min(baseEdge + spread * (peak - baseEdge), 1)
+    // Transparent margin, transition zone, and peak zone compress toward
+    // the edges as spread grows from 0 to 1.
+    const a = 0.10 * (1 - spread)
+    const b = Math.max(a, 0.18 * (1 - spread))
+    const c = Math.max(b, 0.50 * (1 - spread))
     bandFade.addColorStop(0, "rgba(0,0,0,0)")
-    bandFade.addColorStop(0.1, "rgba(0,0,0,0)")
-    bandFade.addColorStop(0.18, `rgba(0,0,0,${fadeEdge})`)
-    bandFade.addColorStop(0.5, `rgba(0,0,0,${fadeStrength})`)
-    bandFade.addColorStop(0.82, `rgba(0,0,0,${fadeEdge})`)
-    bandFade.addColorStop(0.9, "rgba(0,0,0,0)")
+    bandFade.addColorStop(a, "rgba(0,0,0,0)")
+    bandFade.addColorStop(b, `rgba(0,0,0,${edgeA.toFixed(3)})`)
+    bandFade.addColorStop(c, `rgba(0,0,0,${peak})`)
+    bandFade.addColorStop(0.5, `rgba(0,0,0,${peak})`)
+    bandFade.addColorStop(1 - c, `rgba(0,0,0,${peak})`)
+    bandFade.addColorStop(1 - b, `rgba(0,0,0,${edgeA.toFixed(3)})`)
+    bandFade.addColorStop(1 - a, "rgba(0,0,0,0)")
     bandFade.addColorStop(1, "rgba(0,0,0,0)")
   }
+
   ctx.fillStyle = bandFade
   ctx.fillRect(0, 0, w, h * 2)
   ctx.globalCompositeOperation = "source-over"

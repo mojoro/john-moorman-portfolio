@@ -427,7 +427,7 @@ export default function CircuitConfigPage() {
               <Slider label="Glow intensity" value={glowIntensity} min={0} max={3} step={0.05} onChange={onGlowIntensity} format={mult} />
               <Slider label="Glow radius" value={glowRadius} min={0.1} max={5} step={0.05} onChange={onGlowRadius} format={mult} />
               <Slider label="Glow speed" value={glowSpeed} min={0} max={5} step={0.05} onChange={onGlowSpeed} format={mult} />
-              <Slider label="Vignette" value={fadeStrength} min={0} max={1} step={0.01} onChange={onFadeStrength} format={fixed2} />
+              <Slider label="Vignette" value={fadeStrength} min={0} max={2} step={0.01} onChange={onFadeStrength} format={fixed2} />
             </Section>
 
             <div className="border-t border-border/50" />

@@ -180,6 +180,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
 
     let cachedR = 100, cachedG = 255, cachedB = 218
     let traceColor = "", padColor = "", isLightMode = false
+    let fadeOverride: number | null = null
 
     function updateColors() {
       isLightMode = getTheme() === "light"
@@ -334,19 +335,26 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       // Tile 2: copy tile 1 before applying vignette so both tiles get identical content
       ctx.drawImage(canvas, 0, 0, w * dpr, h * dpr, 0, h, w, h)
 
-      // Horizontal vignette applied once across the full canvas so the seam
-      // boundary gets the same treatment as every other row.
+      // Horizontal vignette — same extended-range logic as the worker path.
       const isMobile = w < 768
-      const fadeStrength = isLightMode ? (isMobile ? 0.66 : 0.42) : 0.78
-      const fadeEdge = isLightMode ? (isMobile ? 0.54 : 0.30) : 0.72
+      const raw = fadeOverride ?? (isLightMode ? (isMobile ? 1.16 : 1.16) : 0.78)
+      const peak = Math.min(raw, 1)
+      const spread = Math.max(0, raw - 1)
       ctx.globalCompositeOperation = "destination-out"
       const bandFade = ctx.createLinearGradient(0, 0, w, 0)
       if (isLightMode && isMobile) {
-        bandFade.addColorStop(0, `rgba(0,0,0,${fadeEdge})`); bandFade.addColorStop(0.5, `rgba(0,0,0,${fadeStrength})`); bandFade.addColorStop(1, `rgba(0,0,0,${fadeEdge})`)
+        const baseEdge = 0.54
+        const edgeA = Math.min(baseEdge + spread * (peak - baseEdge), 1)
+        bandFade.addColorStop(0, `rgba(0,0,0,${edgeA.toFixed(3)})`); bandFade.addColorStop(0.5, `rgba(0,0,0,${peak})`); bandFade.addColorStop(1, `rgba(0,0,0,${edgeA.toFixed(3)})`)
       } else {
-        bandFade.addColorStop(0, "rgba(0,0,0,0)"); bandFade.addColorStop(0.1, "rgba(0,0,0,0)")
-        bandFade.addColorStop(0.18, `rgba(0,0,0,${fadeEdge})`); bandFade.addColorStop(0.5, `rgba(0,0,0,${fadeStrength})`)
-        bandFade.addColorStop(0.82, `rgba(0,0,0,${fadeEdge})`); bandFade.addColorStop(0.9, "rgba(0,0,0,0)"); bandFade.addColorStop(1, "rgba(0,0,0,0)")
+        const baseEdge = isLightMode ? 0.30 : 0.72
+        const edgeA = Math.min(baseEdge + spread * (peak - baseEdge), 1)
+        const a = 0.10 * (1 - spread), b = Math.max(a, 0.18 * (1 - spread)), c = Math.max(b, 0.50 * (1 - spread))
+        bandFade.addColorStop(0, "rgba(0,0,0,0)"); bandFade.addColorStop(a, "rgba(0,0,0,0)")
+        bandFade.addColorStop(b, `rgba(0,0,0,${edgeA.toFixed(3)})`); bandFade.addColorStop(c, `rgba(0,0,0,${peak})`)
+        bandFade.addColorStop(0.5, `rgba(0,0,0,${peak})`)
+        bandFade.addColorStop(1 - c, `rgba(0,0,0,${peak})`); bandFade.addColorStop(1 - b, `rgba(0,0,0,${edgeA.toFixed(3)})`)
+        bandFade.addColorStop(1 - a, "rgba(0,0,0,0)"); bandFade.addColorStop(1, "rgba(0,0,0,0)")
       }
       ctx.fillStyle = bandFade; ctx.fillRect(0, 0, w, h * 2)
       ctx.globalCompositeOperation = "source-over"
@@ -364,9 +372,10 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
     // Fallback config handler — subset of worker capabilities
     const onConfig2 = (e: Event) => {
       const d = (e as CustomEvent<Record<string, unknown>>).detail
-      if (d.reset) { updateColors(); requestGenerate(true); return }
+      if (d.reset) { updateColors(); fadeOverride = null; requestGenerate(true); return }
       if (typeof d.traceAlpha === "number") traceColor = `rgba(${cachedR},${cachedG},${cachedB},${d.traceAlpha})`
       if (typeof d.padAlpha === "number") padColor = `rgba(${cachedR},${cachedG},${cachedB},${d.padAlpha})`
+      if (typeof d.fadeStrength === "number") fadeOverride = d.fadeStrength
       if (typeof d.density === "number") requestGenerate(true)
       if (reducedMotion && ready) draw(0)
     }
