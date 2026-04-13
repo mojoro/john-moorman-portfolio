@@ -204,6 +204,24 @@ body {
   margin: 2rem 0;
 }
 
+/* OG link card — reset prose link + image styles */
+.prose-custom .og-link-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+.prose-custom .og-link-card:hover {
+  text-decoration: none;
+}
+
+.prose-custom .og-link-card img {
+  max-height: none;
+  width: 100%;
+  margin-inline: 0;
+  object-fit: cover;
+  margin: 0;
+}
+
 /* Print button shimmer */
 @keyframes shimmer {
   0% { background-position: -200% center; }

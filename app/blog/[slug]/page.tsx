@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm"
 import { LightboxProvider } from "@/components/lightbox-provider"
 import { MdxImage } from "@/components/mdx-image"
 import { MdxAudio } from "@/components/mdx-audio"
+import { OgLink } from "@/components/mdx-og-link"
 import { TableOfContents } from "@/components/table-of-contents"
 import { TagPill } from "@/components/tag-pill"
 import { CommentList } from "@/components/comment-list"
@@ -36,6 +37,7 @@ function extractText(children: React.ReactNode): string {
 const mdxComponents = {
   img: MdxImage,
   Audio: MdxAudio,
+  OgLink,
   p: ({ children }: { children: React.ReactNode }) => {
     const hasImage = Array.isArray(children)
       ? children.some((c) => typeof c === "object" && c !== null && "type" in c && (c as React.ReactElement).type === MdxImage)
