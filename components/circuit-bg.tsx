@@ -337,7 +337,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
 
       // Horizontal vignette — same extended-range logic as the worker path.
       const isMobile = w < 768
-      const raw = fadeOverride ?? (isLightMode ? (isMobile ? 1.16 : 1.16) : 0.78)
+      const raw = fadeOverride ?? (isLightMode ? (isMobile ? 1.5 : 1.5) : 0.78)
       const peak = Math.min(raw, 1)
       const spread = Math.max(0, raw - 1)
       ctx.globalCompositeOperation = "destination-out"

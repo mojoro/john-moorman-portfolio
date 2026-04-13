@@ -839,7 +839,7 @@ function draw(time: number) {
   // Range 1–2: the fully-opaque zone expands outward toward the edges until
   //            the entire canvas is knocked out at 2.0.
   const isMobile = w < 768
-  const raw = fadeStrengthOverride ?? (isLightMode ? (isMobile ? 1.16 : 1.16) : 0.78)
+  const raw = fadeStrengthOverride ?? (isLightMode ? (isMobile ? 1.5 : 1.5) : 0.78)
   const peak = Math.min(raw, 1)
   const spread = Math.max(0, raw - 1)
 
