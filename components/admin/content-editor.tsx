@@ -78,12 +78,22 @@ export function ContentEditor({
 
   return (
     <div>
-      <Link
-        href="/admin/content"
-        className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
-      >
-        &larr; Back
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          href="/admin/content"
+          className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
+        >
+          &larr; Back
+        </Link>
+        <a
+          href={`/${type}/${slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
+        >
+          View &rarr;
+        </a>
+      </div>
 
       {/* Title + save */}
       <div className="mt-3 mb-4 flex items-center justify-between">
