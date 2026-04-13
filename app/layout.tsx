@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/sidebar"
 import { ChatPanelLazy } from "@/components/chat-panel-lazy"
 
 import { Analytics } from "@vercel/analytics/react"
+import Script from "next/script"
 import { CircuitBgLazy } from "@/components/circuit-bg-lazy"
 import { PrefetchRoutes } from "@/components/prefetch-routes"
 import { getPosts } from "@/lib/content"
@@ -141,6 +142,12 @@ export default async function RootLayout({
             </>
           )}
           <Analytics />
+          <Script
+            defer
+            src="https://umami-ek8u.vercel.app/script.js"
+            data-website-id="b5ed7964-94ba-48bd-b087-01adfd7a68dc"
+            strategy="afterInteractive"
+          />
         </ThemeProvider>
       </body>
     </html>
