@@ -8,50 +8,41 @@ challenge: "10-in-10"
 week: 2
 ---
 
-## Why Rebuild
+My previous portfolio was a flat HTML/CSS/JS single-page site. Functional, but it contradicted my resume: I claimed Next.js and TypeScript expertise while the site itself used neither. The rebuild eliminates that incongruence. Content pipeline, streaming AI chatbot, the whole thing statically generated and tuned for performance.
 
-My previous portfolio was a flat HTML/CSS/JS single-page site. Functional, but it contradicted my resume: I claimed Next.js and TypeScript expertise while the site itself used neither. The rebuild closes that credibility gap and turns the portfolio into a proof of skill.
+## What It Does
 
-Before writing a line of code, I studied [Brittany Chiang's v4 portfolio](https://v4.brittanychiang.com) and [Terry Godier's work](https://terrygodier.com) to understand what makes a developer portfolio feel credible. Brittany's site left a heavy mark on this one: the navy and mint palette, the Syne / DM Sans / JetBrains Mono type stack, the numbered sidebar nav, and the hero layout are all directly inspired by v4. From Terry, I took editorial depth and case study structure. The rest (chatbot, MDX pipeline, circuit background, everything server-side) is my own.
+**Static content pipeline.** Landing, work case studies, and blog posts live as MDX files in the repo. New writing is a commit, not a CMS round trip.
 
-## Technical Decisions
+**Ask John chatbot.** A streaming assistant that answers questions about my experience in my voice, powered by Claude Sonnet 4. Wrapped in seven cost-protection layers so a runaway prompt cannot drain the API budget.
 
-**Next.js 15 App Router** with TypeScript strict mode. Server Components where appropriate, client components only where interactivity requires it. Static generation via `generateStaticParams` for all content pages.
+**Dual palette design.** Navy and mint in dark mode, warmer tones in light, a custom Syne / DM Sans / JetBrains Mono type stack, a numbered sidebar nav, and an editorial case-study layout. The theme switch is driven end-to-end by CSS custom properties.
 
-**Tailwind CSS v4** with CSS custom property design tokens for the dual dark/light palette. No `@apply`, utility classes throughout, with a custom `.prose-custom` class for MDX content styling.
+**Considered motion.** Staggered hero reveal, scroll-triggered section entrances, a spring-physics chat panel, hover interactions. All gated behind `useReducedMotion` so anyone with motion sensitivity gets a still site.
 
-**MDX content pipeline** using `next-mdx-remote` and `gray-matter`. Blog posts and case studies live as `.mdx` files in the repo, are statically generated at build time, and support draft mode for local previewing.
+## Technical Approach
 
-**Framer Motion** for meaningful animations: staggered hero reveal, scroll-triggered section entrances, spring-physics chat panel, hover interactions. All wrapped in `useReducedMotion` checks.
+Next.js 15 App Router with TypeScript strict. Server Components where possible, client components only where interactivity demands them, all content pages statically generated via `generateStaticParams`. Tailwind CSS v4 with design tokens for the dual palette, utility classes throughout, no `@apply`. MDX runs on `next-mdx-remote` and `gray-matter`, with a custom `.prose-custom` class handling long-form content styling. Framer Motion animates, reduced-motion checked throughout.
 
-## The Ask John Chatbot
+The chatbot was the interesting puzzle. It runs on the Edge runtime for low cold-start latency, streams via a native `ReadableStream` (no Vercel AI SDK dependency), and is wrapped in seven layers of cost and abuse protection:
 
-The headline feature. A streaming AI chatbot powered by `claude-sonnet-4-20250514` that answers questions about my experience in my voice.
+- Sliding-window rate limiting via Upstash Redis (10 requests per IP per hour)
+- Input and output token caps
+- Conversation length limits
+- Honeypot field
+- Timing-based bot detection
+- Input sanitization
+- Origin checking
 
-**Architecture:**
-- Edge runtime route handler for low cold-start latency
-- Streaming via `ReadableStream`, no Vercel AI SDK dependency
-- Seven protection layers: Upstash Redis rate limiting, input/output token caps, conversation length limits, honeypot, timing-based bot detection, input sanitization, and origin checking
-- Conversations logged to Neon Postgres for review
+Conversations log non-blocking to Neon Postgres so the write never slows the stream. Keeping all of that coordinated without adding noticeable latency was the real work.
 
-The most interesting technical challenge was the cost protection infrastructure. Setting up Upstash Redis for sliding-window rate limiting (10 requests per IP per hour) and Neon Postgres for conversation logging required integrating two external services at the edge runtime layer while keeping cold-start latency low. The rate limiter needed to work on Vercel's Edge Functions with the `@upstash/ratelimit` package, and the Postgres logging needed to be non-blocking so it wouldn't slow down the streaming response. Getting all seven protection layers to work together without adding noticeable latency was the real puzzle.
+Homepage scores 95+ on Lighthouse. `next/font/google` for zero-FOUT font loading, dynamic import for the chat panel so it is not in the first-paint bundle, static generation everywhere, and Next.js Image optimization inside MDX.
 
-## Performance
+### Credits
 
-The homepage scores **95+ on Lighthouse**.
+The visual and structural DNA of this site comes from [Brittany Chiang's v4 portfolio](https://v4.brittanychiang.com). The navy palette, the Syne / DM Sans / JetBrains Mono type stack, the numbered sidebar, and the hero layout all descend directly from her work. Her [source is on GitHub](https://github.com/bchiang7/v4), and her only ask is a link back. Consider this that link, and then some: go look at her portfolio, it is the reason this one exists. Case-study structure takes a cue from [Terry Godier](https://terrygodier.com).
 
-- `next/font/google` for zero-FOUT font loading (Syne, DM Sans, JetBrains Mono)
-- Dynamic import for the chat panel, not loaded until needed
-- Static generation for all content pages
-- Image optimization via Next.js Image component in MDX
+### Links
 
-## Credits
-
-Huge thanks to [Brittany Chiang](https://brittanychiang.com), whose [v4 portfolio](https://v4.brittanychiang.com) is the visual and structural reference this site is built on. The navy palette, type stack, numbered sidebar, and hero section are all direct descendants of her work. Her [source is on GitHub](https://github.com/bchiang7/v4), and her only ask for anyone borrowing from it is a link back to her site. Consider this that link, and then some: go look at her portfolio, it is the reason this one exists.
-
----
-
-**Links**
-
-- ↗ [GitHub repository](https://github.com/mojoro/john-moorman-portfolio)
-- ↗ [Live site](https://johnmoorman.com)
+- [Live Site](https://johnmoorman.com)
+- [GitHub](https://github.com/mojoro/john-moorman-portfolio)
