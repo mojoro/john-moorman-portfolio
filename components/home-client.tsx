@@ -403,6 +403,18 @@ export function HomeClient({
           <p className="text-xs text-text-muted">
             Built with Next.js, TypeScript &amp; Tailwind CSS.
           </p>
+          <p className="text-xs text-text-muted">
+            Design inspired by{" "}
+            <a
+              href="https://v4.brittanychiang.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-accent"
+            >
+              Brittany Chiang&apos;s v4
+            </a>
+            .
+          </p>
         </div>
       </footer>
     </main>
