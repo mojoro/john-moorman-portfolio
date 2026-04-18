@@ -47,6 +47,59 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
     const cw = getCanvasW()
     const ch = window.innerHeight
 
+    // ── Scroll-driven parallax ──────────────────────────────────────────
+    // Firefox (and some older browsers) don't support animation-timeline:
+    // scroll() reliably, so CSS parallax doesn't kick in. We drive translateY
+    // from JS when that's the case. The math mirrors the CSS keyframe so the
+    // pointer-offset calc in getScrollOffsetY stays consistent across paths.
+    const supportsScrollTimeline =
+      typeof CSS !== "undefined" &&
+      typeof CSS.supports === "function" &&
+      CSS.supports("animation-timeline: scroll()")
+
+    const updateScrollTravel = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight
+      if (scrollable <= 0) {
+        canvas.style.setProperty("--circuit-max-translate", "0%")
+        if (!supportsScrollTimeline) canvas.style.transform = "translateY(0)"
+        return
+      }
+      const ratio = Math.min(scrollable / window.innerHeight, 1)
+      canvas.style.setProperty("--circuit-max-translate", `${(-ratio * 50).toFixed(2)}%`)
+    }
+
+    let scrollRaf = 0
+    const applyScrollFallback = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight
+      if (scrollable <= 0) { canvas.style.transform = "translateY(0)"; return }
+      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
+      const progress = Math.min(Math.max(scrollTop / scrollable, 0), 1)
+      const ratio = Math.min(scrollable / window.innerHeight, 1)
+      canvas.style.transform = `translateY(${(-ratio * 50 * progress).toFixed(3)}%)`
+    }
+    const onScrollFallback = () => {
+      if (scrollRaf) return
+      scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; applyScrollFallback() })
+    }
+
+    updateScrollTravel()
+    if (!supportsScrollTimeline) {
+      applyScrollFallback()
+      window.addEventListener("scroll", onScrollFallback, { passive: true })
+    }
+
+    const bodyResizeObs = new ResizeObserver(() => {
+      updateScrollTravel()
+      if (!supportsScrollTimeline) applyScrollFallback()
+    })
+    bodyResizeObs.observe(document.body)
+
+    const detachScroll = () => {
+      if (scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = 0 }
+      if (!supportsScrollTimeline) window.removeEventListener("scroll", onScrollFallback)
+      bodyResizeObs.disconnect()
+    }
+
     // ── Primary path: OffscreenCanvas ──────────────────────────────────────
 
     if (typeof canvas.transferControlToOffscreen === "function") {
@@ -97,24 +150,6 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       }
       window.addEventListener("circuit-config", onConfig)
 
-      // ── Scroll-travel capping ─────────────────────────────────────────
-      // The CSS scroll-driven animation maps 0–100% scroll progress to
-      // translateY(var(--circuit-max-translate)). On short pages we cap the
-      // travel so the background doesn't zoom past at high speed.
-      const updateScrollTravel = () => {
-        const scrollable = document.documentElement.scrollHeight - window.innerHeight
-        if (scrollable <= 0) {
-          canvas.style.setProperty("--circuit-max-translate", "0%")
-          return
-        }
-        const ratio = Math.min(scrollable / window.innerHeight, 1)
-        canvas.style.setProperty("--circuit-max-translate", `${(-ratio * 50).toFixed(2)}%`)
-      }
-      updateScrollTravel()
-
-      const bodyResizeObs = new ResizeObserver(updateScrollTravel)
-      bodyResizeObs.observe(document.body)
-
       // ── Cursor responsiveness ────────────────────────────────────────────
       const getScrollOffsetY = () => {
         const scrollable = document.documentElement.scrollHeight - window.innerHeight
@@ -147,7 +182,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
         window.removeEventListener("circuit-config", onConfig)
         window.removeEventListener("mousemove", onMouseMove)
         window.removeEventListener("click", onClick)
-        bodyResizeObs.disconnect()
+        detachScroll()
         obs.disconnect()
         worker.terminate()
       }
@@ -386,6 +421,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
         genWorker.terminate()
         window.removeEventListener("resize", onResize)
         window.removeEventListener("circuit-config", onConfig2)
+        detachScroll()
         obs.disconnect()
       }
     }
@@ -400,6 +436,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       genWorker.terminate()
       window.removeEventListener("resize", onResize)
       window.removeEventListener("circuit-config", onConfig2)
+      detachScroll()
       obs.disconnect()
     }
   }, [generation]) // eslint-disable-line react-hooks/exhaustive-deps
