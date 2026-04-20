@@ -17,7 +17,7 @@ tags:
 draft: false
 ---
 
-Growing up, Uno was pretty much the only card game of this sort I knew. My siblings and I played a lot of board games and other card games like ERS, BS, Go Fish, etc., but somehow Skip-Bo, dsespite being around since the 80s and made by Mattel (same company that makes Uno), never made its way into the house. I didn't actually play it until December 2023, when my then-fiancée and I were back in Texas visiting my family for the holidays. My sister introduced us to the game, my wife took to it immediately, and by the end of the trip my sister had said "merry Christmas" and handed her the deck. We've been carrying it around ever since. It comes out when we travel, when guests are over, when we're bored. Of course, we go through phases, but it keeps coming back.
+Growing up, Uno was pretty much the only card game of this sort I knew. My siblings and I played a lot of board games and other card games like ERS, BS, Go Fish, etc., but somehow Skip-Bo, despite being around since the 80s and made by Mattel (same company that makes Uno), never made its way into the house. I didn't actually play it until December 2023, when my then-fiancée and I were back in Texas visiting my family for the holidays. My sister introduced us to the game, my wife took to it immediately, and by the end of the trip my sister had said "merry Christmas" and handed her the deck. We've been carrying it around ever since. It comes out when we travel, when guests are over, when we're bored. Of course, we go through phases, but it keeps coming back.
 
 (If you've never played, here's a brief summary. It's similar to Uno in that you race to empty a stock pile by playing cards 1 through 12 in sequence, but color doesn't matter and you have four shared build piles. There are wild cards that can be any number. Turns end on a discard. Whoever empties their stock first wins.)
 
@@ -55,19 +55,19 @@ The mobile layout is different on purpose. A full tabletop does not belong on a 
 
 This was an interview-prep project, and it had a specific origin story. In a recent interview, I was asked, "Your work is really cool, but it looks like you've been mostly frontend focused. Have you ever deployed to AWS or something similar?" I couldn't honestly say yes. That conversation stuck with me, so when I was deciding on the project for this week, I asked myself what the best thing I could do to fill out my gaps would be, considered what would actually be fun to build, and came away with Skip-bo as the answer. I wanted a project where I could take a single, honest run at the deployment and networking layers I'd been abstracting away for years.
 
-If I had reached for Socket.IO or Colyseus or Vercel, I would have shipped faster and learned roughly nothing about any of the things that are actually holding me back.
+If I had reached for [Socket.IO](https://socket.io/) or [Colyseus](https://colyseus.io/) or [Vercel](https://vercel.com/), I would have shipped faster and learned roughly nothing about any of the things that are actually holding me back.
 
 So the ground rules:
 
-- No managed game-networking framework. Raw `ws@8` on the server. A small client hook for reconnects, backpressure, and resume-on-visibility.
-- No Vercel for the game server. A single `t4g.small` in `eu-central-1`, Docker Compose, nginx on the host terminating TLS, Let's Encrypt for the certificate.
+- No managed game-networking framework. Raw [`ws@8`](https://github.com/websockets/ws) on the server. A small client hook for reconnects, backpressure, and resume-on-visibility.
+- No Vercel for the game server. A single `t4g.small` in `eu-central-1`, [Docker Compose](https://docs.docker.com/compose/), [nginx](https://nginx.org/) on the host terminating TLS, [Let's Encrypt](https://letsencrypt.org/) for the certificate.
 - No Socket.IO. If the browser couldn't negotiate a real WebSocket through nginx, I wanted to feel exactly which header I'd forgotten.
 
 I hit every one of those walls at least once. That was the point.
 
 ### The Engine
 
-Before worrying about any of the networking, I moved quickly with the tools I'm most familiar with, node.js and next.js, to get a working demo. Before any UI, I find it is best practice to build the game logic such that you can play it through the console.
+Before worrying about any of the networking, I moved quickly with the tools I'm most familiar with, [Node.js](https://nodejs.org/) and [Next.js](https://nextjs.org/), to get a working demo. Before any UI, I find it is best practice to build the game logic such that you can play it through the console.
 
 ```typescript
 type GameEngine = {
@@ -77,7 +77,7 @@ type GameEngine = {
 }
 ```
 
-`applyAction(state, action)` takes the full game state and a move, and returns either the next state or a structured error. No side effects, no WebSocket awareness, no DOM. I was directed recently to [grugbrain.dev](https://grugbrain.dev) (hilarious and insightful read, written by the author of HTMX, Carson Gross) where he rails against the complexity demon getting out of its box, so this was part of my effort to keep things contained. I wrote it to be the kind of module you can open up, read top to bottom, and unit-test easily. ~60 Vitest cases cover the deck composition, the rule variants, every action type, the partnership permissions, the win conditions, and the per-player view that hides information the acting player shouldn't see (no peeking at opponents' hands).
+`applyAction(state, action)` takes the full game state and a move, and returns either the next state or a structured error. No side effects, no WebSocket awareness, no DOM. I was directed recently to [grugbrain.dev](https://grugbrain.dev) (hilarious and insightful read, written by the author of [HTMX](https://htmx.org/), Carson Gross) where he rails against the complexity demon getting out of its box, so this was part of my effort to keep things contained. I wrote it to be the kind of module you can open up, read top to bottom, and unit-test easily. ~60 [Vitest](https://vitest.dev/) cases cover the deck composition, the rule variants, every action type, the partnership permissions, the win conditions, and the per-player view that hides information the acting player shouldn't see (no peeking at opponents' hands).
 
 That effort paid for itself twice. Once when the client dispatched locally (hot-seat mode reuses the exact same function), and again when the server took over (the server calls the same `applyAction` on every move, validates it, and broadcasts the resulting view to each connected socket). Same contract, two deployments. The shared Board component in React doesn't care where the state comes from; it just reads a `SeatViewModel` and renders.
 
@@ -85,11 +85,11 @@ Deterministic shuffling matters for a card game. The server uses `mulberry32` se
 
 ### Drag and Drop, From Scratch
 
-I started with `@dnd-kit/react`. It works. It's well-designed. But it wasn't for this project. I only have one page where drag and drop is needed, and pulling in a whole library for that is inviting the complexity demon and is not worth the potential maintenance down the line. If one can, it is better to implement some things by hand. No package to update, no added weight to rebuild the project on a different machine years later, just a working solution that has no more or less than what the project needs.
+I started with [`@dnd-kit/react`](https://docs.dndkit.com/). It works. It's well-designed. But it wasn't for this project. I only have one page where drag and drop is needed, and pulling in a whole library for that is inviting the complexity demon and is not worth the potential maintenance down the line. If one can, it is better to implement some things by hand. No package to update, no added weight to rebuild the project on a different machine years later, just a working solution that has no more or less than what the project needs.
 
 So I ripped it out. In its place is a small stack under `src/lib/dnd/`:
 
-- A `DragDropProvider` that listens for pointer down/move/up/cancel at the window level.
+- A `DragDropProvider` that listens for pointer move/up/cancel at the window level.
 - A `useDraggable` hook that attaches a threshold-aware pointer-down handler to any element.
 - A `useDroppable` hook that registers its DOM node into a shared `Map` keyed by a stable id.
 - A `DragGhost` that gets imperatively transformed to follow the pointer.
@@ -111,7 +111,7 @@ Some of the details that seemed small until I needed them:
 
 - **Heartbeats at the protocol level.** `ws.ping()` / `ws.pong()` rather than a custom `PING` message. Browsers handle the pong transparently, and the server marks a connection dead if a heartbeat goes unanswered.
 - **A 16 KB `maxPayload`.** Frames bigger than the largest legitimate game action get dropped before the engine sees them.
-- **A token-bucket rate limiter.** Keyed by session id, per endpoint; compound (session + IP) on REST, IP-only on the WS upgrade, and implicit-per-socket once a connection is attached Prevents a chatty client or a bot from hammering the process.
+- **A token-bucket rate limiter.** Keyed by session id, per endpoint; compound (session + IP) on REST, IP-only on the WS upgrade, and implicit-per-socket once a connection is attached. Prevents a chatty client or a bot from hammering the process.
 - **A 60-second disconnect grace window.** If a player's connection drops mid-game, the seat stays theirs for a minute. A random-legal-move bot takes their turn if it comes up after the grace period, which keeps the game from stalling. They can rejoin any time before the game ends and claim their seat back.
 - **State version numbers on every broadcast.** Clients drop stale frames that arrive out of order. Not common on a healthy connection, but it costs nothing to add and saves you from weird ghost states when reconnect collides with a fresh broadcast.
 
@@ -123,14 +123,14 @@ The first "Aha!" moment of the project was watching the game state sync across t
 
 ### The Deploy
 
-This is the other part I was most underprepared for and learned the a lot from.
+This is the other part I was most underprepared for and learned a lot from.
 
 The production stack runs on a single `t4g.small` Amazon Linux 2023 instance in `eu-central-1`. Two Docker containers, composed by `docker-compose`: `web` is the Next.js standalone build, `srv` is the esbuilt WebSocket server. A host-level nginx terminates TLS and routes by path. Let's Encrypt issues the certificate via the webroot ACME challenge. Deploys run from my laptop with a two-script loop:
 
 - `deploy/bootstrap.sh` is one-time host setup (Docker, buildx, Compose, swap, cert, nginx).
 - `deploy/deploy.sh` is the repeatable deploy: git reset on the host, `docker compose up -d --build` to rebuild and replace the containers, nginx config sync, reload, health checks.
 
-Single-origin was a deliberate call. Everything (HTML, REST, SSE, WebSocket) lives at `https://skipbo.johnmoorman.com`. That kept CORS out of the architecture entirely, which is one less thing to think about when debugging. The Mozilla Intermediate 2026 TLS profile (TLS 1.2 and 1.3, two-year HSTS, security headers, no OCSP stapling because Let's Encrypt sunsetted OCSP on 2025-08-06) gave me an A on SSL Labs without any hand-tuning.
+Single-origin was a deliberate call. Everything (HTML, REST, SSE, WebSocket) lives at `https://skipbo.johnmoorman.com`. That kept CORS out of the architecture entirely, which is one less thing to think about when debugging. The [Mozilla Intermediate](https://ssl-config.mozilla.org/) 2026 TLS profile (TLS 1.2 and 1.3, two-year HSTS, security headers, no OCSP stapling because Let's Encrypt sunsetted OCSP on 2025-08-06) gave me an A on [SSL Labs](https://www.ssllabs.com/ssltest/) without any hand-tuning.
 
 The piece that was more difficult to chew through was the WebSocket upgrade through nginx. The handshake starts as a regular HTTP/1.1 request with two special headers:
 
@@ -178,7 +178,7 @@ A few that stood out:
 
 **The URL bar lock.** On the pre-game screen, the Start Game button sat below the fold and the iOS URL bar wouldn't dismiss because the page had `overflow: hidden` on `body`. Dropping that (plus moving to `100dvh` for the full-height container) let the URL bar collapse on scroll and put the button back in reach.
 
-**The chat keyboard.** The first version of the in-game chat dock was absolutely positioned inside the felt. When you focused the input on iOS, the virtual keyboard slid up and shoved the whole page with it. The fix was `position: fixed` plus the `visualViewport` API. On modern browsers that honor `interactiveWidget: 'resizes-content'`, the layout just shrinks and the dock stays put. On older iOS Safari (17.3 and earlier), `visualViewport.resize` fires when the keyboard opens, and the dock listens, computes the difference between layout height and visual viewport height, and floats above the keyboard at whatever offset the OS decided on today.
+**The chat keyboard.** The first version of the in-game chat dock was absolutely positioned inside the felt. When you focused the input on iOS, the virtual keyboard slid up and shoved the whole page with it. The fix was `position: fixed` plus the [`visualViewport`](https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport) API. On modern browsers that honor `interactiveWidget: 'resizes-content'`, the layout just shrinks and the dock stays put. On older iOS Safari (17.3 and earlier), `visualViewport.resize` fires when the keyboard opens, and the dock listens, computes the difference between layout height and visual viewport height, and floats above the keyboard at whatever offset the OS decided on today.
 
 **The empty `public/` directory.** This one is a bit silly. During the branding pass I deleted the last file in the Next.js `public/` folder. Git doesn't track empty directories. The host pulled `main`, the Dockerfile ran `COPY --from=build /app/public ./public`, and the build failed with `/app/public: not found`. A `public/.gitkeep` got me back to green. (The incident cost me about 15 minutes. The lesson is writing itself.)
 
@@ -196,23 +196,21 @@ I want to walk the "no training-wheel libraries" framing back a bit, because it 
 
 nginx is doing an enormous amount on my behalf. TLS termination (I wrote zero crypto code). HTTP/1.1 and HTTP/2 parsing, chunked transfer, header folding. The reverse-proxy mechanic itself, where bytes get pulled off one socket and framed onto another. Static-file serving for the ACME challenge path. TCP-level tuning I inherited from Mozilla's Intermediate profile without touching. The worker-process event loop and graceful reload on `SIGHUP`. `certbot` signs my certificate against Let's Encrypt's ACME API and renews it without my code ever calling that API directly. Any one of those is its own multi-week learning project.
 
-Even `ws` on the server has a floor underneath it. It reads and writes WebSocket frames per RFC 6455, handles the masking XOR, fragmentation, ping/pong control frames, and `bufferedAmount`-based backpressure at the byte level. I'm calling `ws.send()`. I'm not assembling `0x81` opcodes with 7-bit length prefixes by hand. `ws` is much closer to the wire than Socket.IO, but it is still an abstraction.
+Even `ws` on the server has a floor underneath it. It reads and writes WebSocket frames per [RFC 6455](https://datatracker.ietf.org/doc/html/rfc6455), handles the masking XOR, fragmentation, ping/pong control frames, and `bufferedAmount`-based backpressure at the byte level. I'm calling `ws.send()`. I'm not assembling `0x81` opcodes with 7-bit length prefixes by hand. `ws` is much closer to the wire than Socket.IO, but it is still an abstraction.
 
 What I actually learned at byte level is a narrower list. The WebSocket Upgrade handshake (why the hop-by-hop headers matter, why nginx strips them, what to put back). The reverse-proxy contract: what passes through, what gets rewritten, why. The single-origin trade-off versus CORS everywhere. Why long-lived connections break under serverless and what a stateful Node process buys you instead. Reconnect semantics at the application layer (backoff with jitter, visibility-paused retries, version-watermark drops on stale frames). TLS configuration choices (which protocols and ciphers, why no OCSP stapling, why HSTS at two years).
 
-The honest framing is less catchy than "no training-wheel libraries." It is closer to this: *I implemented the application protocol over WebSocket myself, using the `ws` library for framing, behind nginx for TLS and HTTP routing.* Nobody hand-rolls TLS in production (you would ship a CVE in a week). Nobody parses HTTP/2 frames manually for a hobby project. The leverage was in choosing a layer or two to actually lift the hood on, and being able to describe what sits above and below.
-
-If someone asks in an interview whether I built it from scratch, the more truthful answer is *I picked which abstractions to keep and which to take apart, and here is why.* That sells better than the alternative anyway.
+The honest framing is less catchy than "no training-wheel libraries." It is closer to this: *I implemented the application protocol over WebSocket myself, using the `ws` library for framing, behind nginx for TLS and HTTP routing.* But for a one week long project, I am pleased to have learned more deeply the technologies underpinning our global community.
 
 ## What I Took Away
 
-My whole journey with web development has followed the philosophy of building fundamental knowledge before reaching for abstractions. Deployment and authentication have been the standing exceptions. There is only so much you can learn deeply at once. Trying to pick up React custom hooks at the same time as what a server is, what a VPS is, how to manage DNS records, what a reverse proxy actually does, and how Docker isolates a process would have been a recipe for learning none of it properly. Abstraction earns its keep when it keeps the learning scoped.
+My whole journey with web development has followed the philosophy of building fundamental knowledge before reaching for abstractions. Deployment and authentication have been the standing exceptions. There is only so much you can learn deeply at once. Trying to pick up React custom hooks at the same time as what a server is, what a VPS is, how to manage DNS records, what a reverse proxy actually does, and how Docker isolates a process would have been a recipe for learning none of it properly. Abstraction earns its place in an educational project when it keeps the learning scoped.
 
-This project was the one where I started lifting the hood on a few layers of the deployment and network plumbing I had always taken for granted. Concepts that had always been nebulous in my head, or had slowly become nebulous through disuse, are now concrete and crystallized. I have a real mental model for what happens from `new WebSocket(url)` on the client through the nginx upgrade handshake to the `wss` frame on the server, because I have now sat with each piece long enough to know what is mine, what is nginx's, and what is `ws`'s. Next time someone asks if I've deployed to AWS, I can honestly say yes. I know this is scratching the surface of a very deep well. One must start somewhere.
+This project was the one where I started lifting the hood on a few layers of the deployment and network plumbing I had always taken for granted. Concepts that had always been nebulous in my head, or had slowly become nebulous through disuse, are now concrete and crystallized. I have a real mental model for what happens from `new WebSocket(url)` on the client through the nginx upgrade handshake to the `wss` frame on the server, because I have now sat with each piece long enough to know what is mine, what is nginx's, and what is `ws`'s. Next time someone asks if I've deployed to AWS, I can honestly say yes. I know this is only scratching the surface of a very deep well. But one must start somewhere.
 
-The other takeaway is smaller but more durable. Reaching for `@dnd-kit` for this project would have been reasonable. Only one screen actually needs drag-and-drop, though, and adding a whole dependency that could break over the years to solve a problem contained in a single component didn't hold up to scrutiny once I said it out loud. Hand-rolling it gives the project stability and longevity that a library-wrapped version wouldn't have. Reaching for Socket.IO felt similar, but a tier more serious. Using Socket.IO as my first introduction to WebSockets would have been like reaching for Axios before understanding `fetch`, or Cheerio before understanding a DOM parser. The abstraction would have done its job. I just wouldn't have understood what it was abstracting.
+It is simply astonishing and humbling how much work has gone into the modern world and internet, and how much there is to learn. But also exciting! I'll never run out of stuff to read and make, and it is fun to contribute to the problem of never being able to know everything that is out there. 
 
-The site is live at [skipbo.johnmoorman.com](https://skipbo.johnmoorman.com). The free AWS tier lasts through 2026-10-19, so until then, please feel free to hop in and challenge me to a game. Open a room, send me the code, and I'll be there.
+The site is live at [skipbo.johnmoorman.com](https://skipbo.johnmoorman.com). The free AWS tier lasts through 2026-10-19. After that I'll migrate somewhere cheaper (probably [fly.io](https://fly.io)). Until then, please feel free to hop in and challenge me to a game. Open a room, send me the code, and I'll be there.
 
 ## Links
 
