@@ -1,32 +1,47 @@
 ---
 title: Skip-Bo
-date: '2026-04-16'
+date: '2026-04-19'
 description: >-
-  Browser-based implementation of the classic Skip-Bo card game by Mattel.
-  Play against AI opponents with full game logic, animations, and
-  responsive design. No login required.
+  Real-time browser multiplayer Skip-Bo with lobby, rooms, custom
+  drag-and-drop, raw WebSocket server, and single-box AWS deploy.
+  Built to fill gaps in backend, networking, and infrastructure.
 tags:
   - Next.js
   - TypeScript
+  - WebSocket
+  - AWS
+  - Docker
+  - nginx
   - Tailwind CSS
   - Claude Code
-status: in-progress
+status: shipped
 challenge: 10-in-10
 week: 8
-featured: false
+featured: true
 ---
 
-Browser version of Skip-Bo, the sequential card game by the makers of UNO. Play against AI opponents directly in the browser — no downloads, no accounts.
+A browser version of the card game Skip-Bo, built as a single honest run at the deployment, networking, and backend layers I had been delegating to Vercel and libraries like Socket.IO for years. Up to 8 players per room, 2-to-4 player partnerships, recommended and official rulesets, and a hot-seat mode for passing a laptop around a table.
 
 ## What It Does
 
-*Coming soon.*
+**Lobby and rooms.** SSE-backed live list of public rooms on the landing page. Create, customize, share a join code, or join by code from the lobby. The host controls seating and config until the game starts.
+
+**Real-time tabletop.** Up to 8 players, shared build piles, partnerships with configurable permissions. A single React Board component renders the game whether state comes from the local engine (hot-seat at `/local`) or the server. In-game chat dock, a rules tutorial for newcomers, and a live ruleset modal for the current game's config.
+
+**Custom drag-and-drop.** No library. Pointer Events, a floating ghost, a rect-based hit test, and a stable-id drop-target registry under `src/lib/dnd/`. Escape cancels; a small movement threshold prevents taps from registering as drags.
+
+**Raw `ws@8` server.** No Socket.IO, no game framework. Protocol-level heartbeats, 16KB max payload, token-bucket rate limits keyed per session and endpoint, 60-second disconnect grace with random-legal-move bot takeover, state-version numbers on every broadcast. Client hook reconnects with exponential backoff plus jitter, pauses on visibility loss, and resumes on return.
+
+**Single-box AWS deploy.** One `t4g.small` Amazon Linux 2023 instance in `eu-central-1` running two Docker containers (Next.js standalone + the `ws` server) behind host nginx terminating TLS via Let's Encrypt. Single origin for HTML, REST, SSE, and WebSocket keeps CORS out of the architecture. Mozilla Intermediate 2026 TLS profile, A on SSL Labs. Idempotent two-script deploy loop: `bootstrap.sh` on the host once, `deploy.sh` from the laptop on every ship.
 
 ## Technical Approach
 
-*Coming soon.*
+The engine is a pure `(state, action) => newState | error` function so client and server dispatch against the same contract. The client uses it directly in hot-seat mode; the server uses it authoritatively over WebSocket and fans out filtered per-player views. 60 Vitest cases cover the deck, rule variants, partnership permissions, win conditions, and information hiding.
 
-### Links
+The rest of the stack was picked to sit with what I had been delegating. Raw `ws@8` over Socket.IO, to implement the application protocol myself the way fetch comes before Axios. Single AWS EC2 plus host nginx over Railway or Fly, to take the TLS termination, the WebSocket Upgrade handshake, SSE buffering, security headers, and the full deploy loop in as idempotent scripts I could re-run anytime. Full stack: Next.js 16, React 19, TypeScript strict, Tailwind CSS 4, Vitest (148 main-app + 153 server tests), Docker Compose, nginx, Let's Encrypt via certbot, Amazon Linux 2023.
 
-- Live Site — coming soon
-- GitHub — coming soon
+---
+
+[Full write-up on the blog](/blog/skip-bo), including the nginx WebSocket Upgrade dance, an honest reckoning of what nginx and `ws` still abstract away, and the night the lobby filled with TUI-chatroom developers minutes after `deploy.sh` succeeded.
+
+[Live site](https://skipbo.johnmoorman.com) · [GitHub](https://github.com/mojoro/skip-bo)
