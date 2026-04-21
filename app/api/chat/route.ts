@@ -1,16 +1,18 @@
 import { sanitizeInput } from "@/lib/sanitize"
 import { SYSTEM_PROMPT } from "@/lib/chatbot-prompt"
 import { upsertConversation } from "@/lib/db"
+import { retrieveChunks, formatContext, postTimeline } from "@/lib/rag"
 // Rate limiting currently disabled. To re-enable, uncomment the import
 // below and the `checkRateLimit` block inside POST().
 // import { checkRateLimit } from "@/lib/ratelimit"
 
-export const runtime = "edge"
+export const runtime = "nodejs"
 
 const PRIMARY_MODEL = "anthropic/claude-haiku-4.5"
 const FALLBACK_MODEL = "google/gemini-3-flash-preview"
 const MAX_TURNS = 10
 const MAX_OUTPUT_TOKENS = 1200
+const RAG_TOP_K = 5
 
 interface ChatMessage {
   role: "user" | "assistant"
@@ -53,6 +55,7 @@ async function saveConversation(
  *  request fails so callers can fall back to another model. */
 async function streamOpenRouter(
   model: string,
+  systemPrompt: string,
   messages: ChatMessage[],
   ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string; geo?: { city?: string; country?: string } }
 ): Promise<ReadableStream<Uint8Array>> {
@@ -67,7 +70,7 @@ async function streamOpenRouter(
       max_tokens: MAX_OUTPUT_TOKENS,
       stream: true,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: systemPrompt },
         ...messages.map((m) => ({ role: m.role, content: m.content })),
       ],
     }),
@@ -197,16 +200,37 @@ export async function POST(request: Request) {
     )
   }
 
+  // ── Layer 6: RAG — retrieve relevant site content and prepend to system prompt.
+  // Retrieval failures fall through to the bare system prompt so the chat still works.
+  let systemPrompt = SYSTEM_PROMPT
+  try {
+    const retrieved = await retrieveChunks(sanitizedMessage, RAG_TOP_K)
+    const context = formatContext(retrieved)
+    const timeline = postTimeline()
+    const parts: string[] = []
+    if (timeline) {
+      parts.push(`POSTS BY DATE (newest first — use this to answer temporal questions about what John has shipped and when):\n${timeline}`)
+    }
+    if (context) {
+      parts.push(`RELEVANT EXCERPTS FROM JOHN'S SITE (use to ground specific answers; cite the URLs when directing the user to read more):\n\n${context}`)
+    }
+    if (parts.length) {
+      systemPrompt = `${SYSTEM_PROMPT}\n\n---\n\n${parts.join("\n\n---\n\n")}`
+    }
+  } catch (e) {
+    console.error("[chat] RAG retrieval failed, continuing without context:", e)
+  }
+
   // Primary: Claude Haiku 4.5 via OpenRouter. Fallback: Gemini via OpenRouter.
   try {
-    const readable = await streamOpenRouter(PRIMARY_MODEL, allMessages, ctx)
+    const readable = await streamOpenRouter(PRIMARY_MODEL, systemPrompt, allMessages, ctx)
     return new Response(readable, { headers: responseHeaders })
   } catch (e) {
     console.error(`[chat] ${PRIMARY_MODEL} failed, falling back to ${FALLBACK_MODEL}:`, e)
   }
 
   try {
-    const readable = await streamOpenRouter(FALLBACK_MODEL, allMessages, ctx)
+    const readable = await streamOpenRouter(FALLBACK_MODEL, systemPrompt, allMessages, ctx)
     return new Response(readable, { headers: responseHeaders })
   } catch (e) {
     console.error(`[chat] ${FALLBACK_MODEL} fallback failed:`, e)
