@@ -1,11 +1,14 @@
-import Anthropic from "@anthropic-ai/sdk"
-import { checkRateLimit } from "@/lib/ratelimit"
 import { sanitizeInput } from "@/lib/sanitize"
 import { SYSTEM_PROMPT } from "@/lib/chatbot-prompt"
 import { upsertConversation } from "@/lib/db"
+// Rate limiting currently disabled. To re-enable, uncomment the import
+// below and the `checkRateLimit` block inside POST().
+// import { checkRateLimit } from "@/lib/ratelimit"
 
 export const runtime = "edge"
 
+const PRIMARY_MODEL = "anthropic/claude-haiku-4.5"
+const FALLBACK_MODEL = "google/gemini-3-flash-preview"
 const MAX_TURNS = 10
 const MAX_OUTPUT_TOKENS = 1200
 
@@ -43,63 +46,13 @@ async function saveConversation(
   await upsertConversation(sessionId, ip, fullConversation, geo).catch(() => {})
 }
 
-// ── Provider streaming helpers ──
+// ── Provider streaming helper ──
 
-/** Stream a response from Anthropic's Claude API. Throws if the initial
- *  API call fails (bad key, rate limit, service down). */
-async function streamAnthropic(
-  messages: ChatMessage[],
-  ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string; geo?: { city?: string; country?: string } }
-): Promise<ReadableStream<Uint8Array>> {
-  // maxRetries: 0 — fail fast so rate limits and auth errors immediately
-  // trigger the OpenRouter fallback instead of hanging on SDK retries.
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY!, maxRetries: 0 })
-
-  const anthropicMessages: Anthropic.MessageParam[] = messages.map((msg) => ({
-    role: msg.role as "user" | "assistant",
-    content: msg.content,
-  }))
-
-  // .create() with stream: true is properly async — throws on auth
-  // errors, rate limits, or service outages before we return a Response.
-  const stream = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: MAX_OUTPUT_TOKENS,
-    system: SYSTEM_PROMPT,
-    messages: anthropicMessages,
-    stream: true,
-  })
-
-  const encoder = new TextEncoder()
-  return new ReadableStream({
-    async start(controller) {
-      let assistantContent = ""
-      try {
-        for await (const event of stream) {
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
-          ) {
-            assistantContent += event.delta.text
-            controller.enqueue(encoder.encode(event.delta.text))
-          }
-        }
-      } catch {
-        controller.close()
-        return
-      }
-      await saveConversation(
-        ctx.sessionId, ctx.ip, ctx.trimmedHistory, ctx.sanitizedMessage, assistantContent, ctx.geo
-      )
-      controller.close()
-    },
-  })
-}
-
-/** Stream a response via OpenRouter (Gemini fallback). Uses the OpenAI-
- *  compatible SSE endpoint, so no SDK required — just fetch. Throws if
- *  the initial HTTP request fails. */
-async function streamGemini(
+/** Stream a response via OpenRouter's OpenAI-compatible SSE endpoint.
+ *  Works for any model OpenRouter exposes. Throws if the initial HTTP
+ *  request fails so callers can fall back to another model. */
+async function streamOpenRouter(
+  model: string,
   messages: ChatMessage[],
   ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string; geo?: { city?: string; country?: string } }
 ): Promise<ReadableStream<Uint8Array>> {
@@ -110,7 +63,7 @@ async function streamGemini(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model,
       max_tokens: MAX_OUTPUT_TOKENS,
       stream: true,
       messages: [
@@ -200,14 +153,15 @@ export async function POST(request: Request) {
     return new Response("Message is required", { status: 400 })
   }
 
-  // ── Layer 1: rate limiting ──
   const ip = request.headers.get("x-forwarded-for") ?? "anonymous"
-  const { allowed } = await checkRateLimit(ip)
-  if (!allowed) {
-    return new Response("Conversation size limit reached. Please try again later.", {
-      status: 429,
-    })
-  }
+
+  // ── Layer 1: rate limiting (disabled; re-enable by uncommenting) ──
+  // const { allowed } = await checkRateLimit(ip)
+  // if (!allowed) {
+  //   return new Response("Conversation size limit reached. Please try again later.", {
+  //     status: 429,
+  //   })
+  // }
 
   // ── Layer 2: input sanitization + token cap ──
   const sanitizedMessage = sanitizeInput(message)
@@ -236,23 +190,26 @@ export async function POST(request: Request) {
     "Cache-Control": "no-cache",
   }
 
-  // Try Anthropic first, fall back to Gemini on any error
-  if (process.env.ANTHROPIC_API_KEY) {
-    try {
-      const readable = await streamAnthropic(allMessages, ctx)
-      return new Response(readable, { headers: responseHeaders })
-    } catch (e) {
-      console.error("[chat] Anthropic failed, falling back to Gemini:", e)
-    }
+  if (!process.env.OPENROUTER_API_KEY) {
+    return new Response(
+      "Chat is temporarily unavailable. Please email john@johnmoorman.com instead.",
+      { status: 503 }
+    )
   }
 
-  if (process.env.OPENROUTER_API_KEY) {
-    try {
-      const readable = await streamGemini(allMessages, ctx)
-      return new Response(readable, { headers: responseHeaders })
-    } catch (e) {
-      console.error("[chat] OpenRouter fallback failed:", e)
-    }
+  // Primary: Claude Haiku 4.5 via OpenRouter. Fallback: Gemini via OpenRouter.
+  try {
+    const readable = await streamOpenRouter(PRIMARY_MODEL, allMessages, ctx)
+    return new Response(readable, { headers: responseHeaders })
+  } catch (e) {
+    console.error(`[chat] ${PRIMARY_MODEL} failed, falling back to ${FALLBACK_MODEL}:`, e)
+  }
+
+  try {
+    const readable = await streamOpenRouter(FALLBACK_MODEL, allMessages, ctx)
+    return new Response(readable, { headers: responseHeaders })
+  } catch (e) {
+    console.error(`[chat] ${FALLBACK_MODEL} fallback failed:`, e)
   }
 
   return new Response(
