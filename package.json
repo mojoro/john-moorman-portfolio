@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "pnpm build:rag && next build",
     "start": "next start",
     "lint": "eslint",
     "build:blog-legacy": "node build-blog.js",
