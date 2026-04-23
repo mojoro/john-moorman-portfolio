@@ -1,7 +1,8 @@
 import { sanitizeInput } from "@/lib/sanitize"
 import { SYSTEM_PROMPT } from "@/lib/chatbot-prompt"
 import { upsertConversation } from "@/lib/db"
-import { retrieveChunks, formatContext, postTimeline } from "@/lib/rag"
+import { siteIndex, loadPosts, allSlugs } from "@/lib/site-context"
+import { classifyQuery } from "@/lib/chat-router"
 // Rate limiting currently disabled. To re-enable, uncomment the import
 // below and the `checkRateLimit` block inside POST().
 // import { checkRateLimit } from "@/lib/ratelimit"
@@ -12,7 +13,6 @@ const PRIMARY_MODEL = "anthropic/claude-haiku-4.5"
 const FALLBACK_MODEL = "google/gemini-3-flash-preview"
 const MAX_TURNS = 10
 const MAX_OUTPUT_TOKENS = 1200
-const RAG_TOP_K = 5
 
 interface ChatMessage {
   role: "user" | "assistant"
@@ -52,7 +52,12 @@ async function saveConversation(
 
 /** Stream a response via OpenRouter's OpenAI-compatible SSE endpoint.
  *  Works for any model OpenRouter exposes. Throws if the initial HTTP
- *  request fails so callers can fall back to another model. */
+ *  request fails so callers can fall back to another model.
+ *
+ *  The system prompt ships as a single content block marked with
+ *  `cache_control: ephemeral` so Anthropic caches it for 5 minutes
+ *  (90% discount on cached reads). The field is silently ignored by
+ *  non-Anthropic providers, so the Gemini fallback still works. */
 async function streamOpenRouter(
   model: string,
   systemPrompt: string,
@@ -70,7 +75,12 @@ async function streamOpenRouter(
       max_tokens: MAX_OUTPUT_TOKENS,
       stream: true,
       messages: [
-        { role: "system", content: systemPrompt },
+        {
+          role: "system",
+          content: [
+            { type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } },
+          ],
+        },
         ...messages.map((m) => ({ role: m.role, content: m.content })),
       ],
     }),
@@ -200,25 +210,33 @@ export async function POST(request: Request) {
     )
   }
 
-  // ── Layer 6: RAG — retrieve relevant site content and prepend to system prompt.
-  // Retrieval failures fall through to the bare system prompt so the chat still works.
+  // Two-pass retrieval:
+  //   1. Always inject the compact site index (title, slug, date, tags per
+  //      project). ~2-3K tokens. Cached.
+  //   2. Route: ask a cheap Haiku call which project slugs the user's query
+  //      actually needs. Returns [] for off-topic / background questions.
+  //   3. Load the full text of only those slugs and append as a second
+  //      section of the system prompt.
+  //
+  // Narrow queries ("do you use Rust?", "what food do you like?") finish
+  // with ~3-5K tokens of context. Broad queries ("summarize everything")
+  // still load everything but only when warranted. Router failures err
+  // toward loading every slug so the main call is never context-starved.
   let systemPrompt = SYSTEM_PROMPT
   try {
-    const retrieved = await retrieveChunks(sanitizedMessage, RAG_TOP_K)
-    const context = formatContext(retrieved)
-    const timeline = postTimeline()
-    const parts: string[] = []
-    if (timeline) {
-      parts.push(`POSTS BY DATE (newest first — use this to answer temporal questions about what John has shipped and when):\n${timeline}`)
-    }
-    if (context) {
-      parts.push(`RELEVANT EXCERPTS FROM JOHN'S SITE (use to ground specific answers; cite the URLs when directing the user to read more):\n\n${context}`)
-    }
-    if (parts.length) {
-      systemPrompt = `${SYSTEM_PROMPT}\n\n---\n\n${parts.join("\n\n---\n\n")}`
+    const index = await siteIndex()
+    const everySlug = await allSlugs()
+    const base = `${SYSTEM_PROMPT}\n\n---\n\nSITE INDEX (every project on John's site — one line each — slug · date · challenge · URL · [tags], followed by title and one-line description; always available):\n${index}`
+
+    const decision = await classifyQuery(sanitizedMessage, index, everySlug)
+    if (decision.slugs.length) {
+      const loaded = await loadPosts(decision.slugs)
+      systemPrompt = `${base}\n\n---\n\nLOADED PROJECT CONTENT (full text of the projects most relevant to this query, newest first — use this to answer with real technical detail; cite the URL from each header when directing the user to read more):\n\n${loaded}`
+    } else {
+      systemPrompt = base
     }
   } catch (e) {
-    console.error("[chat] RAG retrieval failed, continuing without context:", e)
+    console.error("[chat] site-context load failed, continuing with bare system prompt:", e)
   }
 
   // Primary: Claude Haiku 4.5 via OpenRouter. Fallback: Gemini via OpenRouter.
