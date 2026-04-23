@@ -47,12 +47,26 @@ export function ChatPanel() {
   const [error, setError] = useState<string | null>(null)
   const [honeypot, setHoneypot] = useState("")
   const [pageLoadedAt] = useState(() => Date.now())
+  // sessionId lives in sessionStorage — one id per tab, survives refresh but
+  // not a new tab or browser restart. Each sessionId maps to one row in the
+  // conversations table.
   const [sessionId] = useState(() => {
     if (typeof window === "undefined") return crypto.randomUUID()
-    const stored = localStorage.getItem("chat_session_id")
+    const stored = sessionStorage.getItem("chat_session_id")
     if (stored) return stored
     const id = crypto.randomUUID()
-    localStorage.setItem("chat_session_id", id)
+    sessionStorage.setItem("chat_session_id", id)
+    return id
+  })
+  // userId lives in localStorage — one id per browser, persists across tabs
+  // and sessions. Lets us correlate multiple sessions from the same returning
+  // visitor without requiring auth.
+  const [userId] = useState(() => {
+    if (typeof window === "undefined") return crypto.randomUUID()
+    const stored = localStorage.getItem("chat_user_id")
+    if (stored) return stored
+    const id = crypto.randomUUID()
+    localStorage.setItem("chat_user_id", id)
     return id
   })
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -86,10 +100,18 @@ export function ChatPanel() {
     }
   }, [showGreeting])
 
-  // Hydrate messages from localStorage on mount
+  // Hydrate messages from sessionStorage on mount. One-time: clean up the
+  // previous localStorage-based keys so returning visitors don't carry stale
+  // conversations from before this split.
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("chat_messages")
+      localStorage.removeItem("chat_messages")
+      localStorage.removeItem("chat_session_id")
+    } catch {
+      // non-fatal
+    }
+    try {
+      const stored = sessionStorage.getItem("chat_messages")
       if (stored) {
         const parsed = JSON.parse(stored) as Message[]
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -101,11 +123,11 @@ export function ChatPanel() {
     }
   }, [])
 
-  // Persist messages to localStorage on every update
+  // Persist messages to sessionStorage on every update
   useEffect(() => {
     if (messages.length > 0) {
       try {
-        localStorage.setItem("chat_messages", JSON.stringify(messages))
+        sessionStorage.setItem("chat_messages", JSON.stringify(messages))
       } catch {
         // Storage full or unavailable
       }
@@ -143,6 +165,7 @@ export function ChatPanel() {
             message: text,
             history: messages,
             sessionId,
+            userId,
             honeypot,
             pageLoadedAt,
           }),
@@ -195,7 +218,7 @@ export function ChatPanel() {
         setStreaming(false)
       }
     },
-    [messages, streaming, limitReached, honeypot, pageLoadedAt]
+    [messages, streaming, limitReached, honeypot, pageLoadedAt, sessionId, userId]
   )
 
   const handleSubmit = (e: React.FormEvent) => {
