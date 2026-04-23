@@ -65,38 +65,49 @@ async function hashIp(ip: string): Promise<string> {
 /**
  * Upsert a conversation record after each exchange. The session ID comes
  * from the client (a UUID generated when the chat panel mounts) so that
- * all messages in one session are grouped under the same row.
+ * all messages in one session are grouped under the same row. The user ID
+ * is a second, longer-lived client identifier (localStorage-backed) that
+ * correlates multiple sessions from the same visitor.
  *
  * ON CONFLICT updates the messages array and timestamp in place, so the
  * table always holds the latest full conversation per session.
+ *
+ * Requires the conversations table to have a nullable `user_id TEXT` column.
+ * Migration SQL if it doesn't exist yet:
+ *   ALTER TABLE conversations ADD COLUMN IF NOT EXISTS user_id TEXT;
+ *   CREATE INDEX IF NOT EXISTS conversations_user_id_idx ON conversations(user_id);
  */
 export async function upsertConversation(
   sessionId: string,
   ip: string,
   messages: StoredMessage[],
-  geo?: { city?: string; country?: string }
+  geo?: { city?: string; country?: string },
+  userId?: string
 ): Promise<void> {
   const sql = getDb()
   const ipHash = await hashIp(ip)
   const messageCount = messages.length
   const city = geo?.city ?? null
   const country = geo?.country ?? null
+  const user = userId ?? null
 
   await sql`
-    INSERT INTO conversations (id, ip_hash, messages, message_count, city, country)
+    INSERT INTO conversations (id, ip_hash, messages, message_count, city, country, user_id)
     VALUES (
       ${sessionId},
       ${ipHash},
       ${JSON.stringify(messages)},
       ${messageCount},
       ${city},
-      ${country}
+      ${country},
+      ${user}
     )
     ON CONFLICT (id) DO UPDATE SET
       messages      = EXCLUDED.messages,
       message_count = EXCLUDED.message_count,
       city          = COALESCE(EXCLUDED.city, conversations.city),
       country       = COALESCE(EXCLUDED.country, conversations.country),
+      user_id       = COALESCE(EXCLUDED.user_id, conversations.user_id),
       updated_at    = NOW()
   `
 }
