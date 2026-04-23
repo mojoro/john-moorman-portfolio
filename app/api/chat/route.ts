@@ -23,6 +23,9 @@ interface ChatRequest {
   message: string
   history: ChatMessage[]
   sessionId: string
+  /** Persistent browser-scoped id from localStorage. Lets us correlate
+   *  multiple sessions (tabs / browser restarts) from the same visitor. */
+  userId?: string
   honeypot?: string
   pageLoadedAt?: number
 }
@@ -37,7 +40,8 @@ async function saveConversation(
   trimmedHistory: ChatMessage[],
   sanitizedMessage: string,
   assistantContent: string,
-  geo?: { city?: string; country?: string }
+  geo?: { city?: string; country?: string },
+  userId?: string
 ): Promise<void> {
   if (!sessionId || !assistantContent) return
   const fullConversation = [
@@ -45,7 +49,7 @@ async function saveConversation(
     { role: "user" as const, content: sanitizedMessage },
     { role: "assistant" as const, content: assistantContent },
   ]
-  await upsertConversation(sessionId, ip, fullConversation, geo).catch(() => {})
+  await upsertConversation(sessionId, ip, fullConversation, geo, userId).catch(() => {})
 }
 
 // ── Provider streaming helper ──
@@ -62,7 +66,7 @@ async function streamOpenRouter(
   model: string,
   systemPrompt: string,
   messages: ChatMessage[],
-  ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string; geo?: { city?: string; country?: string } }
+  ctx: { sessionId: string; ip: string; trimmedHistory: ChatMessage[]; sanitizedMessage: string; geo?: { city?: string; country?: string }; userId?: string }
 ): Promise<ReadableStream<Uint8Array>> {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -126,7 +130,7 @@ async function streamOpenRouter(
         return
       }
       await saveConversation(
-        ctx.sessionId, ctx.ip, ctx.trimmedHistory, ctx.sanitizedMessage, assistantContent, ctx.geo
+        ctx.sessionId, ctx.ip, ctx.trimmedHistory, ctx.sanitizedMessage, assistantContent, ctx.geo, ctx.userId
       )
       controller.close()
     },
@@ -150,7 +154,7 @@ export async function POST(request: Request) {
     return new Response("Invalid request body", { status: 400 })
   }
 
-  const { message, history = [], sessionId, honeypot, pageLoadedAt } = body
+  const { message, history = [], sessionId, userId, honeypot, pageLoadedAt } = body
 
   // ── Layer 5a: honeypot ──
   if (honeypot) {
@@ -197,7 +201,7 @@ export async function POST(request: Request) {
     city: request.headers.get("x-vercel-ip-city") ?? undefined,
     country: request.headers.get("x-vercel-ip-country") ?? undefined,
   }
-  const ctx = { sessionId, ip, trimmedHistory, sanitizedMessage, geo }
+  const ctx = { sessionId, ip, trimmedHistory, sanitizedMessage, geo, userId }
   const responseHeaders = {
     "Content-Type": "text/plain; charset=utf-8",
     "Cache-Control": "no-cache",
