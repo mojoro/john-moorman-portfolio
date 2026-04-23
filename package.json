@@ -4,11 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "pnpm build:rag && next build",
+    "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "build:blog-legacy": "node build-blog.js",
-    "build:rag": "tsx scripts/build-rag-index.ts"
+    "lint": "eslint"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -28,7 +26,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@next/env": "^16.2.4",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -36,7 +33,6 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.12",
     "tailwindcss": "^4",
-    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
