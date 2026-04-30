@@ -1,0 +1,43 @@
+---
+title: Promacro
+date: '2026-04-30'
+description: >-
+  Diet-focused macro tracking app for a middle-aged and older audience.
+  Natural-language meal entry as the headline feature. Built native with React
+  Native. Week 10 of the 10-in-10, currently in build.
+tags:
+  - React Native
+  - TypeScript
+  - OpenRouter
+  - Mobile
+status: in-progress
+challenge: 10-in-10
+week: 10
+featured: true
+---
+
+A macro tracking app built around hitting daily targets (protein and fiber by default) for an audience the existing apps mostly weren't designed for: people in middle age and older who want simple guidance, not a calorie-counting puzzle. Diet-focused rather than activity-focused. Guiding principle is simplicity: fewer numbers, clearer review, and entry that doesn't require scrolling a food database.
+
+## What's In Scope for v1
+
+**Biometrics to macro goals.** Enter age, weight, height, sex, and activity level on first launch. The app suggests daily targets for the macros (the protein, carbs, fat, and fiber breakdown of what you eat) you choose to track. Protein and fiber are on by default; carbs, fat, fiber subtypes, and others are optional.
+
+**Natural-language meal entry.** The headline AI feature. Type or speak a meal in your own words ("two scrambled eggs and a slice of sourdough"); an LLM via [OpenRouter](https://openrouter.ai/) returns structured macro estimates against the nutrients you've enabled. No database scrolling, no fuzzy search through 40,000 brand-name yogurts.
+
+**Recipe and meal templates.** Save a common meal once, edit per-day when the portion changes. The template stays canonical; the per-day edit doesn't pollute it.
+
+**Daily review with easy adds.** End-of-day summary against each tracked macro, with concrete suggestions when you're short. (Twenty grams of protein left? Greek yogurt or a chicken thigh, here are the macros.)
+
+**Inline macro explanations.** Net carbs, soluble vs. dietary fiber, and the other terms that quietly confuse most people get a one-tap explainer next to the number, not buried in a settings page.
+
+## Technical Approach
+
+The stack is [React Native](https://reactnative.dev/), not a Progressive Web App. Two reasons. First, PWA UX on iOS and Android still feels like a website pretending to be an app, and the target audience here is one that is quick to notice the difference. Second, the Berlin job market actively lists React Native (Doctolib, Zalando, Jurafuchs, and Artsy all have current openings), so shipping mobile-shaped work during the 10-in-10 lines the portfolio up with that market.
+
+Natural-language meal entry uses [OpenRouter](https://openrouter.ai/) with a structured-output schema keyed to the user's enabled nutrients. The model returns a typed object the client can render without parsing prose, and the same schema doubles as the contract for the daily review and the easy-add suggester.
+
+Photo-based meal entry and on-device inference (a small local model like Gemma for offline logging) are deferred to v2. The 10-in-10 ships v1 in six days; v2 is what continues after the challenge ends.
+
+---
+
+Status as of 2026-04-30: in build, targeting v1 ship around 2026-05-06. Full write-up, the React Native learning curve, and an honest accounting of what made the cut versus what got cut, will land on the blog once it's live.
