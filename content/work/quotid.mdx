@@ -1,0 +1,53 @@
+---
+title: Quotid
+date: '2026-04-25'
+description: >-
+  Voice-agent journaling app. Calls you nightly, asks one good question about
+  your day, and writes the conversation up as a journal entry. Pipecat,
+  Temporal, Twilio, Deepgram, and Anthropic on a single AWS VM.
+tags:
+  - Pipecat
+  - Temporal
+  - Twilio
+  - Deepgram
+  - Anthropic
+  - Next.js
+  - TypeScript
+  - Python
+  - AWS
+  - Docker
+status: shipped
+challenge: 10-in-10
+week: 9
+featured: true
+---
+
+<OgLink url="https://quotid.johnmoorman.com/" />
+
+A voice-agent journaling app built around the *Storyworthy* practice (one short story from your day, every day). My phone rings at 21:00, a friendly voice asks me to tell it about something that happened, and the conversation gets summarized and saved as a journal entry. Built end-to-end on Pipecat, Temporal, Twilio, Deepgram, and Anthropic to feel every layer of a production voice stack.
+
+## What It Does
+
+**Nightly voice call.** A Temporal Schedule fires at the user's local 21:00 (IANA timezone, so DST is handled by Temporal rather than my own offset math). The bot dials Twilio, Twilio dials the phone, and a Pipecat pipeline runs the conversation: Deepgram Nova-3 streaming STT, Claude Haiku 4.5 via OpenRouter for the dialogue, Deepgram Aura for streaming TTS.
+
+**Journal list and detail.** Every call lands in the web app as a `JournalEntry` with a model-written title, body, full transcript, and audio recording. The schema separates `generatedBody` (what the model wrote) from `body` (your edits) with an `isEdited` flag, so revisions never lose the original.
+
+**Settings and scheduling.** Configure name, phone number in E.164, timezone, weekdays, and call window. Pick from six [Deepgram Aura](https://deepgram.com/product/aura) voices with a Preview button. Changes flow through to the next scheduled fire.
+
+**Calls page.** Operational view of every PENDING, DIALING, IN_PROGRESS, COMPLETED, NO_ANSWER, and FAILED transition, plus a "Ring me now" trigger for testing prompt changes without waiting until 21:00.
+
+**Voicemail-aware.** Twilio Answering Machine Detection classifies the answerer about three seconds in. The `/twiml` endpoint serves `<Connect><Stream/></Connect>` for humans and `<Hangup/>` for machines, so the bot doesn't monologue into anyone's inbox.
+
+## Technical Approach
+
+The spine is a Temporal Workflow. The flow is one linear `async def` with five activities: `create_call_session`, `initiate_call`, `await_call`, `summarize`, `store_entry`. `await_call` is an [async-completed activity](https://docs.temporal.io/develop/python/asynchronous-activity-completion), parked at zero CPU until the bot calls `client.activity.complete(...)` with the full `CallOutcome` payload. A Twilio `statusCallback` webhook is the parallel completion path; whichever fires first wins, and the loser swallows `AsyncActivityNotFoundError` and goes home.
+
+Pipecat is the realtime brain inside `await_call`. The pipeline graph runs Twilio Media Streams to STT to a user aggregator (Silero VAD plus the SmartTurn end-of-turn classifier) to LLM to TTS and back through Twilio. Two custom `FrameProcessor`s, `UserTranscriptCapture` after STT and `AssistantTextCapture` between LLM and TTS, append to one shared `TranscriptCollector` so the transcript is chronological by construction. Reconstructing from `LLMContext.messages` after the fact would lie, because STT finalizes faster than TTS finishes speaking.
+
+Production runs on a single AWS Lightsail VM (Ubuntu 22.04, 2 GB RAM) with five Docker containers: `temporal`, `worker`, `bot`, `web`, and `caddy`. Caddy handles auto-TLS for the two public hosts (`quotid.johnmoorman.com` for the web app, `v.quotid.johnmoorman.com` for the WebSocket Twilio dials) and 403s any public POST to `/calls`, so only the worker can ask the bot to dial out. Full stack: Next.js 16, Tailwind CSS, Prisma on Neon Postgres, TanStack Query, Python 3.12 + uv, FastAPI, Pipecat 1.0, Temporal Python SDK, Docker Compose.
+
+---
+
+[Full write-up on the blog](/blog/quotid), including the chronological-by-construction transcript design, the `raise_complete_async()` landmine that cost me two hours, and the Hetzner-asks-for-your-passport-after-your-card detour through hosting providers.
+
+[Live site](https://quotid.johnmoorman.com) · GitHub (private for now)
