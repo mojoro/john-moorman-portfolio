@@ -22,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/about/`, lastModified: new Date() },
     { url: `${BASE_URL}/blog/`, lastModified: new Date() },
     { url: `${BASE_URL}/work/`, lastModified: new Date() },
+    { url: `${BASE_URL}/promacro/privacy/`, lastModified: new Date() },
     ...blogEntries,
     ...workEntries,
   ]
