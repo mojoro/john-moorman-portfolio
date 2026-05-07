@@ -1,4 +1,7 @@
 import { neon } from "@neondatabase/serverless"
+import { unstable_cache } from "next/cache"
+
+export const commentsTag = (postSlug: string) => `comments-${postSlug}`
 
 // neon() returns a tagged-template SQL client that uses HTTP under the hood,
 // making it compatible with Vercel's Edge runtime (no raw TCP sockets).
@@ -19,14 +22,20 @@ export interface Comment {
 
 export async function getComments(postSlug: string): Promise<Comment[]> {
   if (!process.env.DATABASE_URL) return []
-  const sql = getDb()
-  const rows = await sql`
-    SELECT id, post_slug, author, body, created_at
-    FROM comments
-    WHERE post_slug = ${postSlug}
-    ORDER BY created_at ASC
-  `
-  return rows as Comment[]
+  return unstable_cache(
+    async (slug: string) => {
+      const sql = getDb()
+      const rows = await sql`
+        SELECT id, post_slug, author, body, created_at
+        FROM comments
+        WHERE post_slug = ${slug}
+        ORDER BY created_at ASC
+      `
+      return rows as Comment[]
+    },
+    ["comments", postSlug],
+    { tags: [commentsTag(postSlug)] }
+  )(postSlug)
 }
 
 export async function insertComment(
@@ -189,9 +198,10 @@ export async function getChatSession(id: string): Promise<ChatSession | null> {
   return rows[0] as ChatSession
 }
 
-export async function deleteComment(id: number): Promise<void> {
+export async function deleteComment(id: number): Promise<string | null> {
   const sql = getDb()
-  await sql`DELETE FROM comments WHERE id = ${id}`
+  const rows = await sql`DELETE FROM comments WHERE id = ${id} RETURNING post_slug`
+  return (rows[0]?.post_slug as string | undefined) ?? null
 }
 
 export async function deleteChat(id: string): Promise<void> {

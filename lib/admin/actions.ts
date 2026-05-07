@@ -44,7 +44,7 @@ async function requireAuth(): Promise<ActionResult | null> {
 import fs from "fs/promises"
 import path from "path"
 import matter from "gray-matter"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 interface SaveContentInput {
   type: "blog" | "work"
@@ -121,13 +121,17 @@ export async function createContent(input: CreateContentInput): Promise<ActionRe
 
 // ── Comments ──
 
-import { deleteComment } from "@/lib/db"
+import { commentsTag, deleteComment } from "@/lib/db"
 
 export async function deleteCommentAction(id: number): Promise<ActionResult> {
   const authError = await requireAuth()
   if (authError) return authError
 
-  await deleteComment(id)
+  const slug = await deleteComment(id)
+  if (slug) {
+    revalidateTag(commentsTag(slug))
+    revalidatePath(`/blog/${slug}`)
+  }
   revalidatePath("/admin/comments")
   return { success: true }
 }

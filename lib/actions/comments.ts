@@ -1,8 +1,8 @@
 "use server"
 
-import { insertComment } from "@/lib/db"
+import { commentsTag, insertComment } from "@/lib/db"
 import { stripDangerous } from "@/lib/sanitize"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 const MAX_BODY_LENGTH = 1000
 const MAX_NAME_LENGTH = 50
@@ -56,6 +56,7 @@ export async function addComment(
     : "Anonymous"
 
   await insertComment(postSlug, author, body)
+  revalidateTag(commentsTag(postSlug))
   revalidatePath(`/blog/${postSlug}`)
 
   return { success: true }
