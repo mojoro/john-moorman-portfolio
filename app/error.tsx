@@ -9,7 +9,7 @@ export default function Error({
   return (
     <section className="flex min-h-[60vh] flex-col items-start justify-center">
       <p className="font-mono text-sm text-red-400">Error</p>
-      <h1 className="mt-2 font-display text-3xl font-bold">
+      <h1 className="mt-2 font-display text-3xl font-semibold">
         Something went wrong
       </h1>
       <p className="mt-4 text-text-secondary">

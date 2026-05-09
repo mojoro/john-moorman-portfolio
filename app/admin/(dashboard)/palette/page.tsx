@@ -265,7 +265,7 @@ export default function PalettePage() {
           Preview
         </p>
         <div className="space-y-4">
-          <h2 className="font-display text-2xl font-bold text-text-primary">
+          <h2 className="font-display text-2xl font-semibold text-text-primary">
             Hello, World.
           </h2>
           <p className="text-text-secondary">

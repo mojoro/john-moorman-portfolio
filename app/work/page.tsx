@@ -153,7 +153,7 @@ export default async function WorkIndex() {
       >
         &larr; Home
       </Link>
-      <h1 className="mt-8 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="mt-8 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
         Work
       </h1>
       <p className="mt-4 max-w-xl text-text-secondary">

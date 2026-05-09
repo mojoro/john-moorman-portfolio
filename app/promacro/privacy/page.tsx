@@ -99,7 +99,7 @@ export default function PromacroPrivacyPage() {
         &larr; Home
       </Link>
 
-      <h1 className="mt-8 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="mt-8 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
         Promacro Privacy Policy
       </h1>
 

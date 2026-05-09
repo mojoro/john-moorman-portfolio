@@ -97,7 +97,7 @@ export default function ResumePage() {
 
       {/* Print button */}
       <div className="mt-4 flex items-center justify-between print:hidden">
-        <h1 className="font-display text-2xl font-bold">Resume</h1>
+        <h1 className="font-display text-2xl font-semibold">Resume</h1>
         <PrintButton />
       </div>
 
@@ -106,7 +106,7 @@ export default function ResumePage() {
 
         {/* Header */}
         <header>
-          <h2 className="font-display text-3xl font-bold tracking-tight print:text-2xl">
+          <h2 className="font-display text-3xl font-semibold tracking-tight print:text-2xl">
             John Moorman
           </h2>
           <p className="mt-1 text-lg text-text-secondary">Software Engineer</p>
