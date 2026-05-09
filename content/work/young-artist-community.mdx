@@ -54,6 +54,8 @@ A directory and review platform for Young Artist Programs in classical music and
 
 ## Technical Approach
 
+![ER diagram for the Young Artist Community schema, drafted before any code was written.](/images/blog/young-artist-community/erd.png)
+
 API-first development: an OpenAPI 3.0.3 spec (~1,200 lines) was the first file committed. The API follows Zalando RESTful Guidelines pragmatically (snake_case, sub-resources, RFC 9457 errors, cursor pagination). Next.js 16 with async server components querying Prisma 7 directly. Neon serverless PostgreSQL. Tailwind CSS v4 with a swappable palette system (five named themes in CSS custom properties). Zod 4 validates both LLM extraction output and form submissions.
 
 72 commits, roughly 21.5 hours. The speed came from upfront system design: ER diagram, OpenAPI spec, and API conventions decided before implementation began.
