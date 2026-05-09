@@ -69,8 +69,10 @@ export function FrontmatterForm({
           onChange={(e) => {
             const tags = e.target.value
               .split(",")
-              .map((t) => t.trim())
-              .filter(Boolean)
+              .flatMap((t) => {
+                const trimmed = t.trim()
+                return trimmed ? [trimmed] : []
+              })
             update("tags", tags)
           }}
           placeholder="Next.js, TypeScript, AI"
