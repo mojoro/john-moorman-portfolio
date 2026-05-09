@@ -6,6 +6,7 @@ import { LightboxProvider } from "@/components/lightbox-provider"
 import { MdxImage } from "@/components/mdx-image"
 import { MdxAudio } from "@/components/mdx-audio"
 import { OgLink } from "@/components/mdx-og-link"
+import { WorkDemo, LiveEmbed } from "@/components/work-demo"
 import { TableOfContents } from "@/components/table-of-contents"
 import { TagPill } from "@/components/tag-pill"
 import Link from "next/link"
@@ -30,6 +31,8 @@ const mdxComponents = {
   img: MdxImage,
   Audio: MdxAudio,
   OgLink,
+  Demo: WorkDemo,
+  LiveEmbed,
   p: ({ children }: { children: React.ReactNode }) => {
     const hasImage = Array.isArray(children)
       ? children.some((c) => typeof c === "object" && c !== null && "type" in c && (c as React.ReactElement).type === MdxImage)
