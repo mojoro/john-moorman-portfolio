@@ -73,7 +73,7 @@ async function computeEntries(): Promise<IndexEntry[]> {
 
   const entries: IndexEntry[] = [
     ...blog.map((post) => toEntry(post, "blog", workBySlug.get(post.slug)?.frontmatter)),
-    ...work.filter((p) => !blogSlugs.has(p.slug)).map((post) => toEntry(post, "work")),
+    ...work.flatMap((p) => (blogSlugs.has(p.slug) ? [] : [toEntry(p, "work")])),
   ]
 
   entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
