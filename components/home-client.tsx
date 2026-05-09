@@ -213,11 +213,15 @@ export function HomeClient({
 
         {/* Current building cards (shipped + in-progress only) */}
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {challengeWork.filter((p) => p.status !== "upcoming").map((project, i) => (
-            <SectionReveal key={project.week} delay={(i + 1) * 0.1}>
-              <CurrentProjectCard project={project} />
-            </SectionReveal>
-          ))}
+          {challengeWork.flatMap((project, i) =>
+            project.status === "upcoming"
+              ? []
+              : [
+                  <SectionReveal key={project.week} delay={(i + 1) * 0.1}>
+                    <CurrentProjectCard project={project} />
+                  </SectionReveal>,
+                ]
+          )}
         </div>
 
         {/* Featured projects */}
