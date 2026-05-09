@@ -9,7 +9,7 @@ export function DeleteChatButton({ chatId }: { chatId: string }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const router = useRouter()
+  const { push } = useRouter()
   const { show } = useToast()
 
   useEffect(() => {
@@ -31,13 +31,13 @@ export function DeleteChatButton({ chatId }: { chatId: string }) {
     const result = await deleteChatAction(chatId)
     if (result.success) {
       show("Chat session deleted.", "success")
-      router.push("/admin/chats")
+      push("/admin/chats")
     } else {
       show(result.error ?? "Failed to delete chat session.", "error")
       setDeleting(false)
       setConfirming(false)
     }
-  }, [confirming, chatId, show, router])
+  }, [confirming, chatId, show, push])
 
   return (
     <button
