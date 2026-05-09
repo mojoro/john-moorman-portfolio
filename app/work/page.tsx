@@ -94,7 +94,7 @@ export default async function WorkIndex() {
           const isUpcoming = status === "upcoming"
           const challenge = post.frontmatter.challenge
           const thumbnail = post.frontmatter.thumbnail
-          const stats = post.frontmatter.stats ?? []
+          const stats = (post.frontmatter.stats ?? []).slice(0, 2)
 
           return (
             <Link
@@ -145,11 +145,10 @@ export default async function WorkIndex() {
                     {post.frontmatter.description}
                   </p>
                   {stats.length > 0 && (
-                    <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-xs text-text-muted">
-                      {stats.map((stat, i) => (
+                    <div className="mt-3 flex flex-wrap items-baseline gap-x-5 gap-y-1 font-mono text-xs text-text-muted">
+                      {stats.map((stat) => (
                         <span key={stat.label} className="flex items-baseline gap-1.5">
-                          {i > 0 && <span className="text-border">·</span>}
-                          <span className="text-accent/80">{stat.value}</span>
+                          <span className="tabular-nums text-accent/80">{stat.value}</span>
                           <span>{stat.label.toLowerCase()}</span>
                         </span>
                       ))}
