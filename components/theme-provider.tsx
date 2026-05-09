@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
+import { createContext, use, useEffect, useRef, useState, useCallback } from "react"
 
 type Theme = "dark" | "light"
 
@@ -12,7 +12,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 export function useTheme() {
-  const context = useContext(ThemeContext)
+  const context = use(ThemeContext)
   if (!context) {
     throw new Error("useTheme must be used within ThemeProvider")
   }
@@ -21,7 +21,7 @@ export function useTheme() {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark")
-  const [mounted, setMounted] = useState(false)
+  const mountedRef = useRef(false)
 
   useEffect(() => {
     const stored = localStorage.getItem("theme") as Theme | null
@@ -30,11 +30,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
       setTheme("light")
     }
-    setMounted(true)
+    mountedRef.current = true
   }, [])
 
   useEffect(() => {
-    if (!mounted) return
+    if (!mountedRef.current) return
     const root = document.documentElement
     if (theme === "light") {
       root.setAttribute("data-theme", "light")
@@ -42,7 +42,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.removeAttribute("data-theme")
     }
     localStorage.setItem("theme", theme)
-  }, [theme, mounted])
+  }, [theme])
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"))
