@@ -97,7 +97,7 @@ export function MdxAudio({
             type="button"
             onClick={toggle}
             aria-label={isPlaying ? "Pause" : "Play"}
-            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-accent/40 text-accent transition-all hover:border-accent/70 hover:bg-accent/10"
+            className="flex size-9 flex-shrink-0 items-center justify-center rounded-full border border-accent/40 text-accent transition-all hover:border-accent/70 hover:bg-accent/10"
           >
             {isPlaying ? (
               <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -135,7 +135,7 @@ export function MdxAudio({
             </div>
             {/* Thumb */}
             <div
-              className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-accent/80 shadow-[0_0_6px_rgba(100,255,218,0.35)]"
+              className="pointer-events-none absolute size-2.5 -translate-x-1/2 rounded-full bg-accent/80 shadow-[0_0_6px_rgba(100,255,218,0.35)]"
               style={{ left: `${progress}%` }}
             />
           </div>

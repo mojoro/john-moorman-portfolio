@@ -230,7 +230,7 @@ export default function PalettePage() {
           >
             <label htmlFor={`color-${key}`} className="relative cursor-pointer">
               <div
-                className="h-10 w-10 rounded-lg border border-border"
+                className="size-10 rounded-lg border border-border"
                 style={{ backgroundColor: currentTokens[key] || "#000" }}
               />
               <input

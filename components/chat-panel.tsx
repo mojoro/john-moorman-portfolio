@@ -273,7 +273,7 @@ export function ChatPanel() {
           height={36}
           className="rounded-full"
         />
-        <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-bg bg-accent" />
+        <span className="absolute -top-0.5 -right-0.5 size-3.5 rounded-full border-2 border-bg bg-accent" />
       </motion.button>
 
       {/* Backdrop */}
@@ -432,7 +432,7 @@ export function ChatPanel() {
                 autoComplete="off"
                 value={honeypot}
                 onChange={(e) => setHoneypot(e.target.value)}
-                className="absolute h-0 w-0 opacity-0"
+                className="absolute size-0 opacity-0"
                 aria-hidden="true"
               />
 

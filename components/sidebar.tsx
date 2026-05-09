@@ -234,7 +234,7 @@ export function Sidebar() {
           <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="relative z-50 flex h-8 w-8 flex-col items-center justify-center gap-1.5"
+            className="relative z-50 flex size-8 flex-col items-center justify-center gap-1.5"
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileMenuOpen}
           >
