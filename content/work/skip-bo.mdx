@@ -21,23 +21,19 @@ thumbnail: /images/blog/skip-bo/tabletop-desktop.png
 stats:
   - value: "8"
     label: "Players / room"
-  - value: "300+"
+  - value: "301"
     label: "Vitest cases"
+  - value: "ws@8"
+    label: "no Socket.IO"
 ---
 
 <Demo
   hero="/images/blog/skip-bo/two-browsers.png"
   heroAlt="Two browser windows playing Skip-Bo over WebSocket against a single server."
   caption="Two browsers, one server. Up to 8 players per room over raw ws@8."
-  stats={[
-    { value: "148+153", label: "Vitest cases" },
-    { value: "1", label: "EC2 box" },
-    { value: "ws@8", label: "no Socket.IO" },
-  ]}
   live="https://skipbo.johnmoorman.com/"
   github="https://github.com/mojoro/skip-bo"
   blog="/blog/skip-bo"
-  status="shipped"
   note="Open in two browsers to play multiplayer, or hit /local for hot-seat solo."
 />
 
