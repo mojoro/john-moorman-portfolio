@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useState } from "react"
+import { createContext, use, useCallback, useState } from "react"
 
 type ToastType = "success" | "error"
 
@@ -17,7 +17,7 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue>({ show: () => {} })
 
 export function useToast() {
-  return useContext(ToastContext)
+  return use(ToastContext)
 }
 
 let nextId = 0
