@@ -77,11 +77,43 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const post = await getPost("blog", slug)
-  if (!post) return { title: "Post Not Found" }
+  if (!post) return { title: "Post Not Found", robots: { index: false } }
+
+  const url = `/blog/${slug}`
+  const ogImage = `/og?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / blog")}&subtitle=${encodeURIComponent(new Date(post.frontmatter.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}`
 
   return {
-    title: `${post.frontmatter.title} | John Moorman`,
+    title: post.frontmatter.title,
     description: post.frontmatter.description,
+    keywords: post.frontmatter.tags,
+    authors: [{ name: "John Moorman", url: "https://johnmoorman.com" }],
+    alternates: { canonical: url },
+    openGraph: {
+      title: post.frontmatter.title,
+      description: post.frontmatter.description,
+      url,
+      type: "article",
+      publishedTime: new Date(post.frontmatter.date).toISOString(),
+      modifiedTime: new Date(post.frontmatter.date).toISOString(),
+      authors: ["https://johnmoorman.com/about"],
+      tags: post.frontmatter.tags,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.frontmatter.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.frontmatter.title,
+      description: post.frontmatter.description,
+      images: [ogImage],
+      creator: "@John_Moorman",
+      site: "@John_Moorman",
+    },
   }
 }
 
@@ -93,9 +125,66 @@ export default async function BlogPost({ params }: Props) {
 
   const headings = extractHeadings(post.content)
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""
+  const url = `https://johnmoorman.com/blog/${slug}`
+  const isoDate = new Date(post.frontmatter.date).toISOString()
+  const ogImage = `https://johnmoorman.com/og?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / blog")}`
+
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "@id": `${url}#article`,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    headline: post.frontmatter.title,
+    description: post.frontmatter.description,
+    image: [ogImage],
+    keywords: post.frontmatter.tags,
+    inLanguage: "en",
+    datePublished: isoDate,
+    dateModified: isoDate,
+    author: {
+      "@type": "Person",
+      "@id": "https://johnmoorman.com/#person",
+      name: "John Moorman",
+      url: "https://johnmoorman.com",
+    },
+    publisher: { "@id": "https://johnmoorman.com/#person" },
+  }
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://johnmoorman.com/",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Blog",
+        item: "https://johnmoorman.com/blog",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: post.frontmatter.title,
+        item: url,
+      },
+    ],
+  }
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <article className="py-20 mx-auto max-w-[680px] lg:max-w-none 2xl:max-w-[680px]">
         <Link
           href="/blog"
