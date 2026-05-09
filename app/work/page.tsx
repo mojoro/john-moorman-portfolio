@@ -106,14 +106,14 @@ export default async function WorkIndex() {
                   : "border-border hover:border-accent/40 hover:bg-bg-surface"
               }`}
             >
-              <div className="flex flex-col sm:flex-row">
+              <div className="flex flex-col items-stretch sm:flex-row">
                 {thumbnail && !isUpcoming && (
                   <div className="relative h-40 w-full overflow-hidden bg-bg-elevated sm:h-auto sm:w-56 sm:shrink-0">
                     <Image
                       src={thumbnail}
                       alt=""
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
                       sizes="(max-width: 640px) 100vw, 224px"
                     />
                   </div>
