@@ -93,7 +93,7 @@ export function ChatPanel() {
     }
     const scrollHandler = () => dismiss()
     const timer = setTimeout(dismiss, 5000)
-    window.addEventListener("scroll", scrollHandler, { once: true })
+    window.addEventListener("scroll", scrollHandler, { once: true, passive: true })
     return () => {
       clearTimeout(timer)
       window.removeEventListener("scroll", scrollHandler)
@@ -107,11 +107,12 @@ export function ChatPanel() {
     try {
       localStorage.removeItem("chat_messages")
       localStorage.removeItem("chat_session_id")
+      sessionStorage.removeItem("chat_messages")
     } catch {
       // non-fatal
     }
     try {
-      const stored = sessionStorage.getItem("chat_messages")
+      const stored = sessionStorage.getItem("chat_messages:v1")
       if (stored) {
         const parsed = JSON.parse(stored) as Message[]
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -127,7 +128,7 @@ export function ChatPanel() {
   useEffect(() => {
     if (messages.length > 0) {
       try {
-        sessionStorage.setItem("chat_messages", JSON.stringify(messages))
+        sessionStorage.setItem("chat_messages:v1", JSON.stringify(messages))
       } catch {
         // Storage full or unavailable
       }
