@@ -18,6 +18,21 @@ week: 6
 featured: true
 ---
 
+<Demo
+  hero="/images/blog/murmur/murmur-reader.png"
+  heroAlt="The Murmur reader playing back a saved document with one of five swappable TTS engines."
+  caption="The reader. Five swappable TTS engines, voice cloning, offline PWA, all self-hosted."
+  stats={[
+    { value: "5", label: "TTS engines" },
+    { value: "PDF·EPUB·DOCX", label: "document import" },
+    { value: "PWA", label: "offline-capable" },
+  ]}
+  github="https://github.com/mojoro/murmur-tts-reader"
+  blog="/blog/murmur"
+  status="shipped"
+  note="Self-hosted only — clone the repo and run docker compose up."
+/>
+
 A self-hosted TTS reader born from a friend's request: "You're so close! Can you make something like this, but more directly for text-to-speech?" Murmur lets you paste text, upload documents (PDF, EPUB, DOCX), or feed it a URL, then listen with any of five swappable TTS engines. Everything runs locally. No API keys, no subscriptions.
 
 ## What It Does
