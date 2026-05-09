@@ -1,5 +1,6 @@
 import { getPosts } from "@/lib/content"
 import { TagPill } from "@/components/tag-pill"
+import Image from "next/image"
 import Link from "next/link"
 import type { Metadata } from "next"
 
@@ -92,48 +93,77 @@ export default async function WorkIndex() {
           const status = post.frontmatter.status ?? "shipped"
           const isUpcoming = status === "upcoming"
           const challenge = post.frontmatter.challenge
+          const thumbnail = post.frontmatter.thumbnail
+          const stats = post.frontmatter.stats ?? []
 
           return (
             <Link
               key={post.slug}
               href={`/work/${post.slug}`}
-              className={`group relative block rounded-lg border p-6 transition-all ${
+              className={`group relative block overflow-hidden rounded-lg border transition-all ${
                 isUpcoming
                   ? "pointer-events-none border-dashed border-border/60 opacity-50"
                   : "border-border hover:border-accent/40 hover:bg-bg-surface"
               }`}
             >
-              {!isUpcoming && (
-                <span className="absolute top-4 right-4 text-text-muted text-sm transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
-                  ↗
-                </span>
-              )}
-              <div className="flex flex-wrap items-center gap-2">
-                {post.frontmatter.featured && (
-                  <span className="rounded-full bg-accent/10 px-2 py-0.5 font-mono text-[10px] text-accent">
-                    Featured
-                  </span>
+              <div className="flex flex-col sm:flex-row">
+                {thumbnail && !isUpcoming && (
+                  <div className="relative h-40 w-full overflow-hidden bg-bg-elevated sm:h-auto sm:w-56 sm:shrink-0">
+                    <Image
+                      src={thumbnail}
+                      alt=""
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      sizes="(max-width: 640px) 100vw, 224px"
+                    />
+                  </div>
                 )}
-                {challenge && (
-                  <span className="rounded-full bg-yellow-400/10 px-2 py-0.5 font-mono text-[10px] text-yellow-400">
-                    10 in 10
-                  </span>
-                )}
-                {statusBadge(status)}
-              </div>
-              <h2 className="mt-2 font-display text-xl font-semibold transition-colors group-hover:text-accent">
-                {post.frontmatter.title}
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-                {post.frontmatter.description}
-              </p>
-              {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {post.frontmatter.tags.map((tag) => (
-                    <TagPill key={tag}>{tag}</TagPill>
-                  ))}
+
+                <div className="relative flex-1 p-6">
+                  {!isUpcoming && (
+                    <span className="absolute top-4 right-4 text-text-muted text-sm transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+                      ↗
+                    </span>
+                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {post.frontmatter.featured && (
+                      <span className="rounded-full bg-accent/10 px-2 py-0.5 font-mono text-[10px] text-accent">
+                        Featured
+                      </span>
+                    )}
+                    {challenge && (
+                      <span className="rounded-full bg-yellow-400/10 px-2 py-0.5 font-mono text-[10px] text-yellow-400">
+                        10 in 10
+                      </span>
+                    )}
+                    {statusBadge(status)}
+                  </div>
+                  <h2 className="mt-2 font-display text-xl font-semibold transition-colors group-hover:text-accent">
+                    {post.frontmatter.title}
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+                    {post.frontmatter.description}
+                  </p>
+                  {stats.length > 0 && (
+                    <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-xs text-text-muted">
+                      {stats.map((stat, i) => (
+                        <span key={stat.label} className="flex items-baseline gap-1.5">
+                          {i > 0 && <span className="text-border">·</span>}
+                          <span className="text-accent/80">{stat.value}</span>
+                          <span>{stat.label.toLowerCase()}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {post.frontmatter.tags.map((tag) => (
+                        <TagPill key={tag}>{tag}</TagPill>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </Link>
           )
         })}

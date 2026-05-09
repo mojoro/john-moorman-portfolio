@@ -13,6 +13,7 @@ export interface PostFrontmatter {
   challenge?: string
   week?: number
   stats?: Array<{ value: string; label: string }>
+  thumbnail?: string
 }
 
 export interface Post {
