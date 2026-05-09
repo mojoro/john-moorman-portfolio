@@ -21,10 +21,15 @@ export function CursorGlow() {
     const isDark = () =>
       document.documentElement.getAttribute("data-theme") !== "light"
 
-    const attach = () =>
+    let attached = false
+    const attach = () => {
+      if (attached) return
+      attached = true
       window.addEventListener("mousemove", onMove, { passive: true })
-
+    }
     const detach = () => {
+      if (!attached) return
+      attached = false
       window.removeEventListener("mousemove", onMove)
       div.style.opacity = "0"
     }
@@ -32,7 +37,8 @@ export function CursorGlow() {
     if (isDark()) attach()
 
     const observer = new MutationObserver(() => {
-      isDark() ? attach() : detach()
+      if (isDark()) attach()
+      else detach()
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -40,8 +46,9 @@ export function CursorGlow() {
     })
 
     return () => {
-      detach()
+      window.removeEventListener("mousemove", onMove)
       observer.disconnect()
+      div.style.opacity = "0"
     }
   }, [])
 

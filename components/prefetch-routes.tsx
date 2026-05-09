@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react"
  * Fetches sequentially with a small gap to avoid contention with user requests.
  */
 export function PrefetchRoutes({ routes }: { routes: string[] }) {
-  const router = useRouter()
+  const { prefetch } = useRouter()
   const pathname = usePathname()
   const started = useRef(false)
 
@@ -36,6 +36,15 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
     })
 
     let cancelled = false
+    let pendingTimer: ReturnType<typeof setTimeout> | null = null
+
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        pendingTimer = setTimeout(() => {
+          pendingTimer = null
+          resolve()
+        }, ms)
+      })
 
     async function run() {
       // Wait for the page to fully settle before starting background fetches
@@ -43,7 +52,10 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
         if (typeof requestIdleCallback === "function") {
           requestIdleCallback(() => resolve(), { timeout: 3000 })
         } else {
-          setTimeout(resolve, 2000)
+          pendingTimer = setTimeout(() => {
+            pendingTimer = null
+            resolve()
+          }, 2000)
         }
       })
 
@@ -51,7 +63,7 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
         if (cancelled) break
 
         // Prefetch via Next.js router (caches RSC flight payload)
-        router.prefetch(route)
+        prefetch(route)
 
         // Also fetch the full HTML into the browser HTTP cache
         try {
@@ -61,7 +73,7 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
         }
 
         // Small gap between fetches so we don't contend with user-initiated requests
-        await new Promise((r) => setTimeout(r, 100))
+        await wait(100)
       }
     }
 
@@ -69,8 +81,9 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
 
     return () => {
       cancelled = true
+      if (pendingTimer) clearTimeout(pendingTimer)
     }
-  }, [routes, pathname, router])
+  }, [routes, pathname, prefetch])
 
   return null
 }

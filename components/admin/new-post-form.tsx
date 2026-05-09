@@ -12,7 +12,7 @@ export function NewPostForm() {
   const [slug, setSlug] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const router = useRouter()
+  const { push } = useRouter()
   const { show } = useToast()
 
   const autoSlug = title
@@ -34,7 +34,7 @@ export function NewPostForm() {
       setOpen(false)
       setTitle("")
       setSlug("")
-      router.push(`/admin/content/${type}/${finalSlug}`)
+      push(`/admin/content/${type}/${finalSlug}`)
     } else {
       setError(result.error ?? "Failed to create post.")
     }

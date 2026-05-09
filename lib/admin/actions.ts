@@ -170,6 +170,9 @@ export async function savePrompt(content: string): Promise<ActionResult> {
 
 // ── Palette ──
 
+const VAR_DECL_RE = /(--([\w-]+):\s*)([^;]+)(;)/g
+const LIGHT_BLOCK_RE = /\[data-theme="light"\]\s*\{([^}]+)\}/
+
 export interface PaletteColors {
   dark: Record<string, string>
   light: Record<string, string>
@@ -184,25 +187,22 @@ export async function savePalette(colors: PaletteColors): Promise<ActionResult> 
   try {
     let css = await fs.readFile(cssPath, "utf-8")
 
-    // Replace :root block values
-    for (const [key, value] of Object.entries(colors.dark)) {
-      const varName = `--${key}`
-      const regex = new RegExp(`(${varName}:\\s*)([^;]+)(;)`)
-      css = css.replace(regex, `$1${value}$3`)
-    }
+    // Single pass over each block: match any `--var: value;` declaration and
+    // replace from the new map. Avoids recompiling a regex per token.
+    const replaceVars = (block: string, vars: Record<string, string>) =>
+      block.replace(VAR_DECL_RE, (match, prefix: string, name: string, _val: string, suffix: string) => {
+        const next = vars[name]
+        return next ? `${prefix}${next}${suffix}` : match
+      })
 
-    // Replace [data-theme="light"] block values
-    for (const [key, value] of Object.entries(colors.light)) {
-      const varName = `--${key}`
-      // Match inside [data-theme="light"] block specifically
-      const lightBlock = css.match(/\[data-theme="light"\]\s*\{([^}]+)\}/)
-      if (lightBlock) {
-        const updatedBlock = lightBlock[1].replace(
-          new RegExp(`(${varName}:\\s*)([^;]+)(;)`),
-          `$1${value}$3`
-        )
-        css = css.replace(lightBlock[1], updatedBlock)
-      }
+    // :root block — outside any [data-theme] block. Replace dark vars there.
+    css = replaceVars(css, colors.dark)
+
+    // [data-theme="light"] block.
+    const lightBlock = css.match(LIGHT_BLOCK_RE)
+    if (lightBlock) {
+      const updatedBlock = replaceVars(lightBlock[1], colors.light)
+      css = css.replace(lightBlock[1], updatedBlock)
     }
 
     await fs.writeFile(cssPath, css, "utf-8")

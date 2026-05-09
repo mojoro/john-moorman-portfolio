@@ -37,7 +37,7 @@ export default function PromacroDeletePage() {
         &larr; Home
       </Link>
 
-      <h1 className="mt-8 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="mt-8 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
         Delete your Promacro account
       </h1>
 
@@ -117,29 +117,35 @@ export default function PromacroDeletePage() {
         <ul className="mt-4 space-y-3 text-text-secondary leading-relaxed">
           <li>
             <span className="font-medium text-text-primary">
-              Account credentials
+              Account credentials:
             </span>{" "}
-            — your email address, hashed password, and any linked Apple sign-in
+            your email address, hashed password, and any linked Apple sign-in
             identifier.
           </li>
           <li>
-            <span className="font-medium text-text-primary">Profile data</span>{" "}
-            — sex, age, height, weight, activity level, display name.
-          </li>
-          <li>
-            <span className="font-medium text-text-primary">Meal history</span>{" "}
-            — every meal entry you have logged, including foods, quantities,
-            and computed macros.
-          </li>
-          <li>
-            <span className="font-medium text-text-primary">Preferences</span>{" "}
-            — tracked nutrients, ring assignments, units, theme.
+            <span className="font-medium text-text-primary">
+              Profile data:
+            </span>{" "}
+            sex, age, height, weight, activity level, display name.
           </li>
           <li>
             <span className="font-medium text-text-primary">
-              Daily suggestions
+              Meal history:
             </span>{" "}
-            — any cached AI suggestions tied to your account.
+            every meal entry you have logged, including foods, quantities,
+            and computed macros.
+          </li>
+          <li>
+            <span className="font-medium text-text-primary">
+              Preferences:
+            </span>{" "}
+            tracked nutrients, ring assignments, units, theme.
+          </li>
+          <li>
+            <span className="font-medium text-text-primary">
+              Daily suggestions:
+            </span>{" "}
+            any cached AI suggestions tied to your account.
           </li>
         </ul>
       </div>
@@ -149,21 +155,21 @@ export default function PromacroDeletePage() {
         <ul className="mt-4 space-y-3 text-text-secondary leading-relaxed">
           <li>
             <span className="font-medium text-text-primary">
-              Anonymized crash reports
+              Anonymized crash reports:
             </span>{" "}
-            — Sentry stack traces collected before deletion are kept for up to
+            Sentry stack traces collected before deletion are kept for up to
             90 days for engineering diagnostics. They do not contain meals,
-            passwords, biometrics, or your email — only an internal account ID
+            passwords, biometrics, or your email, only an internal account ID
             that becomes orphaned once the account is deleted.
           </li>
           <li>
             <span className="font-medium text-text-primary">
-              Infrastructure backups
+              Infrastructure backups:
             </span>{" "}
-            — Supabase and Vercel keep automated backups of their respective
+            Supabase and Vercel keep automated backups of their respective
             databases and request logs. These age out per their retention
-            policies (typically 7–30 days). After the backup window passes, no
-            copy of your data remains.
+            policies (typically 7 to 30 days). After the backup window passes,
+            no copy of your data remains.
           </li>
         </ul>
       </div>

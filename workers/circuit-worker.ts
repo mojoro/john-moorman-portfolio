@@ -516,7 +516,8 @@ function ptAt(pl: PulseData, d: number): [number, number] {
 // Re-assign a pulse to a new random unoccupied trace so each cycle looks different.
 function resamplePulse(pl: PulseData) {
   if (traceCount === 0) return
-  const occupied = new Set(pulseData.filter(p => p !== pl && p.pr > 0).map(p => p.ti))
+  const occupied = new Set<number>()
+  for (const p of pulseData) if (p !== pl && p.pr > 0) occupied.add(p.ti)
   let ti = 0, ptC = 0, attempts = 0
   do {
     ti = Math.floor(Math.random() * traceCount)

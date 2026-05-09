@@ -69,8 +69,10 @@ export function FrontmatterForm({
           onChange={(e) => {
             const tags = e.target.value
               .split(",")
-              .map((t) => t.trim())
-              .filter(Boolean)
+              .flatMap((t) => {
+                const trimmed = t.trim()
+                return trimmed ? [trimmed] : []
+              })
             update("tags", tags)
           }}
           placeholder="Next.js, TypeScript, AI"
@@ -84,7 +86,7 @@ export function FrontmatterForm({
           type="checkbox"
           checked={(frontmatter.draft as boolean) ?? false}
           onChange={(e) => update("draft", e.target.checked)}
-          className="h-4 w-4 rounded border-border bg-bg-surface accent-accent"
+          className="size-4 rounded border-border bg-bg-surface accent-accent"
         />
         <span className={labelClasses}>Draft</span>
       </label>
@@ -100,7 +102,7 @@ export function FrontmatterForm({
               type="checkbox"
               checked={(frontmatter.featured as boolean) ?? false}
               onChange={(e) => update("featured", e.target.checked)}
-              className="h-4 w-4 rounded border-border bg-bg-surface accent-accent"
+              className="size-4 rounded border-border bg-bg-surface accent-accent"
             />
             <span className={labelClasses}>Featured</span>
           </label>

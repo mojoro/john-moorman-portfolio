@@ -48,15 +48,19 @@ export default async function Home() {
     href: `/blog/${p.slug}`,
   }))
 
-  const featuredWork = workPosts
-    .filter((p) => p.frontmatter.featured)
-    .map((p) => ({
-      title: p.frontmatter.title,
-      summary: p.frontmatter.description,
-      stats: p.frontmatter.stats ?? [],
-      tags: p.frontmatter.tags ?? [],
-      href: `/work/${p.slug}`,
-    }))
+  const featuredWork = workPosts.flatMap((p) =>
+    p.frontmatter.featured
+      ? [
+          {
+            title: p.frontmatter.title,
+            summary: p.frontmatter.description,
+            stats: p.frontmatter.stats ?? [],
+            tags: p.frontmatter.tags ?? [],
+            href: `/work/${p.slug}`,
+          },
+        ]
+      : []
+  )
 
   const challengeWork = workPosts
     .filter((p) => p.frontmatter.challenge === "10-in-10" && p.frontmatter.week != null)

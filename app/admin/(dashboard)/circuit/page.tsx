@@ -400,7 +400,7 @@ export default function CircuitConfigPage() {
             </button>
             <button
               onClick={() => setPanelCollapsed(c => !c)}
-              className="flex h-5 w-5 items-center justify-center rounded text-text-muted transition-colors hover:text-text-primary"
+              className="flex size-5 items-center justify-center rounded text-text-muted transition-colors hover:text-text-primary"
               title={panelCollapsed ? "Expand" : "Collapse"}
             >
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -489,7 +489,7 @@ export default function CircuitConfigPage() {
             onPointerMove={onResizeMove}
             onPointerUp={onResizeUp}
             style={{ touchAction: "none", cursor: "nwse-resize" }}
-            className="absolute bottom-0 right-0 flex h-5 w-5 items-end justify-end pb-1 pr-1"
+            className="absolute bottom-0 right-0 flex size-5 items-end justify-end pb-1 pr-1"
           >
             <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" className="text-text-muted opacity-50">
               <rect x="4" y="0" width="1.5" height="1.5" rx="0.5"/>

@@ -83,7 +83,7 @@ export function Sidebar() {
   const [activeSection, setActiveSection] = useState("")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
-  const router = useRouter()
+  const { push } = useRouter()
   const isHomePage = pathname === "/"
 
   // Scroll-spy: only relevant on homepage
@@ -127,12 +127,12 @@ export function Sidebar() {
       if (isHomePage && hash) {
         document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" })
       } else if (page) {
-        router.push(page)
+        push(page)
       } else if (hash) {
-        router.push(`/#${hash}`)
+        push(`/#${hash}`)
       }
     },
-    [isHomePage, router]
+    [isHomePage, push]
   )
 
   // Determine active item: scroll-spy on home, pathname match elsewhere
@@ -234,7 +234,7 @@ export function Sidebar() {
           <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="relative z-50 flex h-8 w-8 flex-col items-center justify-center gap-1.5"
+            className="relative z-50 flex size-8 flex-col items-center justify-center gap-1.5"
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileMenuOpen}
           >

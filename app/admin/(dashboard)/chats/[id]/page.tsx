@@ -26,7 +26,7 @@ export default async function ChatDetailPage({
           >
             &larr; Back
           </Link>
-          <h1 className="font-display text-2xl font-bold text-text-primary">
+          <h1 className="font-display text-2xl font-semibold text-text-primary">
             Chat Session
           </h1>
         </div>

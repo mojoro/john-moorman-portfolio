@@ -6,7 +6,7 @@ export default async function CommentsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold text-text-primary">
+      <h1 className="font-display text-2xl font-semibold text-text-primary">
         Comments{" "}
         <span className="font-mono text-base font-normal text-text-muted">
           ({comments.length})

@@ -16,7 +16,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="font-display text-2xl font-bold text-text-primary">Dashboard</h1>
+      <h1 className="font-display text-2xl font-semibold text-text-primary">Dashboard</h1>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

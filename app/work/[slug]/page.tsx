@@ -197,7 +197,7 @@ export default async function WorkPost({ params }: Props) {
       </Link>
 
       <header className="mt-8">
-        <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+        <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
           {post.frontmatter.title}
         </h1>
         <p className="mt-4 text-lg text-text-secondary">

@@ -205,7 +205,7 @@ export default async function BlogPost({ params }: Props) {
             <span className="text-border">·</span>
             <span>{estimateReadTime(post.content)} min read</span>
           </div>
-          <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
             {post.frontmatter.title}
           </h1>
           {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
@@ -238,7 +238,7 @@ export default async function BlogPost({ params }: Props) {
         <div className="mt-6">
           <Suspense
             fallback={
-              <p className="text-sm text-text-muted">Loading comments...</p>
+              <p className="text-sm text-text-muted">Loading comments…</p>
             }
           >
             <CommentList postSlug={slug} />

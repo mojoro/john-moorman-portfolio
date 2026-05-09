@@ -72,7 +72,7 @@ export function ContactForm() {
         autoComplete="off"
         value={honeypot}
         onChange={(e) => setHoneypot(e.target.value)}
-        className="absolute h-0 w-0 opacity-0"
+        className="absolute size-0 opacity-0"
         aria-hidden="true"
       />
 

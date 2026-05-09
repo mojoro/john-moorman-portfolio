@@ -49,7 +49,7 @@ export function ContentTable({ posts }: { posts: ContentRow[] }) {
     }
   }
 
-  const sorted = [...posts].sort((a, b) => {
+  const sorted = posts.toSorted((a, b) => {
     let cmp = 0
     switch (sortKey) {
       case "title":

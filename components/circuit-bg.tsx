@@ -307,7 +307,8 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
           pl.pr += pl.sp
           if (pl.pr >= 1.0 + pl.ln) {
             // Pulse completed — pick a new unoccupied trace for the next pass
-            const occupied = new Set(pulseData.filter(p => p !== pl && p.pr > 0).map(p => p.ti))
+            const occupied = new Set<number>()
+            for (const p of pulseData) if (p !== pl && p.pr > 0) occupied.add(p.ti)
             let ti = 0, ptC = 0, att = 0
             do { ti = Math.floor(Math.random() * traceCount); ptC = traceMeta[ti * 3 + 1]; att++ }
             while ((ptC < 2 || occupied.has(ti)) && att < 20)

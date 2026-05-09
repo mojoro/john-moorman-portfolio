@@ -193,9 +193,9 @@ export function LiveEmbed({ src, title, height = 720, note }: LiveEmbedProps) {
       <div className="overflow-hidden rounded-xl border border-border bg-bg-surface">
         <div className="flex items-center justify-between border-b border-border bg-bg-elevated px-4 py-2">
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-text-muted/30" />
-            <span className="h-2.5 w-2.5 rounded-full bg-text-muted/30" />
-            <span className="h-2.5 w-2.5 rounded-full bg-text-muted/30" />
+            <span className="size-2.5 rounded-full bg-text-muted/30" />
+            <span className="size-2.5 rounded-full bg-text-muted/30" />
+            <span className="size-2.5 rounded-full bg-text-muted/30" />
             <span className="ml-3 font-mono text-xs text-text-muted">{title}</span>
           </div>
           <a

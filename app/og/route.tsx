@@ -10,9 +10,9 @@ export async function GET(request: Request) {
   const subtitle =
     url.searchParams.get("subtitle") ?? "Software Engineer · Berlin"
 
-  const photo = await fetch(`${origin}/images/og-about-img.jpeg`).then((r) =>
-    r.arrayBuffer()
-  )
+  const photo = await fetch(`${origin}/images/og-about-img.jpeg`, {
+    next: { revalidate: 3600 },
+  }).then((r) => r.arrayBuffer())
 
   const heading = title ?? "John Moorman"
 

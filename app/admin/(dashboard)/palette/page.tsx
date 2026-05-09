@@ -230,7 +230,7 @@ export default function PalettePage() {
           >
             <label htmlFor={`color-${key}`} className="relative cursor-pointer">
               <div
-                className="h-10 w-10 rounded-lg border border-border"
+                className="size-10 rounded-lg border border-border"
                 style={{ backgroundColor: currentTokens[key] || "#000" }}
               />
               <input
@@ -265,7 +265,7 @@ export default function PalettePage() {
           Preview
         </p>
         <div className="space-y-4">
-          <h2 className="font-display text-2xl font-bold text-text-primary">
+          <h2 className="font-display text-2xl font-semibold text-text-primary">
             Hello, World.
           </h2>
           <p className="text-text-secondary">
