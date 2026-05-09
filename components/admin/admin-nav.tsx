@@ -47,14 +47,14 @@ export function AdminNav() {
         </div>
 
         <div className="flex items-center gap-4">
-          <a
+          <Link
             href="/"
             target="_blank"
             rel="noopener noreferrer"
             className="font-mono text-xs text-text-muted transition-colors hover:text-accent"
           >
             View site ↗
-          </a>
+          </Link>
           <form action={logoutAction}>
             <button
               type="submit"
