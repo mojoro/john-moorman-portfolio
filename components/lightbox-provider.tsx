@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback } from "react"
+import { createContext, use, useState, useCallback } from "react"
 import { ImageLightbox } from "./image-lightbox"
 
 interface LightboxContextValue {
@@ -12,7 +12,7 @@ const LightboxContext = createContext<LightboxContextValue>({
 })
 
 export function useLightbox() {
-  return useContext(LightboxContext)
+  return use(LightboxContext)
 }
 
 export function LightboxProvider({ children }: { children: React.ReactNode }) {
