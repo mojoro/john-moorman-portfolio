@@ -51,6 +51,8 @@ A browser version of the card game Skip-Bo, built as a single honest run at the 
 
 **Custom drag-and-drop.** No library. Pointer Events, a floating ghost, a rect-based hit test, and a stable-id drop-target registry under `src/lib/dnd/`. Escape cancels; a small movement threshold prevents taps from registering as drags.
 
+![A card mid-drag, with floating ghost and the eligible drop zones highlighted.](/images/blog/skip-bo/drag-in-progress.png)
+
 **Raw `ws@8` server.** No Socket.IO, no game framework. Protocol-level heartbeats, 16KB max payload, token-bucket rate limits keyed per session and endpoint, 60-second disconnect grace with random-legal-move bot takeover, state-version numbers on every broadcast. Client hook reconnects with exponential backoff plus jitter, pauses on visibility loss, and resumes on return.
 
 **Single-box AWS deploy.** One `t4g.small` Amazon Linux 2023 instance in `eu-central-1` running two Docker containers (Next.js standalone + the `ws` server) behind host nginx terminating TLS via Let's Encrypt. Single origin for HTML, REST, SSE, and WebSocket keeps CORS out of the architecture. Mozilla Intermediate 2026 TLS profile, A on SSL Labs. Idempotent two-script deploy loop: `bootstrap.sh` on the host once, `deploy.sh` from the laptop on every ship.
