@@ -205,6 +205,22 @@ body {
 }
 
 /* OG link card — reset prose link + image styles */
+.prose-custom .work-demo a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.prose-custom .work-demo a:hover {
+  text-decoration: none;
+}
+
+.prose-custom .work-demo img {
+  max-height: none;
+  width: 100%;
+  margin-inline: 0;
+  object-fit: cover;
+}
+
 .prose-custom .og-link-card {
   text-decoration: none;
   color: inherit;

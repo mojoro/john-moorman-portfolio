@@ -41,6 +41,32 @@ function StatusChip({ status }: { status: "in-progress" | "upcoming" }) {
   )
 }
 
+interface DemoButtonProps {
+  href: string
+  variant: "primary" | "secondary"
+  external?: boolean
+  children: React.ReactNode
+}
+
+function DemoButton({ href, variant, external = true, children }: DemoButtonProps) {
+  const base =
+    "inline-flex h-9 items-center gap-1.5 rounded-md border px-4 font-mono text-xs no-underline transition-[background-color,border-color,color,scale] active:scale-[0.97]"
+  const variantClass =
+    variant === "primary"
+      ? "border-accent/50 bg-accent/10 text-accent hover:border-accent hover:bg-accent/20"
+      : "border-border bg-transparent text-text-secondary hover:border-accent/50 hover:text-accent"
+  return (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className={`${base} ${variantClass}`}
+    >
+      {children}
+    </a>
+  )
+}
+
 export function WorkDemo({
   hero,
   heroAlt = "",
@@ -62,7 +88,7 @@ export function WorkDemo({
   const hasStats = !!stats && Array.isArray(stats) && stats.length > 0
 
   return (
-    <section className="my-8" aria-label="Project demo">
+    <section className="work-demo my-8" aria-label="Project demo">
       <div className="overflow-hidden rounded-xl border border-border bg-bg-surface">
         {hero && (
           <div className="relative w-full bg-bg-elevated" style={aspectStyle}>
@@ -72,7 +98,7 @@ export function WorkDemo({
                 alt={heroAlt}
                 width={1200}
                 height={675}
-                className="h-auto w-full"
+                className="block h-auto w-full"
                 quality={95}
                 sizes="(max-width: 768px) 100vw, 900px"
                 priority
@@ -85,7 +111,7 @@ export function WorkDemo({
                 muted
                 loop
                 playsInline
-                className="h-auto w-full"
+                className="block h-auto w-full"
                 aria-label={heroAlt}
               />
             )}
@@ -97,72 +123,48 @@ export function WorkDemo({
           </div>
         )}
 
-        <div className="space-y-5 px-5 py-5 sm:px-7 sm:py-6">
+        <div className="space-y-4 px-5 py-4 sm:px-6 sm:py-5">
           {!hero && showStatus && (
             <StatusChip status={status as "in-progress" | "upcoming"} />
           )}
 
           {caption && (
-            <p
-              className="text-pretty text-[15px] leading-relaxed text-text-secondary"
-            >
+            <p className="text-pretty text-sm leading-relaxed text-text-secondary">
               {caption}
             </p>
           )}
 
           {hasStats && (
-            <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:flex sm:flex-wrap sm:gap-x-9">
+            <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1.5 font-mono text-sm">
               {stats!.map((stat) => (
-                <div key={stat.label} className="min-w-0">
-                  <p className="font-display text-2xl font-bold tabular-nums leading-none text-accent">
+                <span key={stat.label} className="flex items-baseline gap-1.5">
+                  <span className="font-semibold tabular-nums text-accent">
                     {stat.value}
-                  </p>
-                  <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-muted">
-                    {stat.label}
-                  </p>
-                </div>
+                  </span>
+                  <span className="text-text-muted">
+                    {stat.label.toLowerCase()}
+                  </span>
+                </span>
               ))}
             </div>
           )}
 
           {hasActions && (
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
+            <div className="flex flex-wrap items-center gap-2">
               {live && (
-                <a
-                  href={live}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-[36px] items-center gap-1.5 rounded-md border border-accent/50 bg-accent/10 px-3.5 py-2 font-mono text-xs text-accent transition-[background-color,border-color,scale] hover:border-accent hover:bg-accent/15 active:scale-[0.96]"
-                >
-                  {liveLabel}
-                  <span aria-hidden="true" className="text-[10px]">
-                    ↗
-                  </span>
-                </a>
+                <DemoButton href={live} variant="primary">
+                  {liveLabel} <span aria-hidden="true">↗</span>
+                </DemoButton>
               )}
               {github && (
-                <a
-                  href={github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-[36px] items-center gap-1 rounded-md px-2.5 py-2 font-mono text-xs text-text-secondary transition-colors hover:text-accent"
-                >
-                  GitHub
-                  <span aria-hidden="true" className="text-[10px]">
-                    ↗
-                  </span>
-                </a>
+                <DemoButton href={github} variant="secondary">
+                  GitHub <span aria-hidden="true">↗</span>
+                </DemoButton>
               )}
               {blog && (
-                <a
-                  href={blog}
-                  className="inline-flex min-h-[36px] items-center gap-1 rounded-md px-2.5 py-2 font-mono text-xs text-text-secondary transition-colors hover:text-accent"
-                >
-                  Write-up
-                  <span aria-hidden="true" className="text-[10px]">
-                    →
-                  </span>
-                </a>
+                <DemoButton href={blog} variant="secondary" external={false}>
+                  Write-up <span aria-hidden="true">→</span>
+                </DemoButton>
               )}
             </div>
           )}
@@ -187,7 +189,7 @@ export interface LiveEmbedProps {
 
 export function LiveEmbed({ src, title, height = 720, note }: LiveEmbedProps) {
   return (
-    <section className="my-8" aria-label="Live demo">
+    <section className="work-demo my-8" aria-label="Live demo">
       <div className="overflow-hidden rounded-xl border border-border bg-bg-surface">
         <div className="flex items-center justify-between border-b border-border bg-bg-elevated px-4 py-2">
           <div className="flex items-center gap-2">
@@ -200,7 +202,7 @@ export function LiveEmbed({ src, title, height = 720, note }: LiveEmbedProps) {
             href={src}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-xs text-accent transition-colors hover:underline"
+            className="font-mono text-xs text-accent no-underline transition-colors hover:text-accent/80"
           >
             Open ↗
           </a>
