@@ -19,10 +19,21 @@ tags:
 status: shipped
 challenge: 10-in-10
 week: 9
-featured: true
+featured: false
+stats:
+  - value: "5"
+    label: "Services / 1 VM"
+  - value: "Pipecat"
+    label: "Voice stack"
+  - value: "Deepgram·Anthropic"
+    label: "STT, LLM, TTS"
 ---
 
-<OgLink url="https://quotid.johnmoorman.com/" />
+<Demo
+  live="https://quotid.johnmoorman.com/"
+  github="https://github.com/mojoro/quotid"
+  note="Listen to a real call recording at the bottom of this post (coming soon)."
+/>
 
 A voice-agent journaling app built around the *Storyworthy* practice (one short story from your day, every day). My phone rings at 21:00, a friendly voice asks me to tell it about something that happened, and the conversation gets summarized and saved as a journal entry. Built end-to-end on Pipecat, Temporal, Twilio, Deepgram, and Anthropic to feel every layer of a production voice stack.
 

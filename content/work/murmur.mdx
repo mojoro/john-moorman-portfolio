@@ -16,7 +16,24 @@ status: shipped
 challenge: 10-in-10
 week: 6
 featured: true
+thumbnail: /images/blog/murmur/murmur-reader.png
+stats:
+  - value: "5"
+    label: "TTS engines"
+  - value: "PDF·EPUB·DOCX"
+    label: "Document import"
+  - value: "PWA"
+    label: "Offline-capable"
 ---
+
+<Demo
+  hero="/images/blog/murmur/murmur-reader.png"
+  heroAlt="The Murmur reader playing back a saved document with one of five swappable TTS engines."
+  caption="The reader. Five swappable TTS engines, voice cloning, offline PWA, all self-hosted."
+  github="https://github.com/mojoro/murmur-tts-reader"
+  blog="/blog/murmur"
+  note="Self-hosted only. Clone the repo and run docker compose up."
+/>
 
 A self-hosted TTS reader born from a friend's request: "You're so close! Can you make something like this, but more directly for text-to-speech?" Murmur lets you paste text, upload documents (PDF, EPUB, DOCX), or feed it a URL, then listen with any of five swappable TTS engines. Everything runs locally. No API keys, no subscriptions.
 
@@ -38,8 +55,22 @@ Murmur is three layers: a Nuxt 3 PWA as a thin frontend client, a Nitro BFF that
 
 The hardest part was dockerizing all five engines into a single container. Each runs in its own virtual environment, installed on-demand. The Python ML ecosystem in containers produced nearly 20 distinct issues: torchcodec pulling CUDA dependencies into CPU-only builds, phantom packages yanked from PyPI, undocumented environment variables, and dependency cascades that revealed themselves one missing module at a time.
 
+## Hear the difference
+
+Same source text, five engines, no editing. Pocket TTS is the CPU-friendly default; the other four are clone-capable and require a GPU to run quickly.
+
+<Audio src="/audio/murmur-pocket-tts.wav" title="Pocket TTS — the default, CPU-friendly, eight built-in voices" />
+
+<Audio src="/audio/murmur-cosyvoice.wav" title="CosyVoice 2 — voice clone, fastest of the clone-capable engines" />
+
+<Audio src="/audio/murmur-f5.wav" title="F5 TTS — best overall quality, slowest" />
+
+<Audio src="/audio/murmur-xtts.wav" title="XTTS v2 — disappointed once I got it running" />
+
+<Audio src="/audio/murmur-gpt-sovits.wav" title="GPT-SoVITS — slightly better than XTTS, still not great" />
+
 ---
 
-[Full write-up on the blog](/blog/murmur) — including the architecture evolution, honest engine comparisons with audio samples, and the dockerizing ordeal.
+[Full write-up on the blog](/blog/murmur) — including the architecture evolution and the dockerizing ordeal.
 
 [GitHub](https://github.com/mojoro/murmur-tts-reader)

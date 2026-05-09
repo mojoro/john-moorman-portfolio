@@ -6,7 +6,24 @@ tags: ["Next.js", "TypeScript", "Python", "FastAPI", "Docker", "Ollama", "Open S
 status: "shipped"
 challenge: "10-in-10"
 week: 4
+thumbnail: "/images/blog/drop-oss/main-ui.png"
+stats:
+  - value: "4"
+    label: "LLM backends"
+  - value: "2"
+    label: "TTS engines"
+  - value: "AES-256"
+    label: "Encrypted profiles"
 ---
+
+<Demo
+  hero="/images/blog/drop-oss/main-ui.png"
+  heroAlt="The Drop generation UI: paste a URL, watch each pipeline stage stream in."
+  caption="Paste a URL. The pipeline streams: scrape, write, voice. Library auto-saves every generation."
+  github="https://github.com/mojoro/drop"
+  blog="/blog/drop-oss"
+  note="Self-hosted. Bring an OpenRouter key, or run Ollama locally and never touch a cloud API."
+/>
 
 The [hackathon version of Drop](/blog/hackathon-drop) worked as long as three API providers had active credits. This rebuild makes both paths equally valid: drop an OpenRouter key in `.env.local` and be generating in sixty seconds, or run Ollama locally and never touch a cloud API.
 
@@ -35,6 +52,12 @@ Drop is two processes: a Next.js app for the UI, API routes, scraping, LLM calls
 The audio pipeline was new territory. Every TTS backend outputs different characteristics — pocket-tts returns 24kHz mono float32, ElevenLabs returns MP3 that has to be resampled via ffmpeg. The stitching layer normalizes before concatenating, or you get wrong-pitch playback and clicks at the seams.
 
 A second local TTS option, Qwen3-TTS (nine named speakers, ten languages), lives in a separate sidecar with the same API contract. It's wired in but untested — my GPU isn't powerful enough to run it.
+
+## Sample output
+
+A short podcast generated end-to-end with Drop. Same pipeline you'd run yourself: scrape, write, voice, stitch.
+
+<Audio src="/audio/drop-2026-03-18.mp3" title="Generated with Drop — interview with a man born in 1889, sourced from a 1990s archive page" />
 
 ---
 

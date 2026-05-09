@@ -7,7 +7,26 @@ featured: false
 status: "shipped"
 challenge: "10-in-10"
 week: 1
+thumbnail: "/images/blog/real-estate-ai-tool/dashboard.png"
+stats:
+  - value: "3"
+    label: "Platforms scraped"
+  - value: "Daily"
+    label: "AI digest"
+  - value: "GO·NO·PRÜFEN"
+    label: "Classification"
 ---
+
+<Demo
+  hero="/images/blog/real-estate-ai-tool/pipeline-diagram.png"
+  heroAlt="End-to-end pipeline: Apify scrapes three platforms, n8n orchestrates dedup, filter, AI analysis, and dispatch."
+  caption="The pipeline: Apify scrapes three platforms, n8n orchestrates dedup and AI scoring, Airtable stores, the dashboard surfaces."
+  live="https://real-estate-dashboard-brown-seven.vercel.app/"
+  liveLabel="Live dashboard"
+  github="https://github.com/mojoro/real-estate-dashboard"
+  blog="/blog/real-estate-ai-tool"
+  note="Dashboard runs against mock data so you can browse without a client account."
+/>
 
 ## The Problem
 
@@ -37,6 +56,8 @@ The three-way classification was deliberate. Binary GO/NO-GO is too blunt for ge
 ### Daily Digest
 
 Each morning, n8n compiles the day's GO and PRÜFEN listings into a formatted email with AI-recommended top picks. The email is the primary touchpoint. The dashboard exists for deeper exploration.
+
+![A sample of the daily digest the client receives every morning.](/images/blog/real-estate-ai-tool/email-digest.png)
 
 ## The Dashboard
 

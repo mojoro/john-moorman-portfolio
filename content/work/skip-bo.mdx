@@ -16,10 +16,26 @@ tags:
 status: shipped
 challenge: 10-in-10
 week: 8
-featured: true
+featured: false
+thumbnail: /images/blog/skip-bo/tabletop-desktop.png
+stats:
+  - value: "8"
+    label: "Players / room"
+  - value: "301"
+    label: "Vitest cases"
+  - value: "ws@8"
+    label: "no Socket.IO"
 ---
 
-<OgLink url="https://skipbo.johnmoorman.com/" />
+<Demo
+  hero="/images/blog/skip-bo/two-browsers.png"
+  heroAlt="Two browser windows playing Skip-Bo over WebSocket against a single server."
+  caption="Two browsers, one server. Up to 8 players per room over raw ws@8."
+  live="https://skipbo.johnmoorman.com/"
+  github="https://github.com/mojoro/skip-bo"
+  blog="/blog/skip-bo"
+  note="Open in two browsers to play multiplayer, or hit /local for hot-seat solo."
+/>
 
 A browser version of the card game Skip-Bo, built as a single honest run at the deployment, networking, and backend layers I had been delegating to Vercel and libraries like Socket.IO for years. Up to 8 players per room, 2-to-4 player partnerships, recommended and official rulesets, and a hot-seat mode for passing a laptop around a table.
 
@@ -30,6 +46,8 @@ A browser version of the card game Skip-Bo, built as a single honest run at the 
 **Real-time tabletop.** Up to 8 players, shared build piles, partnerships with configurable permissions. A single React Board component renders the game whether state comes from the local engine (hot-seat at `/local`) or the server. In-game chat dock, a rules tutorial for newcomers, and a live ruleset modal for the current game's config.
 
 **Custom drag-and-drop.** No library. Pointer Events, a floating ghost, a rect-based hit test, and a stable-id drop-target registry under `src/lib/dnd/`. Escape cancels; a small movement threshold prevents taps from registering as drags.
+
+![A card mid-drag, with floating ghost and the eligible drop zones highlighted.](/images/blog/skip-bo/drag-in-progress.png)
 
 **Raw `ws@8` server.** No Socket.IO, no game framework. Protocol-level heartbeats, 16KB max payload, token-bucket rate limits keyed per session and endpoint, 60-second disconnect grace with random-legal-move bot takeover, state-version numbers on every broadcast. Client hook reconnects with exponential backoff plus jitter, pauses on visibility loss, and resumes on return.
 

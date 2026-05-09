@@ -6,7 +6,19 @@ tags: ["Next.js", "TypeScript", "Tailwind CSS", "Anthropic API", "Framer Motion"
 status: "shipped"
 challenge: "10-in-10"
 week: 2
+stats:
+  - value: "95+"
+    label: "Lighthouse"
+  - value: "Edge"
+    label: "Streaming chatbot"
+  - value: "OffscreenCanvas"
+    label: "Off-main-thread bg"
 ---
+
+<Demo
+  github="https://github.com/mojoro/john-moorman-portfolio"
+  caption="You're using this site right now. Try the chatbot in the corner. The animated circuit board behind this text runs entirely off the main thread."
+/>
 
 My previous portfolio was a flat HTML/CSS/JS single-page site. Functional, but it contradicted my resume: I claimed Next.js and TypeScript expertise while the site itself used neither. The rebuild eliminates that incongruence. Content pipeline, streaming AI chatbot, the whole thing statically generated and tuned for performance.
 
@@ -41,6 +53,14 @@ Homepage scores 95+ on Lighthouse. `next/font/google` for zero-FOUT font loading
 ### Credits
 
 The visual and structural DNA of this site comes from [Brittany Chiang's v4 portfolio](https://v4.brittanychiang.com). The navy palette, the Syne / DM Sans / JetBrains Mono type stack, the numbered sidebar, and the hero layout all descend directly from her work. Her [source is on GitHub](https://github.com/bchiang7/v4), and her only ask is a link back. Consider this that link, and then some: go look at her portfolio, it is the reason this one exists. Case-study structure takes a cue from [Terry Godier](https://terrygodier.com).
+
+### Three files worth reading
+
+If you want to jump straight to the interesting code, here are the three files that demonstrate the most:
+
+- [`app/api/chat/route.ts`](https://github.com/mojoro/john-moorman-portfolio/blob/main/app/api/chat/route.ts) — the streaming chatbot route, with all seven cost-protection layers wired in
+- [`workers/circuit-worker.ts`](https://github.com/mojoro/john-moorman-portfolio/blob/main/workers/circuit-worker.ts) — generation, rendering, and animation of the PCB background, all off the main thread via OffscreenCanvas
+- [`lib/chatbot-prompt.ts`](https://github.com/mojoro/john-moorman-portfolio/blob/main/lib/chatbot-prompt.ts) — the system prompt itself, the single most important piece of writing on this site
 
 ### Links
 
