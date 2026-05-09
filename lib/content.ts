@@ -35,24 +35,27 @@ export async function getPosts(type: "blog" | "work", includeDrafts = false): Pr
   }
 
   const posts = await Promise.all(
-    files
-      .filter((f) => f.endsWith(".mdx") && !f.startsWith("_"))
-      .map(async (filename) => {
-        const filePath = path.join(dir, filename)
-        const raw = await fs.readFile(filePath, "utf-8")
-        const { data, content } = matter(raw)
+    files.flatMap((filename) => {
+      if (!filename.endsWith(".mdx") || filename.startsWith("_")) return []
+      return [
+        (async () => {
+          const filePath = path.join(dir, filename)
+          const raw = await fs.readFile(filePath, "utf-8")
+          const { data, content } = matter(raw)
 
-        // Filter out drafts in production
-        if (data.draft && process.env.NODE_ENV === "production" && !includeDrafts) {
-          return null
-        }
+          // Filter out drafts in production
+          if (data.draft && process.env.NODE_ENV === "production" && !includeDrafts) {
+            return null
+          }
 
-        return {
-          slug: filename.replace(/\.mdx$/, ""),
-          frontmatter: data as PostFrontmatter,
-          content,
-        }
-      })
+          return {
+            slug: filename.replace(/\.mdx$/, ""),
+            frontmatter: data as PostFrontmatter,
+            content,
+          }
+        })(),
+      ]
+    })
   )
 
   return posts
