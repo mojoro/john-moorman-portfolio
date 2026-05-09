@@ -36,6 +36,15 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
     })
 
     let cancelled = false
+    let pendingTimer: ReturnType<typeof setTimeout> | null = null
+
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        pendingTimer = setTimeout(() => {
+          pendingTimer = null
+          resolve()
+        }, ms)
+      })
 
     async function run() {
       // Wait for the page to fully settle before starting background fetches
@@ -43,7 +52,10 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
         if (typeof requestIdleCallback === "function") {
           requestIdleCallback(() => resolve(), { timeout: 3000 })
         } else {
-          setTimeout(resolve, 2000)
+          pendingTimer = setTimeout(() => {
+            pendingTimer = null
+            resolve()
+          }, 2000)
         }
       })
 
@@ -61,7 +73,7 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
         }
 
         // Small gap between fetches so we don't contend with user-initiated requests
-        await new Promise((r) => setTimeout(r, 100))
+        await wait(100)
       }
     }
 
@@ -69,6 +81,7 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
 
     return () => {
       cancelled = true
+      if (pendingTimer) clearTimeout(pendingTimer)
     }
   }, [routes, pathname, prefetch])
 
