@@ -27,37 +27,45 @@ function extractText(children: React.ReactNode): string {
   return ""
 }
 
-const mdxComponents = {
-  img: MdxImage,
-  Audio: MdxAudio,
-  OgLink,
-  Demo: WorkDemo,
-  LiveEmbed,
-  p: ({ children }: { children: React.ReactNode }) => {
-    const hasImage = Array.isArray(children)
-      ? children.some((c) => typeof c === "object" && c !== null && "type" in c && (c as React.ReactElement).type === MdxImage)
-      : typeof children === "object" && children !== null && "type" in children && (children as React.ReactElement).type === MdxImage
-    return hasImage ? <div>{children}</div> : <p>{children}</p>
-  },
-  a: (props: React.ComponentProps<"a">) => (
-    <a
-      {...props}
-      className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
-      target={props.href?.startsWith("http") ? "_blank" : undefined}
-      rel={props.href?.startsWith("http") ? "noopener noreferrer" : undefined}
-    />
-  ),
-  h2: ({ children }: { children: React.ReactNode }) => (
-    <h2 id={slugify(extractText(children))}>{children}</h2>
-  ),
-  h3: ({ children }: { children: React.ReactNode }) => (
-    <h3 id={slugify(extractText(children))}>{children}</h3>
-  ),
-  table: (props: React.ComponentProps<"table">) => (
-    <div className="overflow-x-auto">
-      <table {...props} />
-    </div>
-  ),
+function buildMdxComponents(frontmatter: import("@/lib/content").PostFrontmatter) {
+  return {
+    img: MdxImage,
+    Audio: MdxAudio,
+    OgLink,
+    Demo: (props: React.ComponentProps<typeof WorkDemo>) => (
+      <WorkDemo
+        stats={frontmatter.stats}
+        status={frontmatter.status}
+        {...props}
+      />
+    ),
+    LiveEmbed,
+    p: ({ children }: { children: React.ReactNode }) => {
+      const hasImage = Array.isArray(children)
+        ? children.some((c) => typeof c === "object" && c !== null && "type" in c && (c as React.ReactElement).type === MdxImage)
+        : typeof children === "object" && children !== null && "type" in children && (children as React.ReactElement).type === MdxImage
+      return hasImage ? <div>{children}</div> : <p>{children}</p>
+    },
+    a: (props: React.ComponentProps<"a">) => (
+      <a
+        {...props}
+        className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
+        target={props.href?.startsWith("http") ? "_blank" : undefined}
+        rel={props.href?.startsWith("http") ? "noopener noreferrer" : undefined}
+      />
+    ),
+    h2: ({ children }: { children: React.ReactNode }) => (
+      <h2 id={slugify(extractText(children))}>{children}</h2>
+    ),
+    h3: ({ children }: { children: React.ReactNode }) => (
+      <h3 id={slugify(extractText(children))}>{children}</h3>
+    ),
+    table: (props: React.ComponentProps<"table">) => (
+      <div className="overflow-x-auto">
+        <table {...props} />
+      </div>
+    ),
+  }
 }
 
 interface Props {
@@ -87,6 +95,7 @@ export default async function WorkPost({ params }: Props) {
   if (!post) notFound()
 
   const headings = extractHeadings(post.content)
+  const mdxComponents = buildMdxComponents(post.frontmatter)
 
   return (
     <article className="py-20 mx-auto max-w-[680px] lg:max-w-none 2xl:max-w-[680px]">
