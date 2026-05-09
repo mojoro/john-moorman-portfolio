@@ -3,10 +3,18 @@ import { ImageResponse } from "next/og"
 export const runtime = "edge"
 
 export async function GET(request: Request) {
-  const origin = new URL(request.url).origin
+  const url = new URL(request.url)
+  const origin = url.origin
+  const title = url.searchParams.get("title")
+  const eyebrow = url.searchParams.get("eyebrow") ?? "johnmoorman.com"
+  const subtitle =
+    url.searchParams.get("subtitle") ?? "Software Engineer · Berlin"
+
   const photo = await fetch(`${origin}/images/og-about-img.jpeg`).then((r) =>
     r.arrayBuffer()
   )
+
+  const heading = title ?? "John Moorman"
 
   return new ImageResponse(
     (
@@ -21,38 +29,41 @@ export async function GET(request: Request) {
         {/* Left half — text */}
         <div
           style={{
-            width: "50%",
+            width: "60%",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             paddingLeft: 80,
+            paddingRight: 40,
           }}
         >
           <div
-            style={{ color: "#64ffda", fontFamily: "monospace", fontSize: 40 }}
+            style={{ color: "#64ffda", fontFamily: "monospace", fontSize: 32 }}
           >
-            johnmoorman.com
+            {eyebrow}
           </div>
           <div
             style={{
               color: "#ccd6f6",
-              fontSize: 74,
+              fontSize: title ? 60 : 74,
               fontWeight: 800,
               marginTop: 16,
               lineHeight: 1.1,
+              display: "flex",
+              flexWrap: "wrap",
             }}
           >
-            John Moorman
+            {heading}
           </div>
-          <div style={{ color: "#8892b0", fontSize: 42, marginTop: 12 }}>
-            Software Engineer · Berlin
+          <div style={{ color: "#8892b0", fontSize: 32, marginTop: 16 }}>
+            {subtitle}
           </div>
         </div>
 
-        {/* Right half — headshot centered */}
+        {/* Right side — headshot centered */}
         <div
           style={{
-            width: "50%",
+            width: "40%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -61,8 +72,8 @@ export async function GET(request: Request) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={photo as unknown as string}
-            width={390}
-            height={390}
+            width={340}
+            height={340}
             alt=""
             style={{ borderRadius: 999, objectFit: "cover" }}
           />
