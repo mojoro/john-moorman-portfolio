@@ -9,6 +9,23 @@ challenge: "10-in-10"
 week: 1
 ---
 
+<Demo
+  hero="/images/blog/real-estate-ai-tool/pipeline-diagram.png"
+  heroAlt="End-to-end pipeline: Apify scrapes three platforms, n8n orchestrates dedup, filter, AI analysis, and dispatch."
+  caption="The pipeline: Apify scrapes three platforms, n8n orchestrates dedup and AI scoring, Airtable stores, the dashboard surfaces."
+  stats={[
+    { value: "3", label: "platforms scraped" },
+    { value: "GO·NO·PRÜFEN", label: "AI classification" },
+    { value: "Daily", label: "automated digest" },
+  ]}
+  live="https://real-estate-dashboard-brown-seven.vercel.app/"
+  liveLabel="Live dashboard"
+  github="https://github.com/mojoro/real-estate-dashboard"
+  blog="/blog/real-estate-ai-tool"
+  status="shipped"
+  note="Dashboard runs against mock data so you can browse without a client account."
+/>
+
 ## The Problem
 
 A Berlin-based client needed to monitor the German real estate market across multiple platforms simultaneously. They were manually cross-referencing Immoscout24, Immowelt, and Kleinanzeigen every morning: filtering by their investment criteria, estimating yields, and trying not to miss good listings that appeared overnight.
