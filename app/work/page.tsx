@@ -132,8 +132,7 @@ export default async function WorkIndex() {
         Work
       </h1>
       <p className="mt-4 max-w-xl text-text-secondary">
-        Selected projects with technical depth. Each one solved a real problem
-        for a real business.
+        Selected work with technical depth.
       </p>
 
       {pinned && (
