@@ -438,35 +438,26 @@ function ProjectCard({
       <span className="absolute top-4 right-4 text-2xl text-text-muted transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
         ↗
       </span>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex-1">
-          <div className="flex flex-col sm:flex-row">
-            <div className="flex flex-col sm:mr-6">
-              <p className="mb-2 font-mono text-xs text-accent">Featured</p>
-              <h3 className="text-xl font-medium text-text-primary transition-colors group-hover:text-accent">
-                {project.title}
-              </h3>
-            </div>
-            {project.stats.length > 0 && (
-              <div className="flex gap-6 mt-3 sm:mt-0 sm:text-right sm:mr-4 sm:pl-6 sm:border-l sm:border-text-muted">
-                {project.stats.map((stat) => (
-                  <div key={stat.label}>
-                    <p className="font-display text-2xl font-bold text-accent">
-                      {stat.value}
-                    </p>
-                    <p className="font-mono text-xs text-text-muted">
-                      {stat.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <p className="mt-2 text-sm text-text-secondary">{project.summary}</p>
-        </div>
-
-        
+      <div>
+        <p className="mb-2 font-mono text-xs text-accent">Featured</p>
+        <h3 className="text-xl font-medium text-text-primary transition-colors group-hover:text-accent">
+          {project.title}
+        </h3>
+        <p className="mt-2 text-sm text-text-secondary">{project.summary}</p>
       </div>
+
+      {project.stats.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-baseline gap-x-5 gap-y-1.5 font-mono text-xs text-text-muted">
+          {project.stats.slice(0, 3).map((stat) => (
+            <span key={stat.label} className="flex items-baseline gap-1.5">
+              <span className="font-semibold tabular-nums text-accent/90">
+                {stat.value}
+              </span>
+              <span>{stat.label.toLowerCase()}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap gap-2">
         {project.tags.map((tag) => (
