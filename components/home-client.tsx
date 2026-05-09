@@ -165,6 +165,12 @@ export function HomeClient({
             Selected projects, each one shipped to production with real users
             and measurable outcomes.
           </p>
+          <Link
+            href="/work"
+            className="mt-3 inline-flex items-center gap-2 font-mono text-sm text-accent transition-colors hover:underline"
+          >
+            View all work &rarr;
+          </Link>
         </SectionReveal>
 
         {/* 10-in-10 challenge callout */}
@@ -223,16 +229,6 @@ export function HomeClient({
           ))}
         </div>
 
-        <SectionReveal delay={0.4}>
-          <div className="mt-10">
-            <Link
-              href="/work"
-              className="inline-flex items-center gap-2 font-mono text-md text-accent transition-colors hover:underline"
-            >
-              View all projects &rarr;
-            </Link>
-          </div>
-        </SectionReveal>
       </section>
 
       {/* ── Blog ── */}
