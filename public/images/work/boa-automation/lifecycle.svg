@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 360" role="img" aria-label="BOA student lifecycle: application, offer letter, payment, confirmation, enrolled, with deadline-missed branch into reminders and cancellation.">
+  <defs>
+    <marker id="boa-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64ffda"/>
+    </marker>
+    <marker id="boa-arrow-dim" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#5a6a8a"/>
+    </marker>
+  </defs>
+
+  <rect width="1080" height="360" fill="#0a192f"/>
+
+  <text x="540" y="36" text-anchor="middle" fill="#64ffda" font-family="JetBrains Mono, ui-monospace, monospace" font-size="13" letter-spacing="2">BOA STUDENT LIFECYCLE — AUTOMATED</text>
+
+  <!-- Stage 1: Application -->
+  <g>
+    <rect x="40" y="80" width="180" height="80" rx="8" fill="#112240" stroke="#64ffda" stroke-opacity="0.35"/>
+    <text x="130" y="115" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="15" font-weight="600">Application</text>
+    <text x="130" y="140" text-anchor="middle" fill="#8892b0" font-family="DM Sans, system-ui, sans-serif" font-size="12">student submits</text>
+    <text x="130" y="180" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">Sheets form</text>
+  </g>
+
+  <!-- Arrow 1 -->
+  <line x1="222" y1="120" x2="243" y2="120" stroke="#64ffda" stroke-width="1.5" marker-end="url(#boa-arrow)"/>
+
+  <!-- Stage 2: Offer Letter -->
+  <g>
+    <rect x="245" y="80" width="180" height="80" rx="8" fill="#112240" stroke="#64ffda" stroke-opacity="0.35"/>
+    <text x="335" y="115" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="15" font-weight="600">Offer Letter</text>
+    <text x="335" y="140" text-anchor="middle" fill="#8892b0" font-family="DM Sans, system-ui, sans-serif" font-size="12">populated and sent</text>
+    <text x="335" y="180" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">Docs + Gmail API</text>
+  </g>
+
+  <!-- Arrow 2 -->
+  <line x1="427" y1="120" x2="448" y2="120" stroke="#64ffda" stroke-width="1.5" marker-end="url(#boa-arrow)"/>
+
+  <!-- Stage 3: Payment -->
+  <g>
+    <rect x="450" y="80" width="180" height="80" rx="8" fill="#112240" stroke="#64ffda" stroke-opacity="0.35"/>
+    <text x="540" y="115" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="15" font-weight="600">Payment</text>
+    <text x="540" y="140" text-anchor="middle" fill="#8892b0" font-family="DM Sans, system-ui, sans-serif" font-size="12">tracked + reconciled</text>
+    <text x="540" y="180" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">PayPal API</text>
+  </g>
+
+  <!-- Arrow 3 -->
+  <line x1="632" y1="120" x2="653" y2="120" stroke="#64ffda" stroke-width="1.5" marker-end="url(#boa-arrow)"/>
+
+  <!-- Stage 4: Confirmation -->
+  <g>
+    <rect x="655" y="80" width="180" height="80" rx="8" fill="#112240" stroke="#64ffda" stroke-opacity="0.35"/>
+    <text x="745" y="115" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="15" font-weight="600">Confirmation</text>
+    <text x="745" y="140" text-anchor="middle" fill="#8892b0" font-family="DM Sans, system-ui, sans-serif" font-size="12">sent on receipt</text>
+    <text x="745" y="180" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">Gmail API</text>
+  </g>
+
+  <!-- Arrow 4 -->
+  <line x1="837" y1="120" x2="858" y2="120" stroke="#64ffda" stroke-width="1.5" marker-end="url(#boa-arrow)"/>
+
+  <!-- Stage 5: Enrolled -->
+  <g>
+    <rect x="860" y="80" width="180" height="80" rx="8" fill="#0a2d3f" stroke="#64ffda" stroke-opacity="0.6"/>
+    <text x="950" y="115" text-anchor="middle" fill="#64ffda" font-family="DM Sans, system-ui, sans-serif" font-size="15" font-weight="600">Enrolled</text>
+    <text x="950" y="140" text-anchor="middle" fill="#8892b0" font-family="DM Sans, system-ui, sans-serif" font-size="12">happy path</text>
+    <text x="950" y="180" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">Sheets state</text>
+  </g>
+
+  <!-- Failure branch: from Payment stage -->
+  <line x1="540" y1="160" x2="540" y2="240" stroke="#5a6a8a" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#boa-arrow-dim)"/>
+  <text x="555" y="200" fill="#8892b0" font-family="DM Sans, system-ui, sans-serif" font-size="12" font-style="italic">deadline missed</text>
+
+  <!-- Failure box -->
+  <g>
+    <rect x="350" y="245" width="380" height="70" rx="8" fill="#1a1f2e" stroke="#5a6a8a" stroke-opacity="0.5"/>
+    <text x="540" y="275" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="14" font-weight="500">Reminder → Cancellation</text>
+    <text x="540" y="298" text-anchor="middle" fill="#8892b0" font-family="DM Sans, system-ui, sans-serif" font-size="12">Gmail API drives the follow-up. Sheets records state.</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="540" y="340" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">All stages run on Google Apps Script. Sheets is both database and admin UI.</text>
+</svg>
