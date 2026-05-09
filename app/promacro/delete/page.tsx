@@ -1,12 +1,27 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 
+const TITLE = "Delete your Promacro account"
+const DESCRIPTION =
+  "Step-by-step instructions for deleting your Promacro account and all associated meal, profile, and authentication data, either in-app or by email."
+
 export const metadata: Metadata = {
-  title: "Delete your Promacro account | John Moorman",
-  description:
-    "How to request deletion of your Promacro account and all associated data.",
-  alternates: {
-    canonical: "https://johnmoorman.com/promacro/delete/",
+  title: "Delete your Promacro account",
+  description: DESCRIPTION,
+  alternates: { canonical: "/promacro/delete" },
+  robots: {
+    index: false,
+    follow: true,
+  },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/promacro/delete",
+    type: "article",
+  },
+  twitter: {
+    title: TITLE,
+    description: DESCRIPTION,
   },
 }
 

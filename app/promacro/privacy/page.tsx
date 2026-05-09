@@ -1,12 +1,27 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 
+const TITLE = "Promacro Privacy Policy"
+const DESCRIPTION =
+  "Promacro privacy policy: what data the macro-tracking app collects, how it is used, the third-party services involved, and how to delete your account and data."
+
 export const metadata: Metadata = {
-  title: "Promacro Privacy Policy | John Moorman",
-  description:
-    "What data Promacro collects, how it is used, and how to delete it.",
-  alternates: {
-    canonical: "https://johnmoorman.com/promacro/privacy/",
+  title: "Promacro Privacy Policy",
+  description: DESCRIPTION,
+  alternates: { canonical: "/promacro/privacy" },
+  robots: {
+    index: false,
+    follow: true,
+  },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/promacro/privacy",
+    type: "article",
+  },
+  twitter: {
+    title: TITLE,
+    description: DESCRIPTION,
   },
 }
 
