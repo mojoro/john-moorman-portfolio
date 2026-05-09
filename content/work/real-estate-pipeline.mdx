@@ -13,22 +13,18 @@ stats:
     label: "Platforms scraped"
   - value: "Daily"
     label: "AI digest"
+  - value: "GO·NO·PRÜFEN"
+    label: "Classification"
 ---
 
 <Demo
   hero="/images/blog/real-estate-ai-tool/pipeline-diagram.png"
   heroAlt="End-to-end pipeline: Apify scrapes three platforms, n8n orchestrates dedup, filter, AI analysis, and dispatch."
   caption="The pipeline: Apify scrapes three platforms, n8n orchestrates dedup and AI scoring, Airtable stores, the dashboard surfaces."
-  stats={[
-    { value: "3", label: "platforms scraped" },
-    { value: "GO·NO·PRÜFEN", label: "AI classification" },
-    { value: "Daily", label: "automated digest" },
-  ]}
   live="https://real-estate-dashboard-brown-seven.vercel.app/"
   liveLabel="Live dashboard"
   github="https://github.com/mojoro/real-estate-dashboard"
   blog="/blog/real-estate-ai-tool"
-  status="shipped"
   note="Dashboard runs against mock data so you can browse without a client account."
 />
 

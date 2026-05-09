@@ -12,21 +12,17 @@ stats:
     label: "LLM backends"
   - value: "2"
     label: "TTS engines"
+  - value: "AES-256"
+    label: "Encrypted profiles"
 ---
 
 <Demo
   hero="/images/blog/drop-oss/main-ui.png"
   heroAlt="The Drop generation UI: paste a URL, watch each pipeline stage stream in."
   caption="Paste a URL. The pipeline streams: scrape, write, voice. Library auto-saves every generation."
-  stats={[
-    { value: "4", label: "LLM backends" },
-    { value: "2", label: "TTS engines" },
-    { value: "AES-256", label: "encrypted profiles" },
-  ]}
   github="https://github.com/mojoro/drop"
   blog="/blog/drop-oss"
-  status="shipped"
-  note="Self-hosted: bring an OpenRouter key, or run Ollama locally and never touch a cloud API."
+  note="Self-hosted. Bring an OpenRouter key, or run Ollama locally and never touch a cloud API."
 />
 
 The [hackathon version of Drop](/blog/hackathon-drop) worked as long as three API providers had active credits. This rebuild makes both paths equally valid: drop an OpenRouter key in `.env.local` and be generating in sixty seconds, or run Ollama locally and never touch a cloud API.
