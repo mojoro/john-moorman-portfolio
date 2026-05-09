@@ -2,10 +2,35 @@ import Link from "next/link"
 import { PrintButton } from "@/components/print-button"
 import type { Metadata } from "next"
 
+const TITLE = "Resume · John Moorman, Software Engineer"
+const DESCRIPTION =
+  "Resume for John Moorman, a fullstack software engineer in Berlin working in Next.js, TypeScript, React, and AI-native development. Production freelance and in-house experience."
+
 export const metadata: Metadata = {
-  title: "Resume | John Moorman",
-  description:
-    "John Moorman | Software Engineer based in Berlin. Next.js, TypeScript, AI-native development.",
+  title: "Resume",
+  description: DESCRIPTION,
+  alternates: { canonical: "/resume" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/resume",
+    type: "profile",
+    images: [
+      {
+        url: `/og?title=${encodeURIComponent("Resume")}&subtitle=${encodeURIComponent("Software Engineer · Berlin")}`,
+        width: 1200,
+        height: 630,
+        alt: "Resume · John Moorman",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    creator: "@John_Moorman",
+    site: "@John_Moorman",
+  },
 }
 
 const b = (text: string) => (

@@ -2,10 +2,35 @@ import Image from "next/image"
 import Link from "next/link"
 import type { Metadata } from "next"
 
+const TITLE = "About John Moorman"
+const DESCRIPTION =
+  "From operatic vocal performance at Boston Conservatory at Berklee to fullstack engineering in Berlin. The story of how stage discipline became shipping discipline, plus what I'm currently building."
+
 export const metadata: Metadata = {
-  title: "About | John Moorman",
-  description:
-    "From opera to engineering: how a background in performance became a career in software.",
+  title: "About",
+  description: DESCRIPTION,
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/about",
+    type: "profile",
+    images: [
+      {
+        url: `/og?title=${encodeURIComponent("About John")}&subtitle=${encodeURIComponent("Opera to engineering · Berlin")}`,
+        width: 1200,
+        height: 630,
+        alt: "About John Moorman",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    creator: "@John_Moorman",
+    site: "@John_Moorman",
+  },
 }
 
 export default function AboutPage() {

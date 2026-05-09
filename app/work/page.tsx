@@ -4,10 +4,35 @@ import Image from "next/image"
 import Link from "next/link"
 import type { Metadata } from "next"
 
+const TITLE = "Work · Case Studies by John Moorman"
+const DESCRIPTION =
+  "Selected engineering case studies: a €74K/year automation suite for Berlin Opera Academy, an AI real-estate intelligence pipeline, a 7-day AI job-search SaaS, and ten projects in ten weeks."
+
 export const metadata: Metadata = {
-  title: "Work | John Moorman",
-  description:
-    "Case studies and technical deep dives into projects I've built.",
+  title: "Work",
+  description: DESCRIPTION,
+  alternates: { canonical: "/work" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/work",
+    type: "website",
+    images: [
+      {
+        url: `/og?title=${encodeURIComponent("Work")}&subtitle=${encodeURIComponent("Case studies · John Moorman")}`,
+        width: 1200,
+        height: 630,
+        alt: "Work · John Moorman",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    creator: "@John_Moorman",
+    site: "@John_Moorman",
+  },
 }
 
 function statusBadge(status?: string) {

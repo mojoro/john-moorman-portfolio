@@ -1,5 +1,38 @@
 import { getPosts } from "@/lib/content"
 import { HomeClient } from "@/components/home-client"
+import type { Metadata } from "next"
+
+const HOME_TITLE = "John Moorman · Software Engineer in Berlin"
+const HOME_DESCRIPTION =
+  "Fullstack engineer in Berlin. Production work in Next.js, TypeScript, and AI-native tooling. €74K/year saved at Berlin Opera Academy with a custom automation suite. Featured case studies, writing, and resume."
+
+export const metadata: Metadata = {
+  title: { absolute: HOME_TITLE },
+  description: HOME_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    url: "/",
+    type: "website",
+    images: [
+      {
+        url: "/og",
+        width: 1200,
+        height: 630,
+        alt: "John Moorman, Software Engineer in Berlin",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    images: ["/og"],
+    creator: "@John_Moorman",
+    site: "@John_Moorman",
+  },
+}
 
 export default async function Home() {
   const [blogPosts, workPosts] = await Promise.all([

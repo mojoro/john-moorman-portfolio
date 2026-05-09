@@ -4,10 +4,35 @@ import Link from "next/link"
 import type { Metadata } from "next"
 
 
+const TITLE = "Engineering Blog by John Moorman"
+const DESCRIPTION =
+  "Posts on AI-native development, automation, web engineering, and lessons from shipping production systems with Next.js, TypeScript, and the Anthropic API."
+
 export const metadata: Metadata = {
-  title: "Blog | John Moorman",
-  description:
-    "Technical writing on AI automation, web development, and engineering.",
+  title: "Blog",
+  description: DESCRIPTION,
+  alternates: { canonical: "/blog" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/blog",
+    type: "website",
+    images: [
+      {
+        url: `/og?title=${encodeURIComponent("Blog")}&subtitle=${encodeURIComponent("Engineering writing · John Moorman")}`,
+        width: 1200,
+        height: 630,
+        alt: "Blog · John Moorman",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    creator: "@John_Moorman",
+    site: "@John_Moorman",
+  },
 }
 
 export default async function BlogIndex() {
