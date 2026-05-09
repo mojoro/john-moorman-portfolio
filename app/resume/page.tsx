@@ -61,7 +61,7 @@ const EXPERIENCE = [
     highlights: [
       <>Identified that the administrative function consumed 4 full salaries for entirely rule-based work; built an {b("automation suite")} to replace it</>,
       <>Automated the {b("complete student lifecycle")}: offer letters, payment tracking, PayPal reconciliation, confirmation/reminder/cancellation emails</>,
-      <>Enabled two part-time administrators to do the work of four — {b("~€74,000 in annual overhead savings")}</>,
+      <>Enabled two part-time administrators to do the work of four ({b("~€74,000 in annual overhead savings")})</>,
       <>{b("Payment reconciliation system")} with automated follow-ups: {b("18% increase")} in payment collection rate</>,
       <>Built the production website from scratch: {b("95/100 Lighthouse score")}, top-3 organic rankings, {b("8% organic traffic growth")}</>,
     ],

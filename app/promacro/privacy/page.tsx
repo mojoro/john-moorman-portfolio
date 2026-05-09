@@ -73,19 +73,19 @@ const subprocessors: {
     service: "Apple",
     href: "https://www.apple.com/legal/privacy/en-ww/",
     purpose: "Sign in with Apple (only if you choose this option)",
-    data: "Whatever Apple shares with us — typically email and optional display name",
+    data: "Whatever Apple shares with us (typically email and optional display name)",
   },
   {
     service: "USDA FoodData Central",
     href: "https://fdc.nal.usda.gov/",
     purpose: "Public food nutrition database",
-    data: "Food names only — no account or profile data",
+    data: "Food names only (no account or profile data)",
   },
   {
     service: "Open Food Facts",
     href: "https://world.openfoodfacts.org/terms-of-use",
     purpose: "Public food nutrition database",
-    data: "Food names only — no account or profile data",
+    data: "Food names only (no account or profile data)",
   },
 ]
 
@@ -133,58 +133,58 @@ export default function PromacroPrivacyPage() {
         <ul className="mt-4 space-y-3 text-text-secondary leading-relaxed">
           <li>
             <span className="font-medium text-text-primary">
-              Account data
+              Account data:
             </span>{" "}
-            — your email address and a hashed password, or your Apple ID (if you
+            your email address and a hashed password, or your Apple ID (if you
             sign in with Apple).
           </li>
           <li>
             <span className="font-medium text-text-primary">
-              Profile data
+              Profile data:
             </span>{" "}
-            — your sex, age, height, weight, and activity level. We use these to
+            your sex, age, height, weight, and activity level. We use these to
             compute your daily calorie, protein, and fiber targets using the
             Mifflin-St Jeor equation. We do not share this data, sell it, or use
             it for advertising.
           </li>
           <li>
             <span className="font-medium text-text-primary">
-              Display name
+              Display name:
             </span>{" "}
-            — if you sign in with Apple and grant us your name, we store it on
+            if you sign in with Apple and grant us your name, we store it on
             your profile so the app can greet you. You can edit or clear it in
             Settings.
           </li>
           <li>
-            <span className="font-medium text-text-primary">Meal data</span> —
+            <span className="font-medium text-text-primary">Meal data:</span>{" "}
             the foods you log, including: food name, brand (if any), quantity,
             unit, computed macronutrients, and the date and time you logged the
             meal. Photos are not collected.
           </li>
           <li>
             <span className="font-medium text-text-primary">
-              AI parse text
+              AI parse text:
             </span>{" "}
-            — when you use the natural-language meal entry feature
+            when you use the natural-language meal entry feature
             (&quot;I had two eggs and toast&quot;), the text you type is sent to
             our AI parsing service (see Third Parties) so it can identify the
             foods you mentioned. The AI is instructed not to retain or train on
-            this text. We do not store the original text after parsing — only
+            this text. We do not store the original text after parsing, only
             the structured food list it produces.
           </li>
           <li>
             <span className="font-medium text-text-primary">
-              Preferences
+              Preferences:
             </span>{" "}
-            — which nutrients you want to track, your ring assignments, your
+            which nutrients you want to track, your ring assignments, your
             unit system (metric or imperial), and your theme choice (light,
             dark, or system). Stored on your profile.
           </li>
           <li>
             <span className="font-medium text-text-primary">
-              Crash and error reports
+              Crash and error reports:
             </span>{" "}
-            — if the app crashes or hits an unexpected error, we collect a stack
+            if the app crashes or hits an unexpected error, we collect a stack
             trace and a small amount of context (which screen, which action) to
             help us fix bugs. These reports do not include the contents of your
             meals or your password. They may include your account ID.
