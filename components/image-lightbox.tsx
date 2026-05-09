@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useCallback, useRef, useState } from "react"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 
 interface ImageLightboxProps {
   src: string
@@ -150,7 +150,7 @@ export function ImageLightbox({ src, alt, isOpen, onClose }: ImageLightboxProps)
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <m.div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -207,7 +207,7 @@ export function ImageLightbox({ src, alt, isOpen, onClose }: ImageLightboxProps)
           </div>
 
           {/* Entrance animation wrapper */}
-          <motion.div
+          <m.div
             initial={shouldReduceMotion ? {} : { scale: 0.9 }}
             animate={{ scale: 1 }}
             exit={shouldReduceMotion ? {} : { scale: 0.9 }}
@@ -231,8 +231,8 @@ export function ImageLightbox({ src, alt, isOpen, onClose }: ImageLightboxProps)
               onPointerUp={handlePointerUp}
               draggable={false}
             />
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   )

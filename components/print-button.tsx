@@ -1,10 +1,10 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 
 export function PrintButton() {
   return (
-    <motion.button
+    <m.button
       onClick={() => window.print()}
       className="group relative overflow-hidden rounded-lg border border-accent/40 bg-accent/15 px-5 py-2.5 font-mono text-sm font-medium text-accent transition-colors hover:border-accent/60 print:hidden"
       whileHover={{ scale: 1.02 }}
@@ -41,6 +41,6 @@ export function PrintButton() {
         </svg>
         Print / Save PDF
       </span>
-    </motion.button>
+    </m.button>
   )
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import { MotionProvider } from "@/components/motion-provider"
 import { Sidebar } from "@/components/sidebar"
 import { ChatPanelLazy } from "@/components/chat-panel-lazy"
 
@@ -225,28 +226,30 @@ export default async function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          {isAdmin ? (
-            <>{children}</>
-          ) : (
-            <>
-              <Sidebar />
-              <div className="relative pt-14 md:ml-60 md:pt-0 print:ml-0 print:pt-0">
-                <CircuitBgLazy navOffset />
-                <div className="relative mx-auto max-w-[900px] px-6 md:px-12">
-                  {children}
+          <MotionProvider>
+            {isAdmin ? (
+              <>{children}</>
+            ) : (
+              <>
+                <Sidebar />
+                <div className="relative pt-14 md:ml-60 md:pt-0 print:ml-0 print:pt-0">
+                  <CircuitBgLazy navOffset />
+                  <div className="relative mx-auto max-w-[900px] px-6 md:px-12">
+                    {children}
+                  </div>
                 </div>
-              </div>
-              <ChatPanelLazy />
-              <PrefetchRoutes routes={allRoutes} />
-            </>
-          )}
-          <Analytics />
-          <Script
-            defer
-            src="https://umami-ek8u.vercel.app/script.js"
-            data-website-id="b5ed7964-94ba-48bd-b087-01adfd7a68dc"
-            strategy="afterInteractive"
-          />
+                <ChatPanelLazy />
+                <PrefetchRoutes routes={allRoutes} />
+              </>
+            )}
+            <Analytics />
+            <Script
+              defer
+              src="https://umami-ek8u.vercel.app/script.js"
+              data-website-id="b5ed7964-94ba-48bd-b087-01adfd7a68dc"
+              strategy="afterInteractive"
+            />
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

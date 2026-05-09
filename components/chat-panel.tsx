@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 import Image from "next/image"
 import ReactMarkdown from "react-markdown"
 import type { Components } from "react-markdown"
@@ -239,7 +239,7 @@ export function ChatPanel() {
       {/* Greeting speech bubble */}
       <AnimatePresence>
         {showGreeting && !open && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -253,12 +253,12 @@ export function ChatPanel() {
           >
             Hi! I&apos;m John&apos;s AI assistant. Ask me anything about his work.
             <span className="mt-1.5 block text-xs text-text-secondary">Click to chat &rarr;</span>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* Floating avatar trigger */}
-      <motion.button
+      <m.button
         onClick={() => setOpen(true)}
         className={`fixed bottom-6 right-6 z-40 flex items-center justify-center w-[52px] h-[52px] rounded-full border-2 border-accent/40 bg-bg-surface shadow-lg shadow-black/30 transition-colors hover:border-accent/60 print:hidden ${
           open ? "hidden" : ""
@@ -275,12 +275,12 @@ export function ChatPanel() {
           className="rounded-full"
         />
         <span className="absolute -top-0.5 -right-0.5 size-3.5 rounded-full border-2 border-bg bg-accent" />
-      </motion.button>
+      </m.button>
 
       {/* Backdrop */}
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -295,7 +295,7 @@ export function ChatPanel() {
       {/* Chat panel */}
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             initial={
               shouldReduceMotion ? { opacity: 0 } : { x: "100%", opacity: 0 }
             }
@@ -462,7 +462,7 @@ export function ChatPanel() {
                 </button>
               </div>
             </form>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

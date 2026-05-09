@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import Link from "next/link"
 import { SectionReveal } from "@/components/section-reveal"
 import { ContactForm } from "@/components/contact-form"
@@ -77,28 +77,28 @@ export function HomeClient({
   return (
     <main>
       {/* ── Hero ── */}
-      <motion.section
+      <m.section
         className="flex min-h-screen flex-col justify-center py-24"
         variants={container}
         initial="hidden"
         animate="show"
       >
-        <motion.p variants={fadeUp} className="font-mono text-sm text-accent">
+        <m.p variants={fadeUp} className="font-mono text-sm text-accent">
           Hi, my name is
-        </motion.p>
-        <motion.h1
+        </m.p>
+        <m.h1
           variants={fadeUp}
           className="mt-5 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl"
         >
           John Moorman.
-        </motion.h1>
-        <motion.h2
+        </m.h1>
+        <m.h2
           variants={fadeUp}
           className="font-display text-[clamp(1.5rem,4vw,3rem)] font-bold leading-tight text-text-secondary"
         >
           I write software that pays for itself.
-        </motion.h2>
-        <motion.div variants={fadeUp} className="mt-6 max-w-xl">
+        </m.h2>
+        <m.div variants={fadeUp} className="mt-6 max-w-xl">
           <p className="text-text-secondary">
             Software engineer in Berlin. I built an automation suite that saved a
             company €74K/year, letting two part-time administrators do the work of four. Now I ship AI-native
@@ -111,8 +111,8 @@ export function HomeClient({
           >
             Full story &rarr;
           </Link>
-        </motion.div>
-        <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-4">
+        </m.div>
+        <m.div variants={fadeUp} className="mt-8 flex flex-wrap gap-4">
           <a
             href="mailto:john@johnmoorman.com"
             className="inline-flex items-center gap-2 rounded border border-accent px-6 py-3 font-mono text-sm text-accent transition-colors hover:bg-accent/10"
@@ -125,8 +125,8 @@ export function HomeClient({
           >
             See my work &darr;
           </a>
-        </motion.div>
-        <motion.div
+        </m.div>
+        <m.div
           variants={fadeUp}
           className="mt-6 flex flex-wrap items-center gap-5 text-text-muted"
         >
@@ -154,8 +154,8 @@ export function HomeClient({
           >
             GitHub
           </a>
-        </motion.div>
-      </motion.section>
+        </m.div>
+      </m.section>
 
       {/* ── Work ── */}
       <section id="work" className="py-24">
@@ -425,7 +425,7 @@ function ProjectCard({
   const shouldReduceMotion = useReducedMotion()
 
   return (
-    <motion.a
+    <m.a
       href={project.href}
       className="group relative block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
       whileHover={shouldReduceMotion ? {} : { y: -4 }}
@@ -460,7 +460,7 @@ function ProjectCard({
           <TagPill key={tag}>{tag}</TagPill>
         ))}
       </div>
-    </motion.a>
+    </m.a>
   )
 }
 
@@ -515,14 +515,14 @@ function CurrentProjectCard({
 
   if (project.href) {
     return (
-      <motion.a
+      <m.a
         href={project.href}
         className={`group block rounded-lg border p-4 transition-colors hover:border-accent/40 ${borderClass}`}
         whileHover={shouldReduceMotion ? {} : { y: -4 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         {inner}
-      </motion.a>
+      </m.a>
     )
   }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import type { ReactNode } from "react"
 
 interface SectionRevealProps {
@@ -22,7 +22,7 @@ export function SectionReveal({
   const shouldReduceMotion = useReducedMotion()
 
   return (
-    <motion.div
+    <m.div
       initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
@@ -30,6 +30,6 @@ export function SectionReveal({
       className={className}
     >
       {children}
-    </motion.div>
+    </m.div>
   )
 }
