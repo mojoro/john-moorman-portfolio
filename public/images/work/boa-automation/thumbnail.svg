@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 480" role="img" aria-label="BOA Automation impact: €74K saved per year. +18% payment collection. 4 to 2 staff. Berlin Opera Academy.">
+  <rect width="600" height="480" fill="#112240"/>
+
+  <!-- Faint accent rules to frame the stat -->
+  <line x1="160" y1="92" x2="440" y2="92" stroke="#64ffda" stroke-opacity="0.35" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="160" y1="388" x2="440" y2="388" stroke="#64ffda" stroke-opacity="0.35" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Top label -->
+  <text x="300" y="74" text-anchor="middle" fill="#64ffda" font-family="JetBrains Mono, ui-monospace, monospace" font-size="14" letter-spacing="3">IMPACT — BERLIN OPERA ACADEMY</text>
+
+  <!-- Big centered stat -->
+  <text x="300" y="232" text-anchor="middle" fill="#64ffda" font-family="DM Sans, system-ui, sans-serif" font-size="160" font-weight="800" letter-spacing="-3">€74K</text>
+  <text x="300" y="278" text-anchor="middle" fill="#8892b0" font-family="DM Sans, system-ui, sans-serif" font-size="22">saved per year</text>
+
+  <!-- Two supporting stats inline -->
+  <text x="200" y="354" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="34" font-weight="700">+18%</text>
+  <text x="400" y="354" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="34" font-weight="700">4 → 2</text>
+
+  <!-- Footer mark -->
+  <text x="300" y="430" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="12" letter-spacing="2.5">2 PART-TIME REPLACED 4 FULL-TIME</text>
+</svg>
