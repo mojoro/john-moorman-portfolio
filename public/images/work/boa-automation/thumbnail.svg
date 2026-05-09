@@ -1,21 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 480" role="img" aria-label="BOA Automation impact: €74K saved per year. +18% payment collection. 4 to 2 staff. Berlin Opera Academy.">
-  <rect width="600" height="480" fill="#112240"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 540" role="img" aria-label="BOA student lifecycle: application, offer letter, payment, confirmation, enrolled. Failure branch flows into reminder and cancellation.">
+  <defs>
+    <marker id="boa-thumb-arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,10 L8,5 z" fill="#64ffda"/>
+    </marker>
+  </defs>
 
-  <!-- Faint accent rules to frame the stat -->
-  <line x1="160" y1="92" x2="440" y2="92" stroke="#64ffda" stroke-opacity="0.35" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="160" y1="388" x2="440" y2="388" stroke="#64ffda" stroke-opacity="0.35" stroke-width="1.5" stroke-linecap="round"/>
+  <rect width="600" height="540" fill="#112240"/>
 
-  <!-- Top label -->
-  <text x="300" y="74" text-anchor="middle" fill="#64ffda" font-family="JetBrains Mono, ui-monospace, monospace" font-size="14" letter-spacing="3">IMPACT — BERLIN OPERA ACADEMY</text>
+  <!-- Title -->
+  <text x="300" y="36" text-anchor="middle" fill="#64ffda" font-family="JetBrains Mono, ui-monospace, monospace" font-size="12" letter-spacing="2.4">BOA STUDENT LIFECYCLE</text>
+  <text x="300" y="52" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" letter-spacing="1.5">AUTOMATED</text>
 
-  <!-- Big centered stat -->
-  <text x="300" y="232" text-anchor="middle" fill="#64ffda" font-family="DM Sans, system-ui, sans-serif" font-size="160" font-weight="800" letter-spacing="-3">€74K</text>
-  <text x="300" y="278" text-anchor="middle" fill="#8892b0" font-family="DM Sans, system-ui, sans-serif" font-size="22">saved per year</text>
+  <!-- Stage 1 -->
+  <g>
+    <rect x="120" y="80" width="360" height="56" rx="8" fill="#1a2c4d" stroke="#64ffda" stroke-opacity="0.4"/>
+    <text x="300" y="106" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="17" font-weight="600">Application</text>
+    <text x="300" y="124" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">Sheets form</text>
+  </g>
 
-  <!-- Two supporting stats inline -->
-  <text x="200" y="354" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="34" font-weight="700">+18%</text>
-  <text x="400" y="354" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="34" font-weight="700">4 → 2</text>
+  <line x1="300" y1="142" x2="300" y2="160" stroke="#64ffda" stroke-width="2" marker-end="url(#boa-thumb-arrow)"/>
 
-  <!-- Footer mark -->
-  <text x="300" y="430" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="12" letter-spacing="2.5">2 PART-TIME REPLACED 4 FULL-TIME</text>
+  <!-- Stage 2 -->
+  <g>
+    <rect x="120" y="170" width="360" height="56" rx="8" fill="#1a2c4d" stroke="#64ffda" stroke-opacity="0.4"/>
+    <text x="300" y="196" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="17" font-weight="600">Offer Letter</text>
+    <text x="300" y="214" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">Docs + Gmail API</text>
+  </g>
+
+  <line x1="300" y1="232" x2="300" y2="250" stroke="#64ffda" stroke-width="2" marker-end="url(#boa-thumb-arrow)"/>
+
+  <!-- Stage 3 -->
+  <g>
+    <rect x="120" y="260" width="360" height="56" rx="8" fill="#1a2c4d" stroke="#64ffda" stroke-opacity="0.4"/>
+    <text x="300" y="286" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="17" font-weight="600">Payment</text>
+    <text x="300" y="304" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">PayPal API</text>
+  </g>
+
+  <line x1="300" y1="322" x2="300" y2="340" stroke="#64ffda" stroke-width="2" marker-end="url(#boa-thumb-arrow)"/>
+
+  <!-- Stage 4 -->
+  <g>
+    <rect x="120" y="350" width="360" height="56" rx="8" fill="#1a2c4d" stroke="#64ffda" stroke-opacity="0.4"/>
+    <text x="300" y="376" text-anchor="middle" fill="#ccd6f6" font-family="DM Sans, system-ui, sans-serif" font-size="17" font-weight="600">Confirmation</text>
+    <text x="300" y="394" text-anchor="middle" fill="#5a6a8a" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">Gmail API</text>
+  </g>
+
+  <line x1="300" y1="412" x2="300" y2="430" stroke="#64ffda" stroke-width="2" marker-end="url(#boa-thumb-arrow)"/>
+
+  <!-- Stage 5 (highlighted) -->
+  <g>
+    <rect x="120" y="440" width="360" height="56" rx="8" fill="#0a3a3a" stroke="#64ffda" stroke-opacity="0.7" stroke-width="1.5"/>
+    <text x="300" y="466" text-anchor="middle" fill="#64ffda" font-family="DM Sans, system-ui, sans-serif" font-size="17" font-weight="700">Enrolled</text>
+    <text x="300" y="484" text-anchor="middle" fill="#8892b0" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">happy path</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="300" y="520" text-anchor="middle" fill="#5a6a8a" font-family="DM Sans, system-ui, sans-serif" font-size="11" font-style="italic">If payment deadline missed → Reminder → Cancellation</text>
 </svg>
