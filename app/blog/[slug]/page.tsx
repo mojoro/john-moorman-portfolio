@@ -238,7 +238,7 @@ export default async function BlogPost({ params }: Props) {
         <div className="mt-6">
           <Suspense
             fallback={
-              <p className="text-sm text-text-muted">Loading comments...</p>
+              <p className="text-sm text-text-muted">Loading comments…</p>
             }
           >
             <CommentList postSlug={slug} />
