@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react"
  * Fetches sequentially with a small gap to avoid contention with user requests.
  */
 export function PrefetchRoutes({ routes }: { routes: string[] }) {
-  const router = useRouter()
+  const { prefetch } = useRouter()
   const pathname = usePathname()
   const started = useRef(false)
 
@@ -51,7 +51,7 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
         if (cancelled) break
 
         // Prefetch via Next.js router (caches RSC flight payload)
-        router.prefetch(route)
+        prefetch(route)
 
         // Also fetch the full HTML into the browser HTTP cache
         try {
@@ -70,7 +70,7 @@ export function PrefetchRoutes({ routes }: { routes: string[] }) {
     return () => {
       cancelled = true
     }
-  }, [routes, pathname, router])
+  }, [routes, pathname, prefetch])
 
   return null
 }

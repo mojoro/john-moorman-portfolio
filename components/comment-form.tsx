@@ -21,7 +21,7 @@ export function CommentForm({
   turnstileSiteKey: string
 }) {
   const formRef = useRef<HTMLFormElement>(null)
-  const router = useRouter()
+  const { refresh } = useRouter()
   const [status, setStatus] = useState<Status>("idle")
   const [errorMessage, setErrorMessage] = useState("")
 
@@ -39,7 +39,7 @@ export function CommentForm({
       setStatus("success")
       formRef.current?.reset()
       window.turnstile?.reset()
-      router.refresh()
+      refresh()
       setTimeout(() => setStatus("idle"), 3000)
     } else {
       setStatus("error")

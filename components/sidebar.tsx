@@ -83,7 +83,7 @@ export function Sidebar() {
   const [activeSection, setActiveSection] = useState("")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
-  const router = useRouter()
+  const { push } = useRouter()
   const isHomePage = pathname === "/"
 
   // Scroll-spy: only relevant on homepage
@@ -127,12 +127,12 @@ export function Sidebar() {
       if (isHomePage && hash) {
         document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" })
       } else if (page) {
-        router.push(page)
+        push(page)
       } else if (hash) {
-        router.push(`/#${hash}`)
+        push(`/#${hash}`)
       }
     },
-    [isHomePage, router]
+    [isHomePage, push]
   )
 
   // Determine active item: scroll-spy on home, pathname match elsewhere
