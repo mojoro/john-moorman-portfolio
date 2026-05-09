@@ -11,7 +11,10 @@ export const metadata: Metadata = {
 }
 
 export default async function WorkIndex() {
-  const posts = await getPosts("work")
+  const allPosts = await getPosts("work")
+  const pinned = allPosts.find((p) => p.slug === "boa-automation")
+  const rest = allPosts.filter((p) => p.slug !== "boa-automation")
+  const posts = pinned ? [pinned, ...rest] : rest
 
   const challengePosts = posts.filter((p) => p.frontmatter.challenge === "10-in-10")
   const shipped = challengePosts.filter((p) => p.frontmatter.status === "shipped").length
