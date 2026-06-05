@@ -2,18 +2,24 @@
   "name": "john-moorman-portfolio",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:invoicing": "tsx --test lib/invoicing/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@neondatabase/serverless": "^1.0.2",
+    "@react-pdf/renderer": "^4.5.1",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.3",
     "@vercel/analytics": "^1.6.1",
+    "@vercel/blob": "^2.4.0",
     "framer-motion": "^12.35.0",
     "gray-matter": "^4.0.3",
     "next": "15.5.12",
@@ -33,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.12",
     "tailwindcss": "^4",
+    "tsx": "^4.22.3",
     "typescript": "^5"
   }
 }

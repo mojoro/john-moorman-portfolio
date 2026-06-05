@@ -9,9 +9,12 @@ import {
   isAuthenticated,
 } from "@/lib/admin/auth"
 
-interface ActionResult {
+export interface ActionResult {
   success: boolean
   error?: string
+  redirectTo?: string
+  importedCount?: number
+  skippedCount?: number
 }
 
 export async function loginAction(formData: FormData): Promise<ActionResult> {
@@ -139,6 +142,23 @@ export async function deleteCommentAction(id: number): Promise<ActionResult> {
 // ── Chats ──
 
 import { deleteChat } from "@/lib/db"
+import {
+  addTimesheetEntries,
+  addTimesheetEntry,
+  createInvoiceForEntries,
+  deleteInvoiceRecord,
+  getClients,
+  getSelectedTimesheetEntries,
+  recordVoidedInvoiceNumber,
+  reserveInvoiceSequence,
+  upsertClient,
+} from "@/lib/invoicing/db"
+import { deleteInvoicePdf, uploadInvoicePdf } from "@/lib/invoicing/blob"
+import { buildInvoiceNumber, todayIso } from "@/lib/invoicing/invoice-number"
+import { parseTimesheetCsv } from "@/lib/invoicing/csv"
+import { parseHoursAmount } from "@/lib/invoicing/time"
+import { buildInvoiceTotals, DEFAULT_VAT_RATE } from "@/lib/invoicing/grouping"
+import { renderInvoicePdfBuffer } from "@/lib/invoicing/pdf"
 
 export async function deleteChatAction(id: string): Promise<ActionResult> {
   const authError = await requireAuth()
@@ -146,6 +166,236 @@ export async function deleteChatAction(id: string): Promise<ActionResult> {
 
   await deleteChat(id)
   revalidatePath("/admin/chats")
+  return { success: true }
+}
+
+// ── Invoicing ──
+
+function parseRequiredString(formData: FormData, key: string): string {
+  const value = String(formData.get(key) ?? "").trim()
+  if (!value) throw new Error(`${key} is required`)
+  return value
+}
+
+function parseOptionalDate(formData: FormData, key: string): string | null {
+  const value = String(formData.get(key) ?? "").trim()
+  if (!value) return null
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error(`${key} must be YYYY-MM-DD`)
+  return value
+}
+
+function parsePositiveNumber(formData: FormData, key: string): number {
+  const value = Number(formData.get(key))
+  if (!Number.isFinite(value) || value <= 0) throw new Error(`${key} must be a positive number`)
+  return value
+}
+
+function parsePositiveHours(formData: FormData, key: string): number {
+  const value = parseHoursAmount(String(formData.get(key) ?? ""))
+  if (!Number.isFinite(value) || value <= 0) throw new Error(`${key} must be a positive number or hh:mm:ss`)
+  return value
+}
+
+function parsePositiveInteger(value: FormDataEntryValue | null): number {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed <= 0) throw new Error("Expected a positive integer")
+  return parsed
+}
+
+export async function addTimesheetEntryAction(formData: FormData): Promise<ActionResult> {
+  const authError = await requireAuth()
+  if (authError) return authError
+
+  try {
+    const workDate = parseRequiredString(formData, "workDate")
+    const workEndDate = parseOptionalDate(formData, "workEndDate")
+    if (workEndDate && workEndDate < workDate) throw new Error("workEndDate must be on or after workDate")
+
+    await addTimesheetEntry({
+      workDate,
+      workEndDate,
+      hours: parsePositiveHours(formData, "hours"),
+      task: parseRequiredString(formData, "task"),
+      clientId: parsePositiveInteger(formData.get("clientId")),
+    })
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to add timesheet entry." }
+  }
+
+  revalidatePath("/admin/timesheet")
+  return { success: true }
+}
+
+export async function importTimesheetCsvAction(formData: FormData): Promise<ActionResult> {
+  const authError = await requireAuth()
+  if (authError) return authError
+
+  try {
+    const clientId = parsePositiveInteger(formData.get("clientId"))
+    const file = formData.get("csvFile")
+    const pastedCsv = String(formData.get("csvText") ?? "").trim()
+    let csvText = pastedCsv
+
+    if (file instanceof File && file.size > 0) {
+      if (file.size > 1024 * 1024) throw new Error("CSV file must be smaller than 1 MB.")
+      csvText = await file.text()
+    }
+
+    if (!csvText.trim()) throw new Error("Choose a CSV file or paste CSV text to import.")
+
+    const parsed = parseTimesheetCsv(csvText)
+    const entriesToImport = parsed.entries.filter((entry) => entry.invoiced !== true)
+    if (entriesToImport.length === 0) {
+      throw new Error("CSV only contains rows marked as already invoiced.")
+    }
+
+    const importedCount = await addTimesheetEntries(entriesToImport, clientId)
+    const skippedCount = parsed.entries.length - entriesToImport.length
+
+    revalidatePath("/admin/timesheet")
+    return { success: true, importedCount, skippedCount }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to import timesheet CSV." }
+  }
+}
+
+function parseInvoicePrefix(formData: FormData): string {
+  const prefix = parseRequiredString(formData, "invoicePrefix").toUpperCase()
+  if (!/^[A-Z0-9_-]+$/.test(prefix)) {
+    throw new Error("invoicePrefix may only contain letters, numbers, underscores, and hyphens")
+  }
+  return prefix
+}
+
+export async function saveClientAction(formData: FormData): Promise<ActionResult> {
+  const authError = await requireAuth()
+  if (authError) return authError
+
+  try {
+    const idValue = formData.get("id")
+    await upsertClient({
+      id: idValue ? parsePositiveInteger(idValue) : undefined,
+      name: parseRequiredString(formData, "name"),
+      invoicePrefix: parseInvoicePrefix(formData),
+      billTo: parseRequiredString(formData, "billTo"),
+      ustId: String(formData.get("ustId") ?? "").trim() || null,
+      hourlyRateEur: parsePositiveNumber(formData, "hourlyRateEur"),
+    })
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to save client." }
+  }
+
+  revalidatePath("/admin/clients")
+  revalidatePath("/admin/timesheet")
+  return { success: true }
+}
+
+export async function generateInvoiceAction(formData: FormData): Promise<ActionResult> {
+  const authError = await requireAuth()
+  if (authError) return authError
+
+  const entryIds = formData
+    .getAll("entryId")
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value > 0)
+
+  if (entryIds.length === 0) return { success: false, error: "Select at least one uninvoiced entry." }
+
+  let uploadedBlob: { url: string; pathname: string } | null = null
+  let reservedInvoice: { invoiceNo: string; issuedDate: string; invoicePrefix: string } | null = null
+
+  try {
+    const entries = await getSelectedTimesheetEntries(entryIds)
+    if (entries.length !== entryIds.length) throw new Error("Some selected entries no longer exist.")
+
+    const totals = buildInvoiceTotals(entries, { isKleinunternehmer: true, vatRate: DEFAULT_VAT_RATE })
+    const [firstEntry] = entries
+    const [client] = (await getClients()).filter((candidate) => candidate.id === firstEntry.client_id)
+    if (!client) throw new Error("Client not found.")
+
+    const issuedDate = todayIso()
+    const sequence = await reserveInvoiceSequence({ issuedDate, invoicePrefix: firstEntry.invoice_prefix })
+    const invoiceNo = buildInvoiceNumber(firstEntry.invoice_prefix, issuedDate, sequence)
+    reservedInvoice = { invoiceNo, issuedDate, invoicePrefix: firstEntry.invoice_prefix }
+    const pdfBuffer = await renderInvoicePdfBuffer({
+      invoiceNo,
+      issuedDate,
+      client,
+      periodSummary: totals.periodSummary,
+      lineItems: totals.lineItems,
+      subtotal: totals.subtotal,
+      vat: totals.vat,
+      total: totals.total,
+      isKleinunternehmer: true,
+    })
+
+    uploadedBlob = await uploadInvoicePdf({ invoiceNo, buffer: pdfBuffer })
+    const invoice = await createInvoiceForEntries({
+      invoiceNo,
+      clientId: firstEntry.client_id,
+      issuedDate,
+      periodSummary: totals.periodSummary,
+      totalHours: totals.totalHours,
+      subtotalEur: totals.subtotal,
+      vatRate: DEFAULT_VAT_RATE,
+      vatEur: totals.vat,
+      totalEur: totals.total,
+      isKleinunternehmer: true,
+      pdfUrl: uploadedBlob.url,
+      pdfBlobPath: uploadedBlob.pathname,
+      entryIds,
+      expectedClient: {
+        name: client.name,
+        invoicePrefix: client.invoice_prefix,
+        billTo: client.bill_to,
+        ustId: client.ust_id,
+        hourlyRateEur: client.hourly_rate_eur,
+      },
+    })
+    reservedInvoice = null
+
+    revalidatePath("/admin/timesheet")
+    revalidatePath("/admin/invoices")
+    return { success: true, redirectTo: `/admin/invoices#invoice-${invoice.id}` }
+  } catch (error) {
+    if (uploadedBlob) {
+      try {
+        await deleteInvoicePdf(uploadedBlob.pathname)
+      } catch {
+        // Blob cleanup is best-effort; the original failure should remain visible.
+      }
+    }
+    if (reservedInvoice) {
+      try {
+        await recordVoidedInvoiceNumber({
+          ...reservedInvoice,
+          reason: error instanceof Error ? error.message : "Invoice generation failed after number reservation",
+        })
+      } catch {
+        // Voiding is best-effort; keep the original generation error for the UI.
+      }
+    }
+    return { success: false, error: error instanceof Error ? error.message : "Failed to generate invoice." }
+  }
+}
+
+export async function deleteInvoiceAction(invoiceId: number): Promise<ActionResult> {
+  const authError = await requireAuth()
+  if (authError) return authError
+
+  try {
+    const invoice = await deleteInvoiceRecord(invoiceId)
+    try {
+      await deleteInvoicePdf(invoice.pdf_blob_path)
+    } catch {
+      // The DB delete already succeeded; leave Blob cleanup as best-effort.
+    }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to delete invoice." }
+  }
+
+  revalidatePath("/admin/timesheet")
+  revalidatePath("/admin/invoices")
   return { success: true }
 }
 
