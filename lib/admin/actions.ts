@@ -12,6 +12,8 @@ import {
 export interface ActionResult {
   success: boolean
   error?: string
+  /** Shown on success when the operation completed but needs follow-up. */
+  warning?: string
   redirectTo?: string
   importedCount?: number
   skippedCount?: number
@@ -258,15 +260,21 @@ export async function deleteInvoiceAction(invoiceId: number): Promise<ActionResu
   const authError = await requireAuth()
   if (authError) return authError
 
+  let result: Awaited<ReturnType<typeof removeInvoice>>
   try {
-    await removeInvoice(requirePositiveInt(invoiceId, "invoiceId"))
+    result = await removeInvoice(requirePositiveInt(invoiceId, "invoiceId"))
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Failed to delete invoice." }
   }
 
   revalidatePath("/admin/timesheet")
   revalidatePath("/admin/invoices")
-  return { success: true }
+  return {
+    success: true,
+    warning: result.pdfDeleted
+      ? undefined
+      : `${result.invoice.invoice_no} was deleted but its PDF could not be removed. Delete it manually.`,
+  }
 }
 
 // ── Chatbot Prompt ──

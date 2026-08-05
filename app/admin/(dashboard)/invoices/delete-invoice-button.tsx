@@ -29,7 +29,13 @@ export function DeleteInvoiceButton({ invoiceId }: { invoiceId: number }) {
         if (timerRef.current) clearTimeout(timerRef.current)
         startTransition(async () => {
           const result = await deleteInvoiceAction(invoiceId)
-          show(result.success ? "Invoice deleted." : result.error ?? "Failed to delete invoice.", result.success ? "success" : "error")
+          if (!result.success) {
+            show(result.error ?? "Failed to delete invoice.", "error")
+          } else if (result.warning) {
+            show(result.warning, "error")
+          } else {
+            show("Invoice deleted. Its number is free to reuse.", "success")
+          }
         })
       }}
       className={`font-mono text-xs transition-colors disabled:opacity-40 ${confirming ? "text-red-400" : "text-text-muted hover:text-red-400"}`}
