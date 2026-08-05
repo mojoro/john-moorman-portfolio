@@ -53,8 +53,14 @@ export const invoiceApiLimit = hasRedis
 
 export async function checkInvoiceApiRateLimit(ip: string): Promise<{ allowed: boolean }> {
   if (!invoiceApiLimit) return { allowed: true }
-  const { success } = await invoiceApiLimit.limit(ip)
-  return { allowed: success }
+  try {
+    const { success } = await invoiceApiLimit.limit(ip)
+    return { allowed: success }
+  } catch {
+    // Redis being unreachable must not take the API down. The bearer token is
+    // the actual access control; this limiter is only brute-force padding.
+    return { allowed: true }
+  }
 }
 
 export async function checkRateLimit(
