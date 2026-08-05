@@ -302,7 +302,7 @@ export async function generateInvoiceAction(formData: FormData): Promise<ActionR
   if (entryIds.length === 0) return { success: false, error: "Select at least one uninvoiced entry." }
 
   let uploadedBlob: { url: string; pathname: string } | null = null
-  let reservedInvoice: { invoiceNo: string; issuedDate: string; invoicePrefix: string } | null = null
+  let reservedInvoice: { invoiceNo: string; periodStart: string; invoicePrefix: string } | null = null
 
   try {
     const entries = await getSelectedTimesheetEntries(entryIds)
@@ -314,9 +314,10 @@ export async function generateInvoiceAction(formData: FormData): Promise<ActionR
     if (!client) throw new Error("Client not found.")
 
     const issuedDate = todayIso()
-    const sequence = await reserveInvoiceSequence({ issuedDate, invoicePrefix: firstEntry.invoice_prefix })
-    const invoiceNo = buildInvoiceNumber(firstEntry.invoice_prefix, issuedDate, sequence)
-    reservedInvoice = { invoiceNo, issuedDate, invoicePrefix: firstEntry.invoice_prefix }
+    const periodStart = entries.reduce((earliest, entry) => (entry.work_date < earliest ? entry.work_date : earliest), firstEntry.work_date)
+    const sequence = await reserveInvoiceSequence({ periodStart, invoicePrefix: firstEntry.invoice_prefix })
+    const invoiceNo = buildInvoiceNumber(firstEntry.invoice_prefix, periodStart, sequence)
+    reservedInvoice = { invoiceNo, periodStart, invoicePrefix: firstEntry.invoice_prefix }
     const pdfBuffer = await renderInvoicePdfBuffer({
       invoiceNo,
       issuedDate,

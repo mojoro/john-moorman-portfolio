@@ -215,12 +215,12 @@ export async function getSelectedTimesheetEntries(entryIds: number[]): Promise<S
   return (rows as SelectedTimesheetEntryRow[]).map(normalizeSelectedEntry)
 }
 
-export async function reserveInvoiceSequence(input: { issuedDate: string; invoicePrefix: string }): Promise<number> {
+export async function reserveInvoiceSequence(input: { periodStart: string; invoicePrefix: string }): Promise<number> {
   const sql = getDb()
   const rows = await sql`
-    INSERT INTO invoice_number_counters (invoice_date, invoice_prefix, last_number)
-    VALUES (${input.issuedDate}, ${input.invoicePrefix}, 1)
-    ON CONFLICT (invoice_date, invoice_prefix)
+    INSERT INTO invoice_number_counters (period_start, invoice_prefix, last_number)
+    VALUES (${input.periodStart}, ${input.invoicePrefix}, 1)
+    ON CONFLICT (period_start, invoice_prefix)
     DO UPDATE SET last_number = invoice_number_counters.last_number + 1,
                   updated_at = NOW()
     RETURNING last_number
@@ -230,14 +230,14 @@ export async function reserveInvoiceSequence(input: { issuedDate: string; invoic
 
 export async function recordVoidedInvoiceNumber(input: {
   invoiceNo: string
-  issuedDate: string
+  periodStart: string
   invoicePrefix: string
   reason: string
 }): Promise<void> {
   const sql = getDb()
   await sql`
-    INSERT INTO voided_invoice_numbers (invoice_no, invoice_date, invoice_prefix, reason)
-    VALUES (${input.invoiceNo}, ${input.issuedDate}, ${input.invoicePrefix}, ${input.reason})
+    INSERT INTO voided_invoice_numbers (invoice_no, period_start, invoice_prefix, reason)
+    VALUES (${input.invoiceNo}, ${input.periodStart}, ${input.invoicePrefix}, ${input.reason})
     ON CONFLICT (invoice_no) DO NOTHING
   `
 }

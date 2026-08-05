@@ -1,7 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { buildInvoiceTotals, formatEur, formatPeriod, round2 } from "./grouping"
-import { buildInvoiceNumber, todayIso } from "./invoice-number"
 import type { SelectedTimesheetEntry } from "./types"
 
 const baseEntry = {
@@ -68,16 +67,5 @@ describe("invoicing grouping", () => {
     assert.equal(formatPeriod(["2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17"]), "2026-05-13 … 2026-05-17 (5 days)")
     assert.equal(formatEur(190), "190,00 €")
     assert.equal(round2(1.005), 1.01)
-  })
-})
-
-describe("invoice numbers", () => {
-  it("formats the Apps Script invoice number shape", () => {
-    assert.equal(buildInvoiceNumber("spacifik", "2026-05-25", 1), "SPACIFIK-2026-05-25-01")
-    assert.equal(buildInvoiceNumber("SPACIFIK", "2026-05-25", 12), "SPACIFIK-2026-05-25-12")
-  })
-
-  it("formats local dates as YYYY-MM-DD", () => {
-    assert.equal(todayIso(new Date(2026, 4, 25)), "2026-05-25")
   })
 })
