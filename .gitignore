@@ -50,3 +50,7 @@ changes.md
 
 # playwright
 .playwright-mcp/
+
+# locally generated invoice PDFs — contain client billing PII
+/.invoices/
+/public/invoices/

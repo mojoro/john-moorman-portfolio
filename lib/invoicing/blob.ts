@@ -2,7 +2,10 @@ import { del, put } from "@vercel/blob"
 import { mkdir, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 
-const LOCAL_INVOICE_DIR = join(process.cwd(), "public", "invoices")
+// Deliberately outside public/: these PDFs carry client billing PII and must not
+// be served as static assets. They go out via the authenticated route handler at
+// /admin/invoices/file/[filename] instead.
+const LOCAL_INVOICE_DIR = join(process.cwd(), ".invoices")
 const LOCAL_PATH_PREFIX = "local/invoices/"
 
 function hasBlobCredentials(): boolean {
@@ -21,7 +24,15 @@ async function uploadLocalInvoicePdf(input: { invoiceNo: string; buffer: Buffer 
   const filename = safePdfFilename(input.invoiceNo)
   await mkdir(LOCAL_INVOICE_DIR, { recursive: true })
   await writeFile(join(LOCAL_INVOICE_DIR, filename), input.buffer)
-  return { url: `/invoices/${filename}`, pathname: `${LOCAL_PATH_PREFIX}${filename}` }
+  return { url: `/admin/invoices/file/${filename}`, pathname: `${LOCAL_PATH_PREFIX}${filename}` }
+}
+
+export function safeInvoiceFilename(filename: string): string {
+  return safePdfFilename(filename.replace(/\.pdf$/i, ""))
+}
+
+export function readLocalInvoicePath(filename: string): string {
+  return join(LOCAL_INVOICE_DIR, safeInvoiceFilename(filename))
 }
 
 async function deleteLocalInvoicePdf(pathname: string): Promise<void> {
