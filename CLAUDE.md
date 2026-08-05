@@ -243,6 +243,10 @@ ADMIN_PASSWORD=             # Admin dashboard login + session signing key
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=  # Cloudflare Turnstile (blog comments, client-side)
 TURNSTILE_SECRET_KEY=       # Cloudflare Turnstile (server-side verification)
 NEXT_PUBLIC_GOOGLE_CALENDAR_URL= # Google Calendar appointment scheduling link
+BLOB_READ_WRITE_TOKEN=      # Vercel Blob — invoice PDF storage
+INVOICE_SENDER_ADDRESS=     # Invoice letterhead address — never hardcode, this repo is public
+INVOICE_TAX_NUMBER=         # Steuernummer printed on invoices
+INVOICE_IBAN=               # IBAN printed on invoices
 ```
 
 ---

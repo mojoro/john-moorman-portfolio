@@ -17,10 +17,22 @@ const rowline = "#eef1f5"
 
 const senderName = "John Moorman"
 const senderRole = "Artistic Administration"
-const senderAddress = "REDACTED"
 const senderEmail = "john@johnmoorman.com"
-const taxNumber = "REDACTED"
-const iban = "REDACTED"
+
+// Address, tax number, and IBAN stay out of source control: this repo is public.
+function requiredEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`${name} is not set. Invoice PDFs need the sender's billing details.`)
+  return value
+}
+
+function getSenderDetails() {
+  return {
+    address: requiredEnv("INVOICE_SENDER_ADDRESS"),
+    taxNumber: requiredEnv("INVOICE_TAX_NUMBER"),
+    iban: requiredEnv("INVOICE_IBAN"),
+  }
+}
 
 let fontsRegistered = false
 let dmSansAvailable = false
@@ -421,6 +433,7 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 export function InvoiceDocument(props: InvoiceDocumentProps) {
   ensureFontsRegistered()
 
+  const sender = getSenderDetails()
   const { lineItems, subtotal, vat, total, isKleinunternehmer } = props
   const uniqueDescriptions = Array.from(new Set(lineItems.map((item) => item.description)))
   const sharedDescription = uniqueDescriptions.length === 1 ? uniqueDescriptions[0] : null
@@ -442,11 +455,11 @@ export function InvoiceDocument(props: InvoiceDocumentProps) {
         </View>
 
         <View style={styles.contactRow}>
-          <Text style={styles.contactItem}>{senderAddress}</Text>
+          <Text style={styles.contactItem}>{sender.address}</Text>
           <Text style={styles.contactSep}>·</Text>
           <Text style={styles.contactItem}>{senderEmail}</Text>
           <Text style={styles.contactSep}>·</Text>
-          <Text style={styles.contactItem}>Steuernummer: {taxNumber}</Text>
+          <Text style={styles.contactItem}>Steuernummer: {sender.taxNumber}</Text>
         </View>
 
         <View style={styles.divider} />
@@ -538,7 +551,7 @@ export function InvoiceDocument(props: InvoiceDocumentProps) {
             </View>
             <View style={styles.payRow}>
               <Text style={styles.payLabel}>IBAN</Text>
-              <Text style={styles.payValueMono}>{formatIban(iban)}</Text>
+              <Text style={styles.payValueMono}>{formatIban(sender.iban)}</Text>
             </View>
             <Text style={styles.terms}>Zahlbar innerhalb von 14 Tagen ab Rechnungsdatum.</Text>
           </View>
