@@ -18,14 +18,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-/** Deletes the invoice, releases its timesheet entries, and removes the PDF. */
+/**
+ * Deletes the invoice, releases its timesheet entries, removes the PDF, and
+ * frees the invoice number so a regenerated invoice can reuse it.
+ */
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await authorizeInvoiceApi(request)
   if (denied) return denied.response
 
   try {
     const { id } = await params
-    return jsonOk({ invoice: await removeInvoice(requirePositiveInt(id, "id")) })
+    return jsonOk(await removeInvoice(requirePositiveInt(id, "id")))
   } catch (error) {
     return jsonError(error)
   }

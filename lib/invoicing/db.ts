@@ -1,4 +1,5 @@
 import { neon, Pool } from "@neondatabase/serverless"
+import { buildInvoiceNumber } from "./invoice-number"
 import type { Client, Invoice, SelectedTimesheetEntry, TimesheetEntry } from "./types"
 
 function getDb() {
@@ -215,17 +216,38 @@ export async function getSelectedTimesheetEntries(entryIds: number[]): Promise<S
   return (rows as SelectedTimesheetEntryRow[]).map(normalizeSelectedEntry)
 }
 
-export async function reserveInvoiceSequence(input: { periodStart: string; invoicePrefix: string }): Promise<number> {
+export const MAX_INVOICE_SEQUENCE = 999
+
+/**
+ * The lowest unused sequence for a prefix and period, derived from the invoices
+ * table rather than a counter. Deleting an invoice therefore frees its number
+ * for reuse instead of burning it, and a generation that fails partway costs
+ * nothing. Candidates are built with buildInvoiceNumber so the format stays
+ * defined in exactly one place and legacy numbers can never be misparsed.
+ */
+export async function nextInvoiceSequence(input: { periodStart: string; invoicePrefix: string }): Promise<number> {
   const sql = getDb()
-  const rows = await sql`
-    INSERT INTO invoice_number_counters (period_start, invoice_prefix, last_number)
-    VALUES (${input.periodStart}, ${input.invoicePrefix}, 1)
-    ON CONFLICT (period_start, invoice_prefix)
-    DO UPDATE SET last_number = invoice_number_counters.last_number + 1,
-                  updated_at = NOW()
-    RETURNING last_number
-  `
-  return toNumber(rows[0].last_number)
+  const candidates = Array.from({ length: MAX_INVOICE_SEQUENCE }, (_, index) =>
+    buildInvoiceNumber(input.invoicePrefix, input.periodStart, index + 1)
+  )
+
+  const rows = await sql.query(`SELECT invoice_no FROM invoices WHERE invoice_no = ANY($1::text[])`, [candidates])
+  const taken = new Set((rows as { invoice_no: string }[]).map((row) => row.invoice_no))
+
+  const freeIndex = candidates.findIndex((candidate) => !taken.has(candidate))
+  if (freeIndex === -1) {
+    throw new Error(
+      `All ${MAX_INVOICE_SEQUENCE} invoice numbers for ${input.invoicePrefix} on ${input.periodStart} are in use`
+    )
+  }
+  return freeIndex + 1
+}
+
+/** True when an invoice already holds this exact number. */
+export async function invoiceNumberExists(invoiceNo: string): Promise<boolean> {
+  const sql = getDb()
+  const rows = await sql`SELECT 1 FROM invoices WHERE invoice_no = ${invoiceNo} LIMIT 1`
+  return rows.length > 0
 }
 
 export async function recordVoidedInvoiceNumber(input: {

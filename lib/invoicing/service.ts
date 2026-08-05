@@ -5,8 +5,10 @@ import {
   deleteInvoiceRecord,
   getClients,
   getSelectedTimesheetEntries,
+  invoiceNumberExists,
+  MAX_INVOICE_SEQUENCE,
+  nextInvoiceSequence,
   recordVoidedInvoiceNumber,
-  reserveInvoiceSequence,
   upsertClient,
 } from "./db"
 import { deleteInvoicePdf, uploadInvoicePdf } from "./blob"
@@ -109,12 +111,21 @@ export async function importTimesheetCsv(
   return { importedCount, skippedCount: parsed.entries.length - entriesToImport.length }
 }
 
+export interface GenerateInvoiceOptions {
+  /** Force a specific sequence instead of taking the lowest free one. */
+  sequence?: number
+}
+
 /**
- * Reserves a number, renders the PDF, uploads it, then commits the DB row. If
- * any later step fails the uploaded blob is removed and the reserved number is
- * recorded as voided, so the sequence stays auditable with no silent gaps.
+ * Picks a number, renders the PDF, uploads it, then commits the DB row. If any
+ * later step fails the uploaded blob is removed and the attempt is logged to
+ * voided_invoice_numbers. The number itself is not consumed by a failure: it is
+ * derived from the invoices table, so it stays available for the next attempt.
  */
-export async function generateInvoice(entryIds: number[]): Promise<Invoice> {
+export async function generateInvoice(
+  entryIds: number[],
+  options: GenerateInvoiceOptions = {}
+): Promise<Invoice> {
   if (entryIds.length === 0) throw new ValidationError("Select at least one uninvoiced entry.")
 
   let uploadedBlob: { url: string; pathname: string } | null = null
@@ -134,8 +145,15 @@ export async function generateInvoice(entryIds: number[]): Promise<Invoice> {
       (earliest, entry) => (entry.work_date < earliest ? entry.work_date : earliest),
       firstEntry.work_date
     )
-    const sequence = await reserveInvoiceSequence({ periodStart, invoicePrefix: firstEntry.invoice_prefix })
+    const sequence =
+      options.sequence ?? (await nextInvoiceSequence({ periodStart, invoicePrefix: firstEntry.invoice_prefix }))
     const invoiceNo = buildInvoiceNumber(firstEntry.invoice_prefix, periodStart, sequence)
+
+    if (options.sequence !== undefined && (await invoiceNumberExists(invoiceNo))) {
+      throw new ValidationError(
+        `Invoice ${invoiceNo} already exists. Delete it first if you want to reuse that number.`
+      )
+    }
     reservedInvoice = { invoiceNo, periodStart, invoicePrefix: firstEntry.invoice_prefix }
 
     const pdfBuffer = await renderInvoicePdfBuffer({
@@ -197,18 +215,46 @@ export async function generateInvoice(entryIds: number[]): Promise<Invoice> {
   }
 }
 
-export async function removeInvoice(invoiceId: number): Promise<Invoice> {
+export interface RemoveInvoiceResult {
+  invoice: Invoice
+  /** False when the row went but the stored PDF could not be removed. */
+  pdfDeleted: boolean
+  numberReleased: string
+}
+
+/**
+ * Deletes the invoice, releases its timesheet entries, and removes the PDF. The
+ * invoice number becomes immediately available again because allocation reads
+ * the invoices table, so regenerating reuses the same number.
+ */
+export async function removeInvoice(invoiceId: number): Promise<RemoveInvoiceResult> {
   const invoice = await deleteInvoiceRecord(invoiceId)
+
+  let pdfDeleted = true
   try {
     await deleteInvoicePdf(invoice.pdf_blob_path)
   } catch {
-    // The DB delete already succeeded; leave Blob cleanup as best-effort.
+    // The row is already gone, so surface this rather than failing the delete:
+    // an orphaned PDF needs manual cleanup and should not be silent.
+    pdfDeleted = false
   }
-  return invoice
+
+  return { invoice, pdfDeleted, numberReleased: invoice.invoice_no }
 }
 
 export function parseEntryIds(input: unknown): number[] {
   return requirePositiveIntArray(asRecord(input).entryIds, "entryIds")
+}
+
+export function parseGenerateOptions(input: unknown): GenerateInvoiceOptions {
+  const { sequence } = asRecord(input)
+  if (sequence === undefined || sequence === null) return {}
+
+  const parsed = requirePositiveInt(sequence, "sequence")
+  if (parsed > MAX_INVOICE_SEQUENCE) {
+    throw new ValidationError(`sequence must be ${MAX_INVOICE_SEQUENCE} or lower`)
+  }
+  return { sequence: parsed }
 }
 
 function asRecord(value: unknown, field = "body"): Record<string, unknown> {
