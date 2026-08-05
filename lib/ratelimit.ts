@@ -37,6 +37,26 @@ export const dailyLimit = hasRedis
     })
   : null
 
+/**
+ * Separate window and prefix from the chatbot limiter so visitor traffic cannot
+ * exhaust the invoicing API's budget. Sized for scripted use, tight enough to
+ * make brute-forcing the bearer token impractical.
+ */
+export const invoiceApiLimit = hasRedis
+  ? new Ratelimit({
+      redis: redis!,
+      limiter: Ratelimit.slidingWindow(120, "1 h"),
+      prefix: "rl:invoice-api",
+      analytics: true,
+    })
+  : null
+
+export async function checkInvoiceApiRateLimit(ip: string): Promise<{ allowed: boolean }> {
+  if (!invoiceApiLimit) return { allowed: true }
+  const { success } = await invoiceApiLimit.limit(ip)
+  return { allowed: success }
+}
+
 export async function checkRateLimit(
   ip: string
 ): Promise<{ allowed: boolean; remaining?: number }> {
