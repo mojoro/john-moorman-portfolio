@@ -34,7 +34,7 @@ const STARTER_QUESTIONS = [
   "What's your most impressive project?",
   "Tell me about your AI experience",
   "Why did you leave opera?",
-  "What's your availability?",
+  "Are you taking on new projects?",
 ]
 
 const MAX_TURNS = 10
@@ -333,7 +333,7 @@ export function ChatPanel() {
                 <div className="space-y-3">
                   <p className="text-sm text-text-secondary">
                     Hi! I&apos;m an AI that can answer questions about John&apos;s
-                    experience, skills, and availability. Try one of these:
+                    experience, projects, and how he works. Try one of these:
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {STARTER_QUESTIONS.map((q) => (
