@@ -146,7 +146,7 @@ export default function AboutPage() {
       {/* Projects I'm proud of */}
       <div className="mt-16 max-w-[680px]">
         <h2 className="font-display text-xl font-semibold">
-          Personal projects I&apos;m proud of
+          Projects I&apos;m proud of
         </h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           <Link
