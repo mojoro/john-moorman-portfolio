@@ -62,6 +62,19 @@ export default async function Home() {
       : []
   )
 
+  const ongoingWork = workPosts.flatMap((p) =>
+    p.frontmatter.ongoing
+      ? [
+          {
+            title: p.frontmatter.title,
+            summary: p.frontmatter.description,
+            since: p.frontmatter.ongoingSince ?? "Ongoing",
+            href: `/work/${p.slug}`,
+          },
+        ]
+      : []
+  )
+
   const challengeWork = workPosts
     .filter((p) => p.frontmatter.challenge === "10-in-10" && p.frontmatter.week != null)
     .sort((a, b) => (a.frontmatter.week ?? 0) - (b.frontmatter.week ?? 0))
@@ -76,6 +89,7 @@ export default async function Home() {
     <HomeClient
       blogPosts={recentBlog}
       featuredWork={featuredWork}
+      ongoingWork={ongoingWork}
       challengeWork={challengeWork}
     />
   )

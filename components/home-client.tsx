@@ -45,13 +45,22 @@ interface ChallengeWork {
   href?: string
 }
 
+interface OngoingWork {
+  title: string
+  summary: string
+  since: string
+  href: string
+}
+
 export function HomeClient({
   blogPosts,
   featuredWork,
+  ongoingWork,
   challengeWork,
 }: {
   blogPosts: BlogPost[]
   featuredWork: FeaturedWork[]
+  ongoingWork: OngoingWork[]
   challengeWork: ChallengeWork[]
 }) {
   const shouldReduceMotion = useReducedMotion()
@@ -173,8 +182,24 @@ export function HomeClient({
           </Link>
         </SectionReveal>
 
+        {/* Ongoing client work */}
+        {ongoingWork.length > 0 && (
+          <SectionReveal delay={0.1}>
+            <div className="mt-10">
+              <p className="font-mono text-xs uppercase tracking-widest text-text-muted">
+                Currently
+              </p>
+              <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                {ongoingWork.map((project) => (
+                  <OngoingCard key={project.title} project={project} />
+                ))}
+              </div>
+            </div>
+          </SectionReveal>
+        )}
+
         {/* Featured projects */}
-        <div className="mt-10 space-y-6">
+        <div className="mt-12 space-y-6">
           {featuredWork.map((project, i) => (
             <SectionReveal key={project.title} delay={(i + 1) * 0.1}>
               <ProjectCard project={project} />
@@ -465,6 +490,30 @@ function ProjectCard({
         ))}
       </div>
     </m.a>
+  )
+}
+
+function OngoingCard({ project }: { project: OngoingWork }) {
+  return (
+    <Link
+      href={project.href}
+      className="group flex flex-col rounded-lg border border-border bg-bg-surface p-5 transition-colors hover:border-accent/40"
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="font-medium text-text-primary transition-colors group-hover:text-accent">
+          {project.title}
+          <span className="ml-1.5 inline-block text-xl text-text-muted transition-all duration-300 group-hover:text-accent group-hover:translate-x-0.5">
+            &rarr;
+          </span>
+        </p>
+        <span className="shrink-0 font-mono text-[10px] text-text-muted">
+          {project.since}
+        </span>
+      </div>
+      <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+        {project.summary}
+      </p>
+    </Link>
   )
 }
 
