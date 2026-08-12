@@ -173,9 +173,18 @@ export function HomeClient({
           </Link>
         </SectionReveal>
 
+        {/* Featured projects */}
+        <div className="mt-10 space-y-6">
+          {featuredWork.map((project, i) => (
+            <SectionReveal key={project.title} delay={(i + 1) * 0.1}>
+              <ProjectCard project={project} />
+            </SectionReveal>
+          ))}
+        </div>
+
         {/* 10-in-10 challenge callout */}
         <SectionReveal delay={0.1}>
-          <div className="mt-10 rounded-lg border border-accent/20 bg-accent/5 p-4">
+          <div className="mt-16 rounded-lg border border-accent/20 bg-accent/5 p-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <span className="font-mono text-xs uppercase tracking-widest text-accent/70">
@@ -211,7 +220,7 @@ export function HomeClient({
           </div>
         </SectionReveal>
 
-        {/* Current building cards (shipped + in-progress only) */}
+        {/* 10-in-10 project cards (shipped + in-progress only) */}
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           {challengeWork.flatMap((project, i) =>
             project.status === "upcoming"
@@ -222,15 +231,6 @@ export function HomeClient({
                   </SectionReveal>,
                 ]
           )}
-        </div>
-
-        {/* Featured projects */}
-        <div className="mt-8 space-y-6">
-          {featuredWork.map((project, i) => (
-            <SectionReveal key={project.title} delay={(i + challengeWork.filter((p) => p.status !== "upcoming").length + 1) * 0.1}>
-              <ProjectCard project={project} />
-            </SectionReveal>
-          ))}
         </div>
 
       </section>
