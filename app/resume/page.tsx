@@ -46,7 +46,7 @@ const EXPERIENCE = [
     highlights: [
       <>{b("Fullstack development")} across multiple client engagements with end-to-end ownership</>,
       <>{b("Showdeck")} (ongoing since May 2026): fullstack contract work on a production management platform for live performance. {b("Django, GraphQL, PostgreSQL")} on the backend, {b("Vue 3, TypeScript, Apollo")} on the frontend</>,
-      <>{b("Review of AI-generated code is the bulk of that engagement")}: my agents&apos; output and the team&apos;s, daily, against a maintained record of how it fails (green tests that assert nothing, reviews that pass for the wrong reason, gates never proved to fail on the broken code)</>,
+      <>{b("Review is the bulk of that engagement")}: my agents&apos; output daily plus the team&apos;s pull requests, against a maintained record of how generated code fails (green tests that assert nothing, reviews that pass for the wrong reason, gates never proved to fail on the broken code)</>,
       <>{b("Spacifik")} (ongoing since May 2026): technical SEO, {b("Python")} content pipelines, structured data, and performance work across a multi-site hotel portfolio for a Berlin agency, with client reporting in German</>,
       <>Shipped {b("Shortlist")} in 7 days (16K LOC): AI job-matching SaaS with {b("Next.js, TypeScript, Tailwind, Prisma, Neon Postgres")}, Clerk auth, streaming AI responses, and Kanban pipeline</>,
       <>Built an {b("AI-powered real estate data pipeline")} using {b("n8n")}, Apify, and Gemini. Automated daily investment recommendations for a Berlin-based client</>,
