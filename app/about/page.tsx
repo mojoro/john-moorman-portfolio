@@ -115,8 +115,7 @@ export default function AboutPage() {
             Showdeck
           </Link>{" "}
           is a production management platform for live performance, where I work
-          across the stack: Django and GraphQL on the backend, Vue 3 and Apollo
-          on the front.{" "}
+          fullstack.{" "}
           <Link
             href="/work/spacifik"
             className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
@@ -130,11 +129,30 @@ export default function AboutPage() {
         </p>
 
         <p>
-          I work AI-natively: Claude Code and Cursor are core to how I develop,
-          not shortcuts but force multipliers. In spring 2026 I ran a
-          &quot;10 projects in 10 weeks&quot; challenge to push my shipping pace
-          and put the range on the record. All ten shipped, and most of them are
-          written up here.
+          I work AI-natively, which in practice means most of my day goes to
+          reviewing generated code rather than typing it. That is the part
+          I&apos;ve had to get good at, and it isn&apos;t speed: reading a diff
+          line by line, running an adversarial pass whose only instruction is to
+          refute the change, proving a test fails against the broken code before
+          trusting that it passes against the fix. A clean agent review is
+          signal, not proof.
+        </p>
+
+        <p>
+          Generated code is confidently wrong in specific, repeatable ways: the
+          green test that asserts nothing, the review that passes for the right
+          answer and the wrong reason, the claim that something was unavoidable
+          when three counter-examples sit a grep away. I keep a written record
+          of the ones I hit so the same failure doesn&apos;t get through twice.
+          Claude Code and Cursor are core to how I develop, not shortcuts but
+          force multipliers, and the guardrails are what make it safe to be
+          fast.
+        </p>
+
+        <p>
+          In spring 2026 I ran a &quot;10 projects in 10 weeks&quot; challenge to
+          push my shipping pace and put the range on the record. All ten
+          shipped, and most of them are written up here.
         </p>
 
         <p>
