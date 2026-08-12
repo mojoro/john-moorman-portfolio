@@ -66,7 +66,7 @@ export default function AboutPage() {
           </p>
           <p>
             I studied vocal performance at Boston Conservatory at Berklee,
-            graduating in 2022 with a Bachelor of Music (GPA 3.84). Five years
+            graduating in 2022 with a Bachelor of Music. Five years
             of operatic training: sight-reading scores, memorizing roles in
             three languages, performing under pressure in front of live
             audiences. It was rigorous, technical work that taught me how to
