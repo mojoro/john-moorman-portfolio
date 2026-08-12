@@ -30,9 +30,8 @@ stats:
 ---
 
 <Demo
-  live="https://quotid.johnmoorman.com/"
   github="https://github.com/mojoro/quotid"
-  note="Listen to a real call recording at the bottom of this post (coming soon)."
+  note="The AWS free tier expired, so the VM (and with it the nightly calls) is offline until I move it to a cheaper host."
 />
 
 A voice-agent journaling app built around the *Storyworthy* practice (one short story from your day, every day). My phone rings at 21:00, a friendly voice asks me to tell it about something that happened, and the conversation gets summarized and saved as a journal entry. Built end-to-end on Pipecat, Temporal, Twilio, Deepgram, and Anthropic to feel every layer of a production voice stack.
@@ -55,10 +54,10 @@ The spine is a Temporal Workflow. The flow is one linear `async def` with five a
 
 Pipecat is the realtime brain inside `await_call`. The pipeline graph runs Twilio Media Streams to STT to a user aggregator (Silero VAD plus the SmartTurn end-of-turn classifier) to LLM to TTS and back through Twilio. Two custom `FrameProcessor`s, `UserTranscriptCapture` after STT and `AssistantTextCapture` between LLM and TTS, append to one shared `TranscriptCollector` so the transcript is chronological by construction. Reconstructing from `LLMContext.messages` after the fact would lie, because STT finalizes faster than TTS finishes speaking.
 
-Production runs on a single AWS Lightsail VM (Ubuntu 22.04, 2 GB RAM) with five Docker containers: `temporal`, `worker`, `bot`, `web`, and `caddy`. Caddy handles auto-TLS for the two public hosts (`quotid.johnmoorman.com` for the web app, `v.quotid.johnmoorman.com` for the WebSocket Twilio dials) and 403s any public POST to `/calls`, so only the worker can ask the bot to dial out. Full stack: Next.js 16, Tailwind CSS, Prisma on Neon Postgres, TanStack Query, Python 3.12 + uv, FastAPI, Pipecat 1.0, Temporal Python SDK, Docker Compose.
+Production ran on a single AWS Lightsail VM (Ubuntu 22.04, 2 GB RAM) with five Docker containers: `temporal`, `worker`, `bot`, `web`, and `caddy`. Caddy handles auto-TLS for the two public hosts (`quotid.johnmoorman.com` for the web app, `v.quotid.johnmoorman.com` for the WebSocket Twilio dials) and 403s any public POST to `/calls`, so only the worker can ask the bot to dial out. Full stack: Next.js 16, Tailwind CSS, Prisma on Neon Postgres, TanStack Query, Python 3.12 + uv, FastAPI, Pipecat 1.0, Temporal Python SDK, Docker Compose.
 
 ---
 
 Full write-up on the blog coming soon, including the chronological-by-construction transcript design, the `raise_complete_async()` landmine that cost me two hours, and the Hetzner-asks-for-your-passport-after-your-card detour through hosting providers.
 
-[Live site](https://quotid.johnmoorman.com) · [GitHub](https://github.com/mojoro/quotid)
+The hosted app is offline since the AWS free tier expired. [GitHub](https://github.com/mojoro/quotid)

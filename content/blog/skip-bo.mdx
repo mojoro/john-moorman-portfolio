@@ -23,13 +23,13 @@ Growing up, Uno was pretty much the only card game of this sort I knew. My sibli
 
 For the eighth week of my 10-in-10, I wanted to build something that would level me up as an engineer, but also be very fun once deployed. So I built it the long way on purpose, and the result is a browser-based Skip-bo that plays in real-time with anyone from anywhere in the world, up to eight players on a virtual felt. 
 
-<OgLink url="https://skipbo.johnmoorman.com/" />
+(Update: the AWS free tier has since expired and the box is gone, so the hosted game is offline for now. Everything below describes what shipped and still runs from the repo.)
 
 ![The Skip-Bo tabletop on desktop, four players, felt and wood frame](/images/blog/skip-bo/tabletop-desktop.png)
 
 ## What It Is
 
-[Skip-Bo](https://skipbo.johnmoorman.com/) is a real-time browser version of the Mattel card game. You open the lobby, either create a room or join one by code, pick your seat, and play. Up to eight players, two-to-four-player partnerships supported, recommended and official rulesets available, hot-seat mode at `/local` if you don't feel like making a room and joining together on your phones for some reason.
+Skip-Bo is a real-time browser version of the Mattel card game. You open the lobby, either create a room or join one by code, pick your seat, and play. Up to eight players, two-to-four-player partnerships supported, recommended and official rulesets available, hot-seat mode at `/local` if you don't feel like making a room and joining together on your phones for some reason.
 
 The landing page is the lobby. The server pushes public rooms as they're created, joined, and closed, so the list stays live without a refresh.
 
@@ -210,10 +210,10 @@ This project was the one where I started lifting the hood on a few layers of the
 
 It is simply astonishing and humbling how much work has gone into the modern world and internet, and how much there is to learn. But also exciting! I'll never run out of stuff to read and make, and it is fun to contribute to the problem of never being able to know everything that is out there. 
 
-The site is live at [skipbo.johnmoorman.com](https://skipbo.johnmoorman.com). The free AWS tier lasts through 2026-10-19. After that I'll migrate somewhere cheaper (probably [fly.io](https://fly.io)). Until then, please feel free to hop in and challenge me to a game. Open a room, send me the code, and I'll be there.
+The free AWS tier has expired, so the box is shut down and there's no live game to point you at right now. I'm not paying AWS prices for a card game, so the plan is to redeploy somewhere cheaper (probably [fly.io](https://fly.io)) when I get to it. The deploy is two idempotent scripts, so bringing it back up is an afternoon, not a project. When it's back, open a room, send me the code, and I'll be there.
 
 ## Links
 
-[skipbo.johnmoorman.com](https://skipbo.johnmoorman.com) · [GitHub](https://github.com/mojoro/skip-bo)
+[GitHub](https://github.com/mojoro/skip-bo)
 
 If you read this far, thank you. A star on the repo is always appreciated, and if any of this sparked an idea or a question (or you want to talk about WebSocket headers for longer than anyone should), reach out on [LinkedIn](https://www.linkedin.com/in/john-moorman) or at [john@johnmoorman.com](mailto:john@johnmoorman.com). See you in week nine.

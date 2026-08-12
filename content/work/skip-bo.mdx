@@ -31,10 +31,9 @@ stats:
   hero="/images/blog/skip-bo/two-browsers.png"
   heroAlt="Two browser windows playing Skip-Bo over WebSocket against a single server."
   caption="Two browsers, one server. Up to 8 players per room over raw ws@8."
-  live="https://skipbo.johnmoorman.com/"
   github="https://github.com/mojoro/skip-bo"
   blog="/blog/skip-bo"
-  note="Open in two browsers to play multiplayer, or hit /local for hot-seat solo."
+  note="The AWS free tier expired, so the hosted game is offline. The code and the write-up are still here, and I'll redeploy on a cheaper host."
 />
 
 A browser version of the card game Skip-Bo, built as a single honest run at the deployment, networking, and backend layers I had been delegating to Vercel and libraries like Socket.IO for years. Up to 8 players per room, 2-to-4 player partnerships, recommended and official rulesets, and a hot-seat mode for passing a laptop around a table.
@@ -51,7 +50,7 @@ A browser version of the card game Skip-Bo, built as a single honest run at the 
 
 **Raw `ws@8` server.** No Socket.IO, no game framework. Protocol-level heartbeats, 16KB max payload, token-bucket rate limits keyed per session and endpoint, 60-second disconnect grace with random-legal-move bot takeover, state-version numbers on every broadcast. Client hook reconnects with exponential backoff plus jitter, pauses on visibility loss, and resumes on return.
 
-**Single-box AWS deploy.** One `t4g.small` Amazon Linux 2023 instance in `eu-central-1` running two Docker containers (Next.js standalone + the `ws` server) behind host nginx terminating TLS via Let's Encrypt. Single origin for HTML, REST, SSE, and WebSocket keeps CORS out of the architecture. Mozilla Intermediate 2026 TLS profile, A on SSL Labs. Idempotent two-script deploy loop: `bootstrap.sh` on the host once, `deploy.sh` from the laptop on every ship.
+**Single-box AWS deploy.** One `t4g.small` Amazon Linux 2023 instance in `eu-central-1` ran two Docker containers (Next.js standalone + the `ws` server) behind host nginx terminating TLS via Let's Encrypt. Single origin for HTML, REST, SSE, and WebSocket keeps CORS out of the architecture. Mozilla Intermediate 2026 TLS profile, A on SSL Labs. Idempotent two-script deploy loop: `bootstrap.sh` on the host once, `deploy.sh` from the laptop on every ship.
 
 ## Technical Approach
 
@@ -63,4 +62,4 @@ The rest of the stack was picked to sit with what I had been delegating. Raw `ws
 
 [Full write-up on the blog](/blog/skip-bo), including the nginx WebSocket Upgrade dance, an honest reckoning of what nginx and `ws` still abstract away, and the night the lobby filled with TUI-chatroom developers minutes after `deploy.sh` succeeded.
 
-[Live site](https://skipbo.johnmoorman.com) · [GitHub](https://github.com/mojoro/skip-bo)
+The hosted game is offline since the AWS free tier expired. [GitHub](https://github.com/mojoro/skip-bo)
