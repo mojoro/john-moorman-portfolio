@@ -385,9 +385,9 @@ export function HomeClient({
         <SectionReveal>
           <SectionHeading number="05">Contact</SectionHeading>
           <p className="mt-6 max-w-xl text-text-secondary">
-            Client work keeps me busy at the moment, so I&apos;m selective about
-            what I take on next. If you have a project you think I&apos;d be
-            good at, tell me about it. My inbox is open.
+            I stay busy with client work and keep capacity open for the next
+            good project. If you have something you think I&apos;d be a good fit
+            for, tell me about it. My inbox is open.
           </p>
         </SectionReveal>
 

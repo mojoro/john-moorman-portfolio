@@ -137,9 +137,8 @@ export default function AboutPage() {
         <p>
           Outside of engineering I still sing (though opera has been replaced by
           the occasional karaoke bar). I speak English natively and German at
-          B2. These days my calendar is mostly full with client work, which is a
-          good problem to have, and I take on new projects when the fit is
-          right.
+          B2. These days I keep a steady load of client work and room alongside
+          it for the next good project.
         </p>
       </div>
 
@@ -236,9 +235,8 @@ export default function AboutPage() {
       <div className="mt-16 max-w-[680px]">
         <h2 className="font-display text-xl font-semibold">Get in touch</h2>
         <p className="mt-3 text-sm text-text-secondary">
-          I&apos;m booked with client work at the moment, but I&apos;m always
-          open to hearing about a project that&apos;s a good fit. Berlin or
-          remote. Tell me what you&apos;re building.
+          I keep capacity open for new work alongside my current clients. Berlin
+          or remote. Tell me what you&apos;re building.
         </p>
         <div className="mt-4 flex flex-wrap gap-4 font-mono text-sm">
           <a
