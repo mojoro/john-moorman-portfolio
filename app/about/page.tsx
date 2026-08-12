@@ -99,8 +99,11 @@ export default function AboutPage() {
           Berlin: a real estate intelligence pipeline using n8n, Apify, and
           Gemini; a marketing site for a music tech startup built to
           pixel-perfect Figma specs in Vue; web infrastructure for a wellness
-          retreat in PHP. Every engagement has brought a new stack to learn, and
-          I&apos;ve delivered in each one.
+          retreat in PHP. Every engagement has come with a different stack. What
+          carries across them is the part that isn&apos;t the stack: reading an
+          unfamiliar codebase until I can argue about its design rather than
+          just close tickets in it, and being the one who checks a claim before
+          it ships.
         </p>
 
         <p>
