@@ -1,16 +1,16 @@
 ---
 title: Promacro
-date: '2026-04-30'
+date: '2026-05-13'
 description: >-
   Diet-focused macro tracking app for a middle-aged and older audience.
   Natural-language meal entry as the headline feature. Built native with React
-  Native. Week 10 of the 10-in-10, currently in build.
+  Native. Week 10 of the 10-in-10, v1 completed 2026-05-13.
 tags:
   - React Native
   - TypeScript
   - OpenRouter
   - Mobile
-status: in-progress
+status: shipped
 challenge: 10-in-10
 week: 10
 featured: false
@@ -24,12 +24,12 @@ stats:
 ---
 
 <Demo
-  note="In build. Targeting v1 ship around 2026-05-06. Live links and screencast will land here once it ships."
+  note="v1 completed 2026-05-13, closing out the 10-in-10."
 />
 
 A macro tracking app built around hitting daily targets (protein and fiber by default) for an audience the existing apps mostly weren't designed for: people in middle age and older who want simple guidance, not a calorie-counting puzzle. Diet-focused rather than activity-focused. Guiding principle is simplicity: fewer numbers, clearer review, and entry that doesn't require scrolling a food database.
 
-## What's In Scope for v1
+## What v1 Does
 
 **Biometrics to macro goals.** Enter age, weight, height, sex, and activity level on first launch. The app suggests daily targets for the macros (the protein, carbs, fat, and fiber breakdown of what you eat) you choose to track. Protein and fiber are on by default; carbs, fat, fiber subtypes, and others are optional.
 
@@ -47,8 +47,8 @@ The stack is [React Native](https://reactnative.dev/), not a Progressive Web App
 
 Natural-language meal entry uses [OpenRouter](https://openrouter.ai/) with a structured-output schema keyed to the user's enabled nutrients. The model returns a typed object the client can render without parsing prose, and the same schema doubles as the contract for the daily review and the easy-add suggester.
 
-Photo-based meal entry and on-device inference (a small local model like Gemma for offline logging) are deferred to v2. The 10-in-10 ships v1 in six days; v2 is what continues after the challenge ends.
+Photo-based meal entry and on-device inference (a small local model like Gemma for offline logging) were deferred to v2, which is what continues after the challenge.
 
 ---
 
-Status as of 2026-04-30: in build, targeting v1 ship around 2026-05-06. Full write-up, the React Native learning curve, and an honest accounting of what made the cut versus what got cut, will land on the blog once it's live.
+v1 was completed on 2026-05-13: biometric onboarding, natural-language meal entry, recipe templates, daily review, and the inline macro explainers all landed.
