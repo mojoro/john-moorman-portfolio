@@ -4,7 +4,7 @@ import type { Metadata } from "next"
 
 const HOME_TITLE = "John Moorman · Software Engineer in Berlin"
 const HOME_DESCRIPTION =
-  "Fullstack engineer in Berlin. Production work in Next.js, TypeScript, and AI-native tooling. €74K/year saved at Berlin Opera Academy with a custom automation suite. Featured case studies, writing, and resume."
+  "Freelance fullstack engineer in Berlin. Production work in Next.js, TypeScript, and AI-native tooling. €74K/year saved at Berlin Opera Academy with a custom automation suite. Featured case studies, writing, and contact."
 
 export const metadata: Metadata = {
   title: { absolute: HOME_TITLE },

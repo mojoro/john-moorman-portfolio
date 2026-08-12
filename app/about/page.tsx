@@ -105,16 +105,18 @@ export default function AboutPage() {
 
         <p>
           I work AI-natively: Claude Code and Cursor are core to how I develop,
-          not shortcuts but force multipliers. I&apos;m currently running a
+          not shortcuts but force multipliers. In spring 2026 I ran a
           &quot;10 projects in 10 weeks&quot; challenge to push my shipping pace
-          and build a public portfolio of work.
+          and put the range on the record. All ten shipped, and most of them are
+          written up here.
         </p>
 
         <p>
           Outside of engineering I still sing (though opera has been replaced by
           the occasional karaoke bar). I speak English natively and German at
-          B2. I&apos;m open to the right mid-level fullstack or frontend role
-          at a Berlin startup.
+          B2. These days my calendar is mostly full with client work, which is a
+          good problem to have, and I take on new projects when the fit is
+          right.
         </p>
       </div>
 
@@ -208,9 +210,9 @@ export default function AboutPage() {
       <div className="mt-16 max-w-[680px]">
         <h2 className="font-display text-xl font-semibold">Get in touch</h2>
         <p className="mt-3 text-sm text-text-secondary">
-          I&apos;m looking for mid-level fullstack or frontend roles at Berlin
-          or remote companies. If that sounds like your team, I want
-          to hear from you.
+          I&apos;m booked with client work at the moment, but I&apos;m always
+          open to hearing about a project that&apos;s a good fit. Berlin or
+          remote. Tell me what you&apos;re building.
         </p>
         <div className="mt-4 flex flex-wrap gap-4 font-mono text-sm">
           <a

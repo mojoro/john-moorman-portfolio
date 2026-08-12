@@ -38,7 +38,7 @@ const SITE_NAME = "John Moorman"
 const SITE_URL = "https://johnmoorman.com"
 const DEFAULT_TITLE = "John Moorman · Software Engineer in Berlin"
 const DEFAULT_DESCRIPTION =
-  "John Moorman is a fullstack engineer in Berlin building production software with Next.js, TypeScript, and an AI-native workflow. Selected work, writing, and resume."
+  "John Moorman is an independent fullstack engineer in Berlin building production software with Next.js, TypeScript, and an AI-native workflow. Selected work, writing, and contact."
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

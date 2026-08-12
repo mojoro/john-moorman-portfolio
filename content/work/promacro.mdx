@@ -43,7 +43,7 @@ A macro tracking app built around hitting daily targets (protein and fiber by de
 
 ## Technical Approach
 
-The stack is [React Native](https://reactnative.dev/), not a Progressive Web App. Two reasons. First, PWA UX on iOS and Android still feels like a website pretending to be an app, and the target audience here is one that is quick to notice the difference. Second, the Berlin job market actively lists React Native (Doctolib, Zalando, Jurafuchs, and Artsy all have current openings), so shipping mobile-shaped work during the 10-in-10 lines the portfolio up with that market.
+The stack is [React Native](https://reactnative.dev/), not a Progressive Web App. Two reasons. First, PWA UX on iOS and Android still feels like a website pretending to be an app, and the target audience here is one that is quick to notice the difference. Second, React Native is in real demand in Berlin (Doctolib, Zalando, Jurafuchs, and Artsy all ship with it), so taking a mobile-shaped project through to a store build widened the kind of work I can take on.
 
 Natural-language meal entry uses [OpenRouter](https://openrouter.ai/) with a structured-output schema keyed to the user's enabled nutrients. The model returns a typed object the client can render without parsing prose, and the same schema doubles as the contract for the daily review and the easy-add suggester.
 

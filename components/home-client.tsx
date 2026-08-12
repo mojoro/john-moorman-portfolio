@@ -102,8 +102,8 @@ export function HomeClient({
           <p className="text-text-secondary">
             Software engineer in Berlin. I built an automation suite that saved a
             company €74K/year, letting two part-time administrators do the work of four. Now I ship AI-native
-            software for clients, learning whatever stack the project needs and
-            delivering on tight timelines.
+            software for clients, picking up whatever stack the project needs
+            and delivering on tight timelines.
           </p>
           <Link
             href="/about"
@@ -286,7 +286,7 @@ export function HomeClient({
         <SectionReveal>
           <SectionHeading number="03">Resume</SectionHeading>
           <p className="mt-4 text-text-secondary">
-            The highlights, on one page.
+            Background, stack, and results, on one page.
           </p>
         </SectionReveal>
 
@@ -322,7 +322,7 @@ export function HomeClient({
         <SectionReveal>
           <SectionHeading number="04">Schedule</SectionHeading>
           <p className="mt-4 text-text-secondary">
-            Want to talk about a project, a role, or just say hello?
+            Want to scope a project, get a second opinion, or just say hello?
             Pick a time that works for you.
           </p>
         </SectionReveal>
@@ -343,8 +343,8 @@ export function HomeClient({
                   Book a 30-minute chat
                 </p>
                 <p className="mt-1 text-sm text-text-secondary">
-                  Pick a slot that suits your schedule. I&apos;m generally available
-                  weekday mornings and afternoons (CET).
+                  I keep a few slots open on weekday mornings and afternoons
+                  (CET). Half an hour, no pitch.
                 </p>
               </div>
               <span className="shrink-0 px-5 py-2.5 font-mono text-sm text-accent">
@@ -360,9 +360,9 @@ export function HomeClient({
         <SectionReveal>
           <SectionHeading number="05">Contact</SectionHeading>
           <p className="mt-6 max-w-xl text-text-secondary">
-            I&apos;m currently looking for mid-level fullstack or frontend roles
-            at Berlin startups. Whether you have a specific role in mind or just
-            want to connect, my inbox is open.
+            Client work keeps me busy at the moment, so I&apos;m selective about
+            what I take on next. If you have a project you think I&apos;d be
+            good at, tell me about it. My inbox is open.
           </p>
         </SectionReveal>
 
