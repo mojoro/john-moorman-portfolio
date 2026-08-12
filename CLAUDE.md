@@ -2,7 +2,9 @@
 
 ## Who I Am
 
-John Moorman — Software Engineer, Berlin. Former operatic performer (Boston Conservatory at Berklee). Self-taught engineer with ~2.5 years professional experience. Freelancing and job hunting for mid-level fullstack/frontend roles at Berlin startups (€50–65K). Primary differentiators: Next.js 15 / TypeScript / React 19 and AI-native development workflow (Anthropic API, Claude Code, Cursor, n8n, Apify).
+John Moorman — Software Engineer, Berlin. Former operatic performer (Boston Conservatory at Berklee). Self-taught engineer, freelancing full time and currently well booked. **Not job hunting.** Open to new clients when the fit is good, selective about what he takes on. Primary differentiators: Next.js 15 / TypeScript / React 19 and AI-native development workflow (Anthropic API, Claude Code, Cursor, n8n, Apify).
+
+Site copy must never describe John as looking for a role, seeking employment, or available for hire full-time, and must not label his seniority as "mid-level" or "junior". The target read is an experienced independent engineer with a full calendar.
 
 **Contacts / Links:**
 - johnmoorman.com (this site, deployed to Vercel)
@@ -15,10 +17,10 @@ John Moorman — Software Engineer, Berlin. Former operatic performer (Boston Co
 
 ## Site Purpose
 
-Make a Berlin startup CTO or hiring manager think "I want this person on my team" within 30 seconds. Three things the site must accomplish:
+Make a founder or CTO with a real project think "this is the engineer I want on it" within 30 seconds. Three things the site must accomplish:
 1. Instantly communicate that I am an AI-native engineer who ships production-quality work
 2. Feature the BOA automation case study as the flagship proof point (€74K/year savings, replaced 2 staff)
-3. Give recruiters something memorable to interact with — the "Ask John" AI chatbot
+3. Give visitors something memorable to interact with — the "Ask John" AI chatbot
 
 ---
 
