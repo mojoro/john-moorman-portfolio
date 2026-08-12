@@ -104,6 +104,29 @@ export default function AboutPage() {
         </p>
 
         <p>
+          Two of those engagements have been running since May 2026.{" "}
+          <Link
+            href="/work/showdeck"
+            className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
+          >
+            Showdeck
+          </Link>{" "}
+          is a production management platform for live performance, where I work
+          across the stack: Django and GraphQL on the backend, Vue 3 and Apollo
+          on the front.{" "}
+          <Link
+            href="/work/spacifik"
+            className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
+          >
+            Spacifik
+          </Link>{" "}
+          is a Berlin web and marketing agency, where I handle technical SEO,
+          Python content pipelines, and performance across a multi-site hotel
+          portfolio. Both are client-owned codebases, so the details stay with
+          the clients.
+        </p>
+
+        <p>
           I work AI-natively: Claude Code and Cursor are core to how I develop,
           not shortcuts but force multipliers. In spring 2026 I ran a
           &quot;10 projects in 10 weeks&quot; challenge to push my shipping pace
@@ -123,7 +146,7 @@ export default function AboutPage() {
       {/* Projects I'm proud of */}
       <div className="mt-16 max-w-[680px]">
         <h2 className="font-display text-xl font-semibold">
-          Projects I&apos;m proud of
+          Personal projects I&apos;m proud of
         </h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           <Link
@@ -151,17 +174,20 @@ export default function AboutPage() {
           </Link>
 
           <Link
-            href="/work/drop-oss"
+            href="/work/young-artist-community"
             className="group rounded-lg border border-white/[0.06] bg-bg-surface p-5 transition-colors hover:border-accent/20 hover:bg-bg-elevated"
           >
-            <p className="font-mono text-xs text-accent">Drop</p>
+            <p className="font-mono text-xs text-accent">
+              Young Artist Community
+            </p>
             <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-              Open-source podcast generator. Paste a URL, get a scripted audio
-              episode with voice cloning and multi-host dialogue. Next.js
-              frontend, Python FastAPI sidecar, Docker Compose.
+              Community-maintained directory and review platform for Young
+              Artist Programs in classical music and opera. Free, built for the
+              world I came from, with an AI scraping pipeline keeping listings
+              current.
             </p>
             <p className="mt-3 flex flex-wrap gap-1.5">
-              {["Next.js", "Python", "FastAPI", "Docker", "Ollama"].map(
+              {["Next.js", "TypeScript", "Prisma", "Neon", "AI"].map(
                 (tag) => (
                   <span
                     key={tag}
