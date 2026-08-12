@@ -45,6 +45,8 @@ const EXPERIENCE = [
     location: "Berlin, Germany",
     highlights: [
       <>{b("Fullstack development")} across multiple client engagements with end-to-end ownership</>,
+      <>{b("Showdeck")} (ongoing since May 2026): fullstack contract work on a production management platform for live performance. {b("Django, GraphQL, PostgreSQL")} on the backend, {b("Vue 3, TypeScript, Apollo")} on the frontend, shipped through team code review</>,
+      <>{b("Spacifik")} (ongoing since May 2026): technical SEO, {b("Python")} content pipelines, structured data, and performance work across an eight-site hotel portfolio for a Berlin agency, with client reporting in German</>,
       <>Shipped {b("Shortlist")} in 7 days (16K LOC): AI job-matching SaaS with {b("Next.js, TypeScript, Tailwind, Prisma, Neon Postgres")}, Clerk auth, streaming AI responses, and Kanban pipeline</>,
       <>Built an {b("AI-powered real estate data pipeline")} using {b("n8n")}, Apify, and Gemini. Automated daily investment recommendations for a Berlin-based client</>,
       <>Rebuilt frontend, implemented {b("analytics")}, and migrated {b("data pipelines")} for Serenity Retreat; built custom PHP calendar sync plugin</>,
