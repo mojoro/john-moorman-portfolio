@@ -10,6 +10,10 @@ export interface PostFrontmatter {
   featured?: boolean
   draft?: boolean
   status?: "shipped" | "in-progress" | "upcoming"
+  /** Ongoing client engagement — surfaces in the homepage "Currently" row. */
+  ongoing?: boolean
+  /** Short label for the ongoing card, e.g. "Ongoing since May 2026". */
+  ongoingSince?: string
   challenge?: string
   week?: number
   stats?: Array<{ value: string; label: string }>
