@@ -3,7 +3,9 @@ title: Showdeck
 date: '2026-05-29'
 description: >-
   Ongoing fullstack contract work on a production management platform for live
-  performance. Django and GraphQL on the backend, Vue 3 and Apollo on the front.
+  performance. Most of my day goes to reviewing AI-generated code and holding
+  the guardrails around it, across a Django and GraphQL backend and a Vue 3
+  frontend.
 tags:
   - Python
   - Django
@@ -29,11 +31,15 @@ I've been working on it as a contractor since May 2026, across the whole stack r
 
 ## What I Work On
 
+**Reviewing what the AI writes.** This is most of the job, and it's the part worth knowing about. A lot of the code starts as agent output, which means my work is not producing more of it faster. It's slowing it down: reading the diff line by line, running an adversarial review pass whose only instruction is to refute the change, proving a test fails against the broken code before trusting that it passes against the fix, and rejecting work that merely looks correct. A clean agent review is signal, not proof.
+
+The discipline is written down rather than remembered. I keep a running record of the failure modes this codebase actually produces (the review that passes for the wrong reason, the test that is green and vacuous, the "we had no choice" claim that turns out to have three counter-examples in the repo) and it gets updated every time something slips past me. Agents are fast. The guardrails are what make it safe to be fast.
+
 **Backend.** Python and Django with a GraphQL API over PostgreSQL. Feature work from data model through to the API surface, plus the schema, permissions, and query-layer work that keeps a multi-tenant product honest as it grows.
 
 **Frontend.** Vue 3 and TypeScript with Apollo Client. The UI for the features I build on the backend, so a feature lands as one piece of work rather than a handoff.
 
-**Review and delivery.** Every change goes through pull request and review with the team, against a test suite and documented verification steps. A fair amount of my time goes into review, migration safety, and making sure a change is provably correct before it ships, which is the part of contract work that earns the next contract.
+**Delivery.** Every change goes through pull request and review with the team, against a test suite and documented verification steps. Migration safety, verification before claims, and a diff a reviewer can actually hold in their head.
 
 ---
 
