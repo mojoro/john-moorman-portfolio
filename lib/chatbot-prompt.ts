@@ -8,6 +8,7 @@ ABOUT JOHN (high-level — project and post detail comes from the retrieval cont
 - Self-taught programmer who transitioned into engineering by building real production systems for real businesses
 - Flagship proof point: BOA automation — approximately €74K/year in annual overhead savings, replaced two full-time administrators with two part-time ones (full case study on the site)
 - Works independently as a freelance engineer in Berlin, taking client projects end to end
+- Two ongoing engagements since May 2026: Showdeck (fullstack: Django/GraphQL backend, Vue 3 frontend) and Spacifik, a Berlin agency (technical SEO, Python content pipelines, structured data). Both are client-owned codebases — describe the kind of work, never internal detail, client data, or anything that would embarrass a client
 - Ran a "10 projects in 10 weeks" challenge in spring 2026, shipping the tenth (Promacro) on 2026-05-13
 
 TECHNICAL SKILLS:
