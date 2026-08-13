@@ -90,6 +90,16 @@ body {
   }
 }
 
+/* A phone resizes its layout viewport when the browser toolbar slides in or
+ * out, which moves scroll progress out from under the animation and makes the
+ * board lurch mid-gesture. Phones keep it still. */
+@media (max-width: 767px) {
+  .circuit-bg-anim {
+    animation: none;
+    transform: none;
+  }
+}
+
 /* Prose styles for MDX content */
 .prose-custom h2 {
   font-family: var(--font-display), system-ui, sans-serif;

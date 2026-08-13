@@ -16,6 +16,9 @@ import { useEffect, useRef, useState } from "react"
  * Scroll effect: canvas is 2× viewport height with two identical tiles.
  * A CSS scroll-driven animation (globals.css .circuit-bg-anim) slides it
  * from translateY(0) to translateY(-50%) — compositor-driven, zero JS lag.
+ * The box is measured in lvh and the parallax is off below 768px, because a
+ * phone's toolbar resizes the layout viewport mid-scroll and would otherwise
+ * drag the board with it.
  *
  * StrictMode note: React StrictMode (dev) runs effects twice — mount,
  * cleanup, mount. transferControlToOffscreen is a one-shot operation and
@@ -47,9 +50,19 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       navOffset && window.innerWidth >= 768
         ? window.innerWidth - 240
         : window.innerWidth
+    // The element is sized in lvh, which does not change when a mobile browser
+    // slides its toolbar in or out. Measuring the element rather than reading
+    // window.innerHeight keeps the tiles aligned with their CSS box and keeps
+    // every scroll calculation below from lurching as the toolbar moves.
+    const getViewportH = () =>
+      Math.round(canvas.clientHeight / 2) || window.innerHeight
+    // Phones get no parallax at all: the toolbar resizes the layout viewport,
+    // which shifts scroll progress out from under the animation. Mirrors the
+    // media query in globals.css.
+    const parallaxEnabled = () => window.innerWidth >= 768
 
     const cw = getCanvasW()
-    const ch = window.innerHeight
+    const ch = getViewportH()
 
     // ── Scroll-driven parallax ──────────────────────────────────────────
     // Firefox (and some older browsers) don't support animation-timeline:
@@ -62,23 +75,25 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       CSS.supports("animation-timeline: scroll()")
 
     const updateScrollTravel = () => {
-      const scrollable = document.documentElement.scrollHeight - window.innerHeight
-      if (scrollable <= 0) {
+      const vh = getViewportH()
+      const scrollable = document.documentElement.scrollHeight - vh
+      if (scrollable <= 0 || !parallaxEnabled()) {
         canvas.style.setProperty("--circuit-max-translate", "0%")
         if (!supportsScrollTimeline) canvas.style.transform = "translateY(0)"
         return
       }
-      const ratio = Math.min(scrollable / window.innerHeight, 1)
+      const ratio = Math.min(scrollable / vh, 1)
       canvas.style.setProperty("--circuit-max-translate", `${(-ratio * 50).toFixed(2)}%`)
     }
 
     let scrollRaf = 0
     const applyScrollFallback = () => {
-      const scrollable = document.documentElement.scrollHeight - window.innerHeight
-      if (scrollable <= 0) { canvas.style.transform = "translateY(0)"; return }
+      const vh = getViewportH()
+      const scrollable = document.documentElement.scrollHeight - vh
+      if (scrollable <= 0 || !parallaxEnabled()) { canvas.style.transform = "translateY(0)"; return }
       const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
       const progress = Math.min(Math.max(scrollTop / scrollable, 0), 1)
-      const ratio = Math.min(scrollable / window.innerHeight, 1)
+      const ratio = Math.min(scrollable / vh, 1)
       canvas.style.transform = `translateY(${(-ratio * 50 * progress).toFixed(3)}%)`
     }
     const onScrollFallback = () => {
@@ -126,17 +141,22 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       )
 
       let lastW = cw
+      let lastH = ch
       let rt: ReturnType<typeof setTimeout>
       const onResize = () => {
         clearTimeout(rt)
         rt = setTimeout(() => {
           const newW = getCanvasW()
-          if (newW === lastW) return  // height-only change (mobile toolbar) — skip
+          // lvh is toolbar-immune, so a height change here is a real one
+          // (rotation, desktop resize) rather than sliding browser chrome.
+          const newH = getViewportH()
+          if (newW === lastW && newH === lastH) return
           lastW = newW
+          lastH = newH
           worker.postMessage({
             type: "resize",
             w: newW,
-            h: window.innerHeight,
+            h: newH,
             dpr: Math.min(window.devicePixelRatio || 1, 2),
             density: getDensity(),
           })
@@ -156,11 +176,12 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
 
       // ── Cursor responsiveness ────────────────────────────────────────────
       const getScrollOffsetY = () => {
-        const scrollable = document.documentElement.scrollHeight - window.innerHeight
-        if (scrollable <= 0) return 0
+        const vh = getViewportH()
+        const scrollable = document.documentElement.scrollHeight - vh
+        if (scrollable <= 0 || !parallaxEnabled()) return 0
         const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
         const progress = Math.min(scrollTop / scrollable, 1)
-        const maxTravelPx = Math.min(scrollable, window.innerHeight)
+        const maxTravelPx = Math.min(scrollable, vh)
         return progress * maxTravelPx
       }
 
@@ -215,7 +236,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
     let glowX = new Float32Array(0), glowY = new Float32Array(0), glowR = new Float32Array(0)
     let glowPh = new Float32Array(0), glowSp = new Float32Array(0), glowCount = 0
     let pulseData: PulseData[] = []
-    let w = 0, h = 0, ready = false, lastW = 0
+    let w = 0, h = 0, ready = false, lastW = 0, lastH = 0
 
     let cachedR = 100, cachedG = 255, cachedB = 218
     let inkR = 100, inkG = 255, inkB = 218
@@ -246,10 +267,12 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
 
     function requestGenerate(forceRegen = false) {
       const newW = getCanvasW()
-      if (!forceRegen && newW === lastW && ready) return  // height-only change — skip
+      const newH = getViewportH()
+      if (!forceRegen && newW === lastW && newH === lastH && ready) return
       lastW = newW
+      lastH = newH
       w = newW
-      h = window.innerHeight
+      h = newH
       canvas.width = w * dpr; canvas.height = h * 2 * dpr
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       genId++
@@ -454,7 +477,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       key={generation}
       ref={canvasRef}
       aria-hidden="true"
-      className={`pointer-events-none fixed left-0 right-0 top-0 -z-10 h-[200svh] circuit-bg-anim print:hidden${navOffset ? " md:left-60" : ""}`}
+      className={`pointer-events-none fixed left-0 right-0 top-0 -z-10 h-[200lvh] circuit-bg-anim print:hidden${navOffset ? " md:left-60" : ""}`}
     />
   )
 }
