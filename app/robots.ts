@@ -26,12 +26,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/"],
+        disallow: ["/admin/", "/api/", "/resume/"],
       },
       ...AI_CITATION_BOTS.map((bot) => ({
         userAgent: bot,
         allow: "/",
-        disallow: ["/admin/", "/api/"],
+        disallow: ["/admin/", "/api/", "/resume/"],
       })),
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

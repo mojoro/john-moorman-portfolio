@@ -197,7 +197,6 @@ export default async function RootLayout({
       "/about",
       "/work",
       "/blog",
-      "/resume",
       ...blogPosts.map((p) => `/blog/${p.slug}`),
       ...workPosts.map((p) => `/work/${p.slug}`),
     ]

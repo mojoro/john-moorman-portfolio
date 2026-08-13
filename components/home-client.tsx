@@ -288,46 +288,10 @@ export function HomeClient({
         </SectionReveal>
       </section>
 
-      {/* ── Resume ── */}
-      <section id="resume" className="py-24">
-        <SectionReveal>
-          <SectionHeading number="03">Resume</SectionHeading>
-          <p className="mt-4 text-text-secondary">
-            Background, stack, and results, on one page.
-          </p>
-        </SectionReveal>
-
-        <SectionReveal delay={0.1}>
-          <Link
-            href="/resume"
-            className="group mt-8 block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="font-medium text-text-primary transition-colors group-hover:text-accent">
-                  John Moorman
-                </p>
-                <p className="mt-1 text-sm text-text-secondary">
-                  Software Engineer &middot; Berlin
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {["Next.js", "TypeScript", "PostgreSQL", "Node.js", "Docker", "AI"].map((tag) => (
-                    <TagPill key={tag}>{tag}</TagPill>
-                  ))}
-                </div>
-              </div>
-              <span className="font-mono text-sm text-accent transition-colors">
-                View full resume &rarr;
-              </span>
-            </div>
-          </Link>
-        </SectionReveal>
-      </section>
-
       {/* ── Schedule ── */}
       <section id="schedule" className="py-24">
         <SectionReveal>
-          <SectionHeading number="04">Schedule</SectionHeading>
+          <SectionHeading number="03">Schedule</SectionHeading>
           <p className="mt-4 text-text-secondary">
             Want to scope a project, get a second opinion, or just say hello?
             Pick a time that works for you.
@@ -365,7 +329,7 @@ export function HomeClient({
       {/* ── Contact ── */}
       <section id="contact" className="py-24">
         <SectionReveal>
-          <SectionHeading number="05">Contact</SectionHeading>
+          <SectionHeading number="04">Contact</SectionHeading>
           <p className="mt-6 max-w-xl text-text-secondary">
             I stay busy with client work and keep capacity open for the next
             good project. If you have something you think I&apos;d be a good fit

@@ -50,12 +50,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.7,
     },
-    {
-      url: `${BASE_URL}/resume/`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
     ...workEntries,
     ...blogEntries,
   ]

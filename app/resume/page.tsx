@@ -6,9 +6,12 @@ const TITLE = "Resume · John Moorman, Software Engineer"
 const DESCRIPTION =
   "Resume for John Moorman, a fullstack software engineer in Berlin working in Next.js, TypeScript, React, and AI-native development. Production freelance and in-house experience."
 
+// Unlinked from the site for now: no nav entry, no sitemap entry, no indexing.
+// The page still renders for anyone with the direct URL.
 export const metadata: Metadata = {
   title: "Resume",
   description: DESCRIPTION,
+  robots: { index: false, follow: false },
   alternates: { canonical: "/resume" },
   openGraph: {
     title: TITLE,
