@@ -233,9 +233,9 @@ export default async function RootLayout({
                 <Sidebar />
                 <div className="relative pt-14 md:ml-60 md:pt-0 print:ml-0 print:pt-0">
                   <CircuitBgLazy navOffset />
-                  <div className="relative mx-auto max-w-[900px] px-6 md:px-12">
+                  <main className="relative mx-auto max-w-[900px] px-6 md:px-12">
                     {children}
-                  </div>
+                  </main>
                 </div>
                 <ChatPanelLazy />
                 <PrefetchRoutes routes={allRoutes} />

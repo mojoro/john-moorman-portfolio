@@ -156,7 +156,7 @@ export function Sidebar() {
           <Link
             href="/"
             className="font-mono text-lg font-medium text-accent"
-            aria-label="Home"
+            aria-label="JM — home"
           >
             JM
           </Link>
@@ -224,7 +224,7 @@ export function Sidebar() {
         <Link
           href="/"
           className="font-mono text-lg font-medium text-accent"
-          aria-label="Home"
+          aria-label="JM — home"
         >
           JM
         </Link>
