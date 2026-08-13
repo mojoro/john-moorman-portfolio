@@ -36,6 +36,10 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       (document.documentElement.getAttribute("data-theme") ?? "dark") as "dark" | "light"
     const getAccent = () =>
       getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#64ffda"
+    // The etched board (traces, pads) draws in ink; the live signal keeps the
+    // accent. They match in dark mode and diverge in light.
+    const getInk = () =>
+      getComputedStyle(document.documentElement).getPropertyValue("--circuit-ink").trim() || getAccent()
     const getDensity = () => (window.innerWidth < 768 ? 0.6 : 1.0)
     // Sidebar is w-60 = 240px. Subtract it explicitly rather than relying on
     // getBoundingClientRect (which may return 0 before first paint).
@@ -117,7 +121,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       worker.onerror = (e) => console.error("[circuit-worker]", e)
 
       worker.postMessage(
-        { type: "init", canvas: offscreen!, w: cw, h: ch, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), density: getDensity() },
+        { type: "init", canvas: offscreen!, w: cw, h: ch, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), ink: getInk(), density: getDensity() },
         [offscreen!],
       )
 
@@ -141,7 +145,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       window.addEventListener("resize", onResize)
 
       const obs = new MutationObserver(() => {
-        worker.postMessage({ type: "theme", theme: getTheme(), accent: getAccent() })
+        worker.postMessage({ type: "theme", theme: getTheme(), accent: getAccent(), ink: getInk() })
       })
       obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
 
@@ -214,24 +218,27 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
     let w = 0, h = 0, ready = false, lastW = 0
 
     let cachedR = 100, cachedG = 255, cachedB = 218
+    let inkR = 100, inkG = 255, inkB = 218
     let traceColor = "", padColor = "", isLightMode = false
     let fadeOverride: number | null = null
 
+    function parseHex(color: string, fallback: [number, number, number]): [number, number, number] {
+      const s = color.startsWith("#") ? color.slice(1) : ""
+      if (s.length >= 6) {
+        return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)]
+      }
+      if (s.length === 3) {
+        return [parseInt(s[0] + s[0], 16), parseInt(s[1] + s[1], 16), parseInt(s[2] + s[2], 16)]
+      }
+      return fallback
+    }
+
     function updateColors() {
       isLightMode = getTheme() === "light"
-      const accent = getAccent()
-      const s = accent.startsWith("#") ? accent.slice(1) : ""
-      if (s.length >= 6) {
-        cachedR = parseInt(s.slice(0, 2), 16)
-        cachedG = parseInt(s.slice(2, 4), 16)
-        cachedB = parseInt(s.slice(4, 6), 16)
-      } else if (s.length === 3) {
-        cachedR = parseInt(s[0] + s[0], 16)
-        cachedG = parseInt(s[1] + s[1], 16)
-        cachedB = parseInt(s[2] + s[2], 16)
-      }
-      traceColor = `rgba(${cachedR},${cachedG},${cachedB},${isLightMode ? 0.11 : 0.06})`
-      padColor = `rgba(${cachedR},${cachedG},${cachedB},${isLightMode ? 0.13 : 0.07})`
+      ;[cachedR, cachedG, cachedB] = parseHex(getAccent(), [cachedR, cachedG, cachedB])
+      ;[inkR, inkG, inkB] = parseHex(getInk(), [cachedR, cachedG, cachedB])
+      traceColor = `rgba(${inkR},${inkG},${inkB},${isLightMode ? 0.065 : 0.06})`
+      padColor = `rgba(${inkR},${inkG},${inkB},${isLightMode ? 0.085 : 0.07})`
     }
 
     const genWorker = new Worker(new URL("../workers/circuit-generate.ts", import.meta.url))
@@ -288,7 +295,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       for (let i = 0; i < padCount; i++) { ctx.beginPath(); ctx.arc(padX[i], padY[i], padR[i], 0, 6.2832); ctx.fill() }
 
       const t = time * 0.001, r = cachedR, g = cachedG, b = cachedB
-      const glowMult = isLightMode ? 1.0 : 0.8
+      const glowMult = isLightMode ? 0.14 : 0.8
       for (let i = 0; i < glowCount; i++) {
         const pulse = reducedMotion ? 0.6 : 0.4 + Math.sin(t * glowSp[i] + glowPh[i]) * 0.3
         const radius = glowR[i] * 5
@@ -349,7 +356,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
             return [pl.pts[last], pl.pts[last + 1]]
           }
 
-          const pulseMult = (isLightMode ? 0.8 : 0.7) * life
+          const pulseMult = (isLightMode ? 0.48 : 0.7) * life
           ctx.lineCap = "round"
           for (let s = 0; s < 8; s++) {
             const f = s / 8
@@ -373,7 +380,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
 
       // Horizontal vignette — same extended-range logic as the worker path.
       const isMobile = w < 768
-      const raw = fadeOverride ?? (isLightMode ? (isMobile ? 1.5 : 1.5) : 0.78)
+      const raw = fadeOverride ?? (isLightMode ? 1.6 : 0.78)
       const peak = Math.min(raw, 1)
       const spread = Math.max(0, raw - 1)
       ctx.globalCompositeOperation = "destination-out"
@@ -409,8 +416,8 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
     const onConfig2 = (e: Event) => {
       const d = (e as CustomEvent<Record<string, unknown>>).detail
       if (d.reset) { updateColors(); fadeOverride = null; requestGenerate(true); return }
-      if (typeof d.traceAlpha === "number") traceColor = `rgba(${cachedR},${cachedG},${cachedB},${d.traceAlpha})`
-      if (typeof d.padAlpha === "number") padColor = `rgba(${cachedR},${cachedG},${cachedB},${d.padAlpha})`
+      if (typeof d.traceAlpha === "number") traceColor = `rgba(${inkR},${inkG},${inkB},${d.traceAlpha})`
+      if (typeof d.padAlpha === "number") padColor = `rgba(${inkR},${inkG},${inkB},${d.padAlpha})`
       if (typeof d.fadeStrength === "number") fadeOverride = d.fadeStrength
       if (typeof d.density === "number") requestGenerate(true)
       if (reducedMotion && ready) draw(0)

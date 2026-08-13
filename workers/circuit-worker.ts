@@ -115,10 +115,16 @@ let mouseX = -1
 let mouseY = -1
 let mouseActive = false
 
-// Color cache
+// Color cache. `cached*` is the accent — the live signal (glows, pulses,
+// cursor highlight). `ink*` is the etched board itself (traces, pads). They
+// are the same colour in dark mode, where the board glows. In light mode the
+// board becomes printed ink and only the signal stays accent-coloured.
 let cachedR = 100
 let cachedG = 255
 let cachedB = 218
+let inkR = 100
+let inkG = 255
+let inkB = 218
 let traceColor = ""
 let padColor = ""
 let isLightMode = false
@@ -128,22 +134,25 @@ let animTimer: ReturnType<typeof setInterval> | null = null
 
 // ── Color helpers ──────────────────────────────────────────────────────────
 
-function applyAccent(accent: string, theme: Theme) {
-  isLightMode = theme === "light"
-  const s = accent.startsWith("#") ? accent.slice(1) : ""
+function parseHex(color: string, fallback: [number, number, number]): [number, number, number] {
+  const s = color.startsWith("#") ? color.slice(1) : ""
   if (s.length >= 6) {
-    cachedR = parseInt(s.slice(0, 2), 16)
-    cachedG = parseInt(s.slice(2, 4), 16)
-    cachedB = parseInt(s.slice(4, 6), 16)
-  } else if (s.length === 3) {
-    cachedR = parseInt(s[0] + s[0], 16)
-    cachedG = parseInt(s[1] + s[1], 16)
-    cachedB = parseInt(s[2] + s[2], 16)
+    return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)]
   }
-  const traceAlpha = traceAlphaOverride ?? (isLightMode ? 0.11 : 0.06)
-  const padAlpha = padAlphaOverride ?? (isLightMode ? 0.13 : 0.07)
-  traceColor = `rgba(${cachedR},${cachedG},${cachedB},${traceAlpha})`
-  padColor = `rgba(${cachedR},${cachedG},${cachedB},${padAlpha})`
+  if (s.length === 3) {
+    return [parseInt(s[0] + s[0], 16), parseInt(s[1] + s[1], 16), parseInt(s[2] + s[2], 16)]
+  }
+  return fallback
+}
+
+function applyAccent(accent: string, theme: Theme, ink?: string) {
+  isLightMode = theme === "light"
+  ;[cachedR, cachedG, cachedB] = parseHex(accent, [cachedR, cachedG, cachedB])
+  ;[inkR, inkG, inkB] = parseHex(ink ?? accent, [cachedR, cachedG, cachedB])
+  const traceAlpha = traceAlphaOverride ?? (isLightMode ? 0.065 : 0.06)
+  const padAlpha = padAlphaOverride ?? (isLightMode ? 0.085 : 0.07)
+  traceColor = `rgba(${inkR},${inkG},${inkB},${traceAlpha})`
+  padColor = `rgba(${inkR},${inkG},${inkB},${padAlpha})`
 }
 
 // ── Generation ─────────────────────────────────────────────────────────────
@@ -723,8 +732,9 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
     ctx.fill()
   }
 
-  // Glows
-  const glowMult = isLightMode ? 1.0 : 0.8
+  // Glows. On paper there is no backlight, so the light theme keeps only a
+  // trace of them — enough to mark the live nodes, not enough to read as haze.
+  const glowMult = isLightMode ? 0.14 : 0.8
   for (let i = 0; i < glowCount; i++) {
     const pulse = reducedMotion ? 0.6 : 0.4 + Math.sin(t * glowSp[i] * glowSpeedMult + glowPh[i]) * 0.3
     const radius = glowR[i] * 5 * glowRadiusMult
@@ -744,7 +754,7 @@ function drawScene(time: number, drawablePulses: DrawablePulse[]) {
 
   // Pulses (desktop only, pre-computed states — no position advancement here)
   for (const { pl, life, hd, td } of drawablePulses) {
-    const pulseMult = (isLightMode ? 0.8 : 0.7) * life * pulseBrightnessMult
+    const pulseMult = (isLightMode ? 0.48 : 0.7) * life * pulseBrightnessMult
     const segs = pulseSegmentsOverride ?? 8
     ctx.lineCap = "round"
     for (let s = 0; s < segs; s++) {
@@ -840,7 +850,7 @@ function draw(time: number) {
   // Range 1–2: the fully-opaque zone expands outward toward the edges until
   //            the entire canvas is knocked out at 2.0.
   const isMobile = w < 768
-  const raw = fadeStrengthOverride ?? (isLightMode ? (isMobile ? 1.5 : 1.5) : 0.78)
+  const raw = fadeStrengthOverride ?? (isLightMode ? 1.6 : 0.78)
   const peak = Math.min(raw, 1)
   const spread = Math.max(0, raw - 1)
 
@@ -900,9 +910,9 @@ function stopLoop() {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ;(self as any).onmessage = (
   e: MessageEvent<
-    | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; density: number }
+    | { type: "init"; canvas: OffscreenCanvas; w: number; h: number; dpr: number; reducedMotion: boolean; theme: Theme; accent: string; ink?: string; density: number }
     | { type: "resize"; w: number; h: number; dpr: number; density: number }
-    | { type: "theme"; theme: Theme; accent: string }
+    | { type: "theme"; theme: Theme; accent: string; ink?: string }
     | { type: "config"; reset?: boolean; paused?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number; glowIntensity?: number; pulseBrightness?: number; pulseSpeed?: number; traceWidth?: number; glowRadius?: number; glowSpeed?: number; pulseTailMin?: number; pulseTailMax?: number; pulseHeadSize?: number; pulseSegments?: number; gridSize?: number; straightness?: number; maxSteps?: number; maxPaths?: number; bundleSizeMin?: number; bundleSizeMax?: number; pathLenMin?: number; pathLenMax?: number; branchChance?: number; padChance?: number; padSizeMin?: number; padSizeMax?: number; seamSpacing?: number; glowCount?: number }
     | { type: "pointer"; x: number; y: number; pressed: boolean }
   >
@@ -925,7 +935,7 @@ function stopLoop() {
     offscreen.width = w * dpr
     offscreen.height = h * 2 * dpr  // 2× viewport height for CSS animation
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    applyAccent(msg.accent, msg.theme)
+    applyAccent(msg.accent, msg.theme, msg.ink)
     currentDensity = msg.density
     generate(w, h, reducedMotion, currentDensity)
     startLoop()
@@ -946,7 +956,7 @@ function stopLoop() {
   }
 
   if (msg.type === "theme") {
-    applyAccent(msg.accent, msg.theme)
+    applyAccent(msg.accent, msg.theme, msg.ink)
     if (reducedMotion && ready) draw(performance.now())
     return
   }
@@ -983,10 +993,10 @@ function stopLoop() {
       pulseHeadSizeOverride = null
       pulseSegmentsOverride = null
       currentDensity = w < 768 ? 0.6 : 1.0
-      const defaultTraceAlpha = isLightMode ? 0.11 : 0.06
-      const defaultPadAlpha = isLightMode ? 0.13 : 0.07
-      traceColor = `rgba(${cachedR},${cachedG},${cachedB},${defaultTraceAlpha})`
-      padColor = `rgba(${cachedR},${cachedG},${cachedB},${defaultPadAlpha})`
+      const defaultTraceAlpha = isLightMode ? 0.065 : 0.06
+      const defaultPadAlpha = isLightMode ? 0.085 : 0.07
+      traceColor = `rgba(${inkR},${inkG},${inkB},${defaultTraceAlpha})`
+      padColor = `rgba(${inkR},${inkG},${inkB},${defaultPadAlpha})`
       stopLoop(); ready = false
       generate(w, h, reducedMotion, currentDensity)
       startLoop()
@@ -998,11 +1008,11 @@ function stopLoop() {
     }
     if (msg.traceAlpha !== undefined) {
       traceAlphaOverride = msg.traceAlpha
-      traceColor = `rgba(${cachedR},${cachedG},${cachedB},${traceAlphaOverride})`
+      traceColor = `rgba(${inkR},${inkG},${inkB},${traceAlphaOverride})`
     }
     if (msg.padAlpha !== undefined) {
       padAlphaOverride = msg.padAlpha
-      padColor = `rgba(${cachedR},${cachedG},${cachedB},${padAlphaOverride})`
+      padColor = `rgba(${inkR},${inkG},${inkB},${padAlphaOverride})`
     }
     if (msg.fadeStrength !== undefined) fadeStrengthOverride = msg.fadeStrength
     if (msg.maxPulses !== undefined) maxPulses = msg.maxPulses
