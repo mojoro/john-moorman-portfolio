@@ -41,6 +41,7 @@ interface FeaturedWork {
 interface FunWork {
   title: string
   summary: string
+  tags: readonly string[]
   href: string
 }
 
@@ -233,6 +234,7 @@ export function HomeClient({
                   <MiniProjectCard
                     title={project.title}
                     summary={project.summary}
+                    tags={project.tags}
                     href={project.href}
                   />
                 </SectionReveal>
@@ -444,11 +446,13 @@ function MiniProjectCard({
   summary,
   href,
   meta,
+  tags,
 }: {
   title: string
   summary: string
   href: string
   meta?: string
+  tags?: readonly string[]
 }) {
   return (
     <Link
@@ -471,6 +475,13 @@ function MiniProjectCard({
       <p className="mt-2 text-sm leading-relaxed text-text-secondary">
         {summary}
       </p>
+      {tags && tags.length > 0 && (
+        <div className="mt-auto flex flex-wrap gap-2 pt-4">
+          {tags.map((tag) => (
+            <TagPill key={tag}>{tag}</TagPill>
+          ))}
+        </div>
+      )}
     </Link>
   )
 }

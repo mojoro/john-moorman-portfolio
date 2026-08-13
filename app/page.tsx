@@ -82,6 +82,7 @@ export default async function Home() {
           {
             title: p.frontmatter.title,
             summary: p.frontmatter.description,
+            tags: (p.frontmatter.tags ?? []).slice(0, 4),
             href: `/work/${p.slug}`,
           },
         ]
