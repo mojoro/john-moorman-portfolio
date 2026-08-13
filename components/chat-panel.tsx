@@ -244,7 +244,7 @@ export function ChatPanel() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed bottom-20 right-6 z-40 max-w-[260px] cursor-pointer rounded-xl rounded-br-sm border border-accent/25 bg-accent/10 px-4 py-3 text-sm text-text-primary shadow-lg print:hidden"
+            className="fixed bottom-20 right-6 z-40 max-w-[260px] cursor-pointer rounded-xl rounded-br-sm border border-accent/25 bg-[color-mix(in_srgb,var(--accent)_10%,var(--bg-surface))] px-4 py-3 text-sm text-text-primary shadow-lg print:hidden"
             onClick={() => {
               setShowGreeting(false)
               localStorage.setItem("chatGreetingDismissed", "true")
