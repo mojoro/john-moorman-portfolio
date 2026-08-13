@@ -403,13 +403,13 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
 
       // Horizontal vignette — same extended-range logic as the worker path.
       const isMobile = w < 768
-      const raw = fadeOverride ?? (isLightMode ? 1.6 : 0.78)
+      const raw = fadeOverride ?? (isLightMode ? 1.6 : isMobile ? 1.25 : 0.78)
       const peak = Math.min(raw, 1)
       const spread = Math.max(0, raw - 1)
       ctx.globalCompositeOperation = "destination-out"
       const bandFade = ctx.createLinearGradient(0, 0, w, 0)
-      if (isLightMode && isMobile) {
-        const baseEdge = 0.54
+      if (isMobile) {
+        const baseEdge = isLightMode ? 0.54 : 0.52
         const edgeA = Math.min(baseEdge + spread * (peak - baseEdge), 1)
         bandFade.addColorStop(0, `rgba(0,0,0,${edgeA.toFixed(3)})`); bandFade.addColorStop(0.5, `rgba(0,0,0,${peak})`); bandFade.addColorStop(1, `rgba(0,0,0,${edgeA.toFixed(3)})`)
       } else {

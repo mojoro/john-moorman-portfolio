@@ -849,16 +849,19 @@ function draw(time: number) {
   // Range 0–1: controls peak knockout alpha at center.
   // Range 1–2: the fully-opaque zone expands outward toward the edges until
   //            the entire canvas is knocked out at 2.0.
+  // A phone has no outer margin to spare — the text column spans nearly the
+  // full width — so there is no transparent band to leave the board in. It
+  // survives as a faint texture at the edges and nothing behind the text.
   const isMobile = w < 768
-  const raw = fadeStrengthOverride ?? (isLightMode ? 1.6 : 0.78)
+  const raw = fadeStrengthOverride ?? (isLightMode ? 1.6 : isMobile ? 1.25 : 0.78)
   const peak = Math.min(raw, 1)
   const spread = Math.max(0, raw - 1)
 
   ctx.globalCompositeOperation = "destination-out"
   const bandFade = ctx.createLinearGradient(0, 0, w, 0)
 
-  if (isLightMode && isMobile) {
-    const baseEdge = 0.54
+  if (isMobile) {
+    const baseEdge = isLightMode ? 0.54 : 0.52
     const edgeA = Math.min(baseEdge + spread * (peak - baseEdge), 1)
     bandFade.addColorStop(0, `rgba(0,0,0,${edgeA.toFixed(3)})`)
     bandFade.addColorStop(0.5, `rgba(0,0,0,${peak})`)
