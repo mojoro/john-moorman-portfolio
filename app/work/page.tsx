@@ -134,16 +134,21 @@ export default async function WorkIndex() {
   const allPosts = await getPosts("work")
   const funPosts = allPosts.filter((p) => p.frontmatter.fun)
 
-  // Live engagements lead, then BOA as the flagship case study, then the rest by date.
+  // Live engagements lead, then the real-estate pipeline and BOA as the
+  // flagship case studies, then the rest by date.
   const clientPosts = allPosts.filter((p) => !p.frontmatter.fun)
+  const pinned = ["real-estate-pipeline", "boa-automation"]
   const inProgress = clientPosts.filter(
     (p) => p.frontmatter.status === "in-progress"
   )
-  const boa = clientPosts.filter((p) => p.slug === "boa-automation")
-  const remaining = clientPosts.filter(
-    (p) => p.frontmatter.status !== "in-progress" && p.slug !== "boa-automation"
+  const flagships = pinned.flatMap((slug) =>
+    clientPosts.filter((p) => p.slug === slug)
   )
-  const ordered = [...inProgress, ...boa, ...remaining]
+  const remaining = clientPosts.filter(
+    (p) =>
+      p.frontmatter.status !== "in-progress" && !pinned.includes(p.slug)
+  )
+  const ordered = [...inProgress, ...flagships, ...remaining]
 
   return (
     <section className="py-20">
