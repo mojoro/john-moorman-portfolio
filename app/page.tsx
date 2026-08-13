@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og",
+        url: "/og/",
         width: 1200,
         height: 630,
         alt: "John Moorman, Software Engineer in Berlin",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
-    images: ["/og"],
+    images: ["/og/"],
     creator: "@John_Moorman",
     site: "@John_Moorman",
   },

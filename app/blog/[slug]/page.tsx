@@ -80,7 +80,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: "Post Not Found", robots: { index: false } }
 
   const url = `/blog/${slug}`
-  const ogImage = `/og?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / blog")}&subtitle=${encodeURIComponent(new Date(post.frontmatter.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}`
+  const ogImage = `/og/?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / blog")}&subtitle=${encodeURIComponent(new Date(post.frontmatter.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}`
 
   return {
     title: post.frontmatter.title,
@@ -127,7 +127,7 @@ export default async function BlogPost({ params }: Props) {
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""
   const url = `https://johnmoorman.com/blog/${slug}`
   const isoDate = new Date(post.frontmatter.date).toISOString()
-  const ogImage = `https://johnmoorman.com/og?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / blog")}`
+  const ogImage = `https://johnmoorman.com/og/?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / blog")}`
 
   const articleJsonLd = {
     "@context": "https://schema.org",

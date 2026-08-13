@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     type: "profile",
     images: [
       {
-        url: `/og?title=${encodeURIComponent("About John")}&subtitle=${encodeURIComponent("Opera to engineering · Berlin")}`,
+        url: `/og/?title=${encodeURIComponent("About John")}&subtitle=${encodeURIComponent("Opera to engineering · Berlin")}`,
         width: 1200,
         height: 630,
         alt: "About John Moorman",

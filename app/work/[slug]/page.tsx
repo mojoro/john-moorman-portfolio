@@ -83,7 +83,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: "Project Not Found", robots: { index: false } }
 
   const url = `/work/${slug}`
-  const ogImage = `/og?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / work")}&subtitle=${encodeURIComponent("Case study · " + new Date(post.frontmatter.date).toLocaleDateString("en-US", { year: "numeric", month: "long" }))}`
+  const ogImage = `/og/?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / work")}&subtitle=${encodeURIComponent("Case study · " + new Date(post.frontmatter.date).toLocaleDateString("en-US", { year: "numeric", month: "long" }))}`
 
   return {
     title: post.frontmatter.title,
@@ -130,7 +130,7 @@ export default async function WorkPost({ params }: Props) {
   const mdxComponents = buildMdxComponents(post.frontmatter)
   const url = `https://johnmoorman.com/work/${slug}`
   const isoDate = new Date(post.frontmatter.date).toISOString()
-  const ogImage = `https://johnmoorman.com/og?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / work")}`
+  const ogImage = `https://johnmoorman.com/og/?title=${encodeURIComponent(post.frontmatter.title)}&eyebrow=${encodeURIComponent("johnmoorman.com / work")}`
 
   const articleJsonLd = {
     "@context": "https://schema.org",

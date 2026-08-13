@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: `/og?title=${encodeURIComponent("Blog")}&subtitle=${encodeURIComponent("Engineering writing · John Moorman")}`,
+        url: `/og/?title=${encodeURIComponent("Blog")}&subtitle=${encodeURIComponent("Engineering writing · John Moorman")}`,
         width: 1200,
         height: 630,
         alt: "Blog · John Moorman",
