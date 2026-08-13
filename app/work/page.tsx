@@ -6,7 +6,7 @@ import type { Metadata } from "next"
 
 const TITLE = "Work · Case Studies by John Moorman"
 const DESCRIPTION =
-  "Selected engineering case studies: a €74K/year automation suite for Berlin Opera Academy, an AI real-estate intelligence pipeline, a 7-day AI job-search SaaS, and a shelf of shipped personal projects."
+  "Selected engineering case studies: a €74K/year automation suite for Berlin Opera Academy, an AI real-estate intelligence pipeline, an AI job-search SaaS, and a shelf of shipped personal projects."
 
 export const metadata: Metadata = {
   title: "Work",

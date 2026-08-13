@@ -177,7 +177,7 @@ export default function AboutPage() {
             <p className="mt-2 text-sm leading-relaxed text-text-secondary">
               AI job search tool that scrapes listings from major ATS platforms,
               scores them against your profile, and tailors your resume on
-              demand. 16k lines of TypeScript, built in seven days.
+              demand. 16k lines of TypeScript.
             </p>
             <p className="mt-3 flex flex-wrap gap-1.5">
               {["Next.js", "Prisma", "Neon", "Anthropic API", "Clerk"].map(
