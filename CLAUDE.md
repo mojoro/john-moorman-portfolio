@@ -203,7 +203,7 @@ the accent drops to ink depth so it still carries at small sizes.
 --accent:         #64ffda   /* Mint — use sparingly */
 --text-primary:   #ccd6f6   /* Warm slate */
 --text-secondary: #9ca6c5   /* Secondary text */
---text-muted:     #7b88a8   /* Timestamps, dividers */
+--text-muted:     #8592b2   /* Timestamps, dividers */
 --border:         rgba(255,255,255,0.08)
 --border-strong:  rgba(255,255,255,0.28)   /* Form controls */
 ```
@@ -214,7 +214,7 @@ the accent drops to ink depth so it still carries at small sizes.
 --bg:             #f2f5f9   /* Cool paper stock */
 --bg-surface:     #fdfeff   /* Cards, raised toward the light */
 --bg-elevated:    #e3e8f0   /* Inset fills, hover, skeletons */
---accent:         #007378   /* The mint at ink depth — 5.2:1 on paper */
+--accent:         #006f75   /* The mint at ink depth — 5.4:1 on paper */
 --text-primary:   #162035   /* 14.9:1 */
 --text-secondary: #475167   /* 7.3:1 */
 --text-muted:     #5d6679   /* 5.3:1 */

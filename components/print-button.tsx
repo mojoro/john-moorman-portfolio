@@ -6,7 +6,7 @@ export function PrintButton() {
   return (
     <m.button
       onClick={() => window.print()}
-      className="group relative overflow-hidden rounded-lg border border-accent/40 bg-accent/15 px-5 py-2.5 font-mono text-sm font-medium text-accent transition-colors hover:border-accent/60 print:hidden"
+      className="group relative overflow-hidden rounded-lg border border-accent/40 bg-accent/10 px-5 py-2.5 font-mono text-sm font-medium text-accent transition-colors hover:border-accent/60 print:hidden"
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}

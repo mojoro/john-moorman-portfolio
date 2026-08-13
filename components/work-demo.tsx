@@ -196,13 +196,13 @@ export function LiveEmbed({ src, title, height = 720, note }: LiveEmbedProps) {
             <span className="size-2.5 rounded-full bg-text-muted/30" />
             <span className="size-2.5 rounded-full bg-text-muted/30" />
             <span className="size-2.5 rounded-full bg-text-muted/30" />
-            <span className="ml-3 font-mono text-xs text-text-muted">{title}</span>
+            <span className="ml-3 font-mono text-xs text-text-secondary">{title}</span>
           </div>
           <a
             href={src}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-xs text-accent no-underline transition-colors hover:text-accent/80"
+            className="font-mono text-xs text-accent no-underline transition-colors hover:underline"
           >
             Open ↗
           </a>

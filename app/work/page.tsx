@@ -111,7 +111,7 @@ function ProjectCard({ post }: { post: Post }) {
             <div className="mt-3 flex flex-wrap items-baseline gap-x-5 gap-y-1 font-mono text-xs text-text-muted">
               {stats.map((stat) => (
                 <span key={stat.label} className="flex items-baseline gap-1.5">
-                  <span className="tabular-nums text-accent/80">{stat.value}</span>
+                  <span className="tabular-nums text-accent">{stat.value}</span>
                   <span>{stat.label.toLowerCase()}</span>
                 </span>
               ))}
