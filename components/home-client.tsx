@@ -303,7 +303,7 @@ export function HomeClient({
             href={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ?? "#contact"}
             target={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ? "_blank" : undefined}
             rel={process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ? "noopener noreferrer" : undefined}
-            className="group mt-10 block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
+            className="group mt-10 block rounded-lg border border-border bg-bg-surface p-6 shadow-card transition-colors hover:border-accent/40"
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -402,7 +402,7 @@ function ProjectCard({
   return (
     <m.a
       href={project.href}
-      className="group relative block rounded-lg border border-border bg-bg-surface p-6 transition-colors hover:border-accent/40"
+      className="group relative block rounded-lg border border-border bg-bg-surface p-6 shadow-card transition-colors hover:border-accent/40"
       whileHover={shouldReduceMotion ? {} : { y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
@@ -453,7 +453,7 @@ function MiniProjectCard({
   return (
     <Link
       href={href}
-      className="group flex h-full flex-col rounded-lg border border-border bg-bg-surface p-5 transition-colors hover:border-accent/40"
+      className="group flex h-full flex-col rounded-lg border border-border bg-bg-surface p-5 shadow-card transition-colors hover:border-accent/40"
     >
       <div className="flex items-baseline justify-between gap-3">
         <p className="font-medium text-text-primary transition-colors group-hover:text-accent">

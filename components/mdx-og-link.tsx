@@ -44,7 +44,7 @@ export async function OgLink({ url }: OgLinkProps) {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="og-link-card group my-6 block overflow-hidden rounded-lg border border-border bg-bg-surface transition-colors hover:border-accent/40"
+        className="og-link-card group my-6 block overflow-hidden rounded-lg border border-border bg-bg-surface shadow-card transition-colors hover:border-accent/40"
       >
         <div
           className="w-full overflow-hidden"
@@ -66,7 +66,7 @@ export async function OgLink({ url }: OgLinkProps) {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="og-link-card group my-6 flex flex-col overflow-hidden rounded-lg border border-border bg-bg-surface transition-colors hover:border-accent/40 sm:flex-row"
+        className="og-link-card group my-6 flex flex-col overflow-hidden rounded-lg border border-border bg-bg-surface shadow-card transition-colors hover:border-accent/40 sm:flex-row"
       >
         <div className="h-[160px] shrink-0 sm:h-auto sm:w-[200px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -82,7 +82,7 @@ export async function OgLink({ url }: OgLinkProps) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="og-link-card group my-6 block overflow-hidden rounded-lg border border-border bg-bg-surface transition-colors hover:border-accent/40"
+      className="og-link-card group my-6 block overflow-hidden rounded-lg border border-border bg-bg-surface shadow-card transition-colors hover:border-accent/40"
     >
       {meta}
     </a>

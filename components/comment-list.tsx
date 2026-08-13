@@ -16,7 +16,7 @@ export async function CommentList({ postSlug }: { postSlug: string }) {
       {comments.map((comment) => (
         <div
           key={comment.id}
-          className="rounded-lg border border-border bg-bg-surface p-4"
+          className="rounded-lg border border-border bg-bg-surface shadow-card p-4"
         >
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-medium text-text-primary">

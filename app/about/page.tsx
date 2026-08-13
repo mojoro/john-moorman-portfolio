@@ -171,7 +171,7 @@ export default function AboutPage() {
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           <Link
             href="/work/shortlist"
-            className="group rounded-lg border border-white/[0.06] bg-bg-surface p-5 transition-colors hover:border-accent/20 hover:bg-bg-elevated"
+            className="group rounded-lg border border-border bg-bg-surface p-5 shadow-card transition-colors hover:border-accent/20 hover:bg-bg-elevated"
           >
             <p className="font-mono text-xs text-accent">Shortlist</p>
             <p className="mt-2 text-sm leading-relaxed text-text-secondary">
@@ -195,7 +195,7 @@ export default function AboutPage() {
 
           <Link
             href="/work/young-artist-community"
-            className="group rounded-lg border border-white/[0.06] bg-bg-surface p-5 transition-colors hover:border-accent/20 hover:bg-bg-elevated"
+            className="group rounded-lg border border-border bg-bg-surface p-5 shadow-card transition-colors hover:border-accent/20 hover:bg-bg-elevated"
           >
             <p className="font-mono text-xs text-accent">
               Young Artist Community
