@@ -68,10 +68,10 @@ function ProjectCard({ post }: { post: Post }) {
     <Link
       key={post.slug}
       href={`/work/${post.slug}`}
-      className={`group relative block overflow-hidden rounded-lg border transition-all ${
+      className={`group relative block overflow-hidden rounded-lg border transition-colors ${
         isUpcoming
           ? "pointer-events-none border-dashed border-border/60 opacity-50"
-          : "border-border hover:border-accent/40 hover:bg-bg-surface"
+          : "border-border bg-bg-surface shadow-card hover:border-accent/40"
       }`}
     >
       <div className="flex flex-col items-stretch sm:flex-row">
@@ -89,7 +89,7 @@ function ProjectCard({ post }: { post: Post }) {
 
         <div className="relative flex-1 p-6">
           {!isUpcoming && (
-            <span className="absolute top-4 right-4 text-text-muted text-sm transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+            <span className="absolute top-4 right-4 text-2xl leading-none text-text-muted transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
               ↗
             </span>
           )}
