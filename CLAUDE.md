@@ -190,6 +190,10 @@ public/
 
 ## Design System
 
+Dark mode is a lit circuit board. Light mode is the same board printed on
+paper: the page is a faint cool stock, cards are raised toward the light, and
+the accent drops to ink depth so it still carries at small sizes.
+
 ### Color palette (dark mode — default)
 
 ```
@@ -198,23 +202,39 @@ public/
 --bg-elevated:    #1d3461   /* Hover states */
 --accent:         #64ffda   /* Mint — use sparingly */
 --text-primary:   #ccd6f6   /* Warm slate */
---text-secondary: #8892b0   /* Secondary text */
---text-muted:     #5a6a8a   /* Timestamps, dividers */
+--text-secondary: #9ca6c5   /* Secondary text */
+--text-muted:     #7b88a8   /* Timestamps, dividers */
+--border:         rgba(255,255,255,0.08)
+--border-strong:  rgba(255,255,255,0.28)   /* Form controls */
 ```
 
 ### Color palette (light mode)
 
 ```
---bg:             #f0f4f8   /* Cool blue-grey */
---bg-surface:     #e3ecf3
---bg-elevated:    #d6e3ee
---accent:         #0891b2   /* Cyan-600 */
---text-primary:   #0d1b2e
---text-secondary: #374e6a
---text-muted:     #6b87a4
---border:         rgba(0,0,0,0.08)
+--bg:             #f2f5f9   /* Cool paper stock */
+--bg-surface:     #fdfeff   /* Cards, raised toward the light */
+--bg-elevated:    #e3e8f0   /* Inset fills, hover, skeletons */
+--accent:         #007378   /* The mint at ink depth — 5.2:1 on paper */
+--text-primary:   #162035   /* 14.9:1 */
+--text-secondary: #475167   /* 7.3:1 */
+--text-muted:     #5d6679   /* 5.3:1 */
+--border:         #d2d8e1   /* Card hairline */
+--border-strong:  #78818f   /* Form controls — 3.6:1, clears WCAG 1.4.11 */
 ```
 
+Note the elevation model inverts between themes. In dark mode surfaces get
+*lighter* as they rise; in light mode `--bg-surface` is the raised card and
+`--bg-elevated` is the recessed fill used for hovers, skeletons, and media
+placeholders. A skeleton or hover tint must never use `--bg-surface` in light
+mode, it disappears against the card.
+
+Shared semantic tokens: `--danger`, `--warning`, `--shadow-cast` (cast shadows),
+`--card-shadow` (surfaced through the `shadow-card` utility; `none` in dark).
+Never reach for a raw Tailwind palette colour (`text-red-400`, `bg-yellow-400`)
+or a white/black alpha (`border-white/[0.06]`) outside a permanently dark
+surface such as the image lightbox — those only work in one theme.
+
+Every light-mode text token clears WCAG AA against every surface it lands on.
 Colors are editable via the admin palette editor at `/admin/palette` (local dev only).
 
 ### Typography
@@ -244,6 +264,8 @@ Animated PCB-style circuit board rendered on a canvas behind all content.
 - **Interactivity:** cursor proximity highlighting on circuit segments, click-to-pulse effects.
 - **Admin controls:** `/admin/circuit` provides sliders for generation math parameters (local dev only).
 - Canvas width adjusts for the sidebar offset on desktop.
+- **Two colours, not one.** The etched board (traces, pads) draws in `--circuit-ink`; the live signal (glows, pulses, cursor highlight) keeps `--accent`. They are the same value in dark mode, where the board glows. In light mode the ink goes navy so the background reads as a printed schematic rather than a cyan smudge, and glows/pulses drop to roughly a fifth of their dark-mode strength because paper has no backlight.
+- A horizontal vignette knocks the schematic out of the centre column, so it only survives in the outer margins. It must stay quiet enough there that the sidebar boundary at x=240 does not read as a seam.
 
 ### Motion (Framer Motion)
 
