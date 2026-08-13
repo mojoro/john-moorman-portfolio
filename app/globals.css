@@ -3,11 +3,16 @@
 /*
  * Design tokens. Dark mode is the default experience.
  * Light mode activates via data-theme="light" on <html>.
- * Colors from CLAUDE.md spec: Brittany Chiang's navy palette (dark),
- * warm paper-toned palette (light).
+ *
+ * Dark mode is a lit circuit board: near-black navy, glowing mint.
+ * Light mode is the same board printed on paper: the page is a faint
+ * cool stock, content sits on near-white cards raised toward the light,
+ * and the accent drops to ink depth so it still carries at small sizes.
+ * Every light value clears WCAG AA against every surface it lands on.
  */
 
 :root {
+  color-scheme: dark;
   --bg: #0a192f;
   --bg-surface: #112240;
   --bg-elevated: #1d3461;
@@ -16,18 +21,31 @@
   --text-secondary: #9ca6c5;
   --text-muted: #7b88a8;
   --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.28);
+  --danger: #f87171;
+  --warning: #facc15;
+  --circuit-ink: #64ffda;
+  --shadow-cast: rgba(0, 0, 0, 0.3);
+  --card-shadow: none;
   --cursor-glow: rgba(100, 255, 218, 0.07);
 }
 
 [data-theme="light"] {
-  --bg:             #f0f4f8;   /* cool blue-grey, the daylight version of the navy */
-  --bg-surface:     #e3ecf3;   /* cards, panels */
-  --bg-elevated:    #d6e3ee;   /* hover states */
-  --accent:         #0891b2;   /* cyan-600, same family as mint, readable on light */
-  --text-primary:   #0d1b2e;   /* deep navy, mirrors dark mode bg tones */
-  --text-secondary: #374e6a;   /* blue-grey */
-  --text-muted:     #6b87a4;   /* muted blue-grey */
-  --border:         rgba(0, 0, 0, 0.08);
+  color-scheme: light;
+  --bg:             #f2f5f9;   /* cool paper stock, tinted toward the navy hue */
+  --bg-surface:     #fdfeff;   /* cards, raised toward the light */
+  --bg-elevated:    #e3e8f0;   /* inset fills, hover, skeletons */
+  --accent:         #007378;   /* the mint at ink depth — 5.2:1 on paper */
+  --text-primary:   #162035;   /* 14.9:1 */
+  --text-secondary: #475167;   /* 7.3:1 */
+  --text-muted:     #5d6679;   /* 5.3:1 — muted by hue, not by fading out */
+  --border:         #d2d8e1;   /* card hairline */
+  --border-strong:  #78818f;   /* form controls — 3.6:1, clears WCAG 1.4.11 */
+  --danger:         #b4241f;
+  --warning:        #8a5a00;
+  --circuit-ink:    #46566e;   /* schematic traces read as printed ink, not glow */
+  --shadow-cast:    rgba(22, 32, 53, 0.14);
+  --card-shadow:    0 1px 2px rgba(22, 32, 53, 0.05), 0 6px 20px -12px rgba(22, 32, 53, 0.18);
   --cursor-glow:    transparent;
 }
 
@@ -40,6 +58,11 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-shadow-cast: var(--shadow-cast);
+  --shadow-card: var(--card-shadow);
 
   --font-display: var(--font-syne);
   --font-body: var(--font-dm-sans);
