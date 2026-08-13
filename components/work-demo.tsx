@@ -29,7 +29,7 @@ function inferHeroType(src: string): "image" | "video" {
 function StatusChip({ status }: { status: "in-progress" | "upcoming" }) {
   const styles =
     status === "in-progress"
-      ? "bg-yellow-400/15 text-yellow-300 ring-1 ring-yellow-400/30"
+      ? "bg-warning/15 text-warning ring-1 ring-warning/30"
       : "bg-text-muted/20 text-text-muted ring-1 ring-text-muted/20"
   const label = status === "in-progress" ? "In progress" : "Upcoming"
   return (
@@ -89,7 +89,7 @@ export function WorkDemo({
 
   return (
     <section className="work-demo my-8" aria-label="Project demo">
-      <div className="overflow-hidden rounded-xl border border-border bg-bg-surface">
+      <div className="overflow-hidden rounded-xl border border-border bg-bg-surface shadow-card">
         {hero && (
           <div className="relative w-full bg-bg-elevated" style={aspectStyle}>
             {inferredType === "image" ? (
@@ -190,7 +190,7 @@ export interface LiveEmbedProps {
 export function LiveEmbed({ src, title, height = 720, note }: LiveEmbedProps) {
   return (
     <section className="work-demo my-8" aria-label="Live demo">
-      <div className="overflow-hidden rounded-xl border border-border bg-bg-surface">
+      <div className="overflow-hidden rounded-xl border border-border bg-bg-surface shadow-card">
         <div className="flex items-center justify-between border-b border-border bg-bg-elevated px-4 py-2">
           <div className="flex items-center gap-2">
             <span className="size-2.5 rounded-full bg-text-muted/30" />

@@ -39,7 +39,7 @@ function statusBadge(status?: string) {
   switch (status) {
     case "in-progress":
       return (
-        <span className="rounded-full bg-yellow-400/10 px-2 py-0.5 font-mono text-[10px] text-yellow-400">
+        <span className="rounded-full bg-warning/10 px-2 py-0.5 font-mono text-[10px] text-warning">
           In Progress
         </span>
       )

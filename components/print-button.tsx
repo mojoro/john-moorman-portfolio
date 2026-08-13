@@ -11,7 +11,8 @@ export function PrintButton() {
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       style={{
-        backgroundImage: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)",
+        backgroundImage:
+          "linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent) 22%, transparent) 50%, transparent 100%)",
         backgroundSize: "200% 100%",
         backgroundRepeat: "no-repeat",
       }}

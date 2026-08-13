@@ -87,7 +87,7 @@ export function MdxAudio({
 
   return (
     <figure className="my-8">
-      <div className="rounded-lg border border-border bg-bg-surface px-5 py-4">
+      <div className="rounded-lg border border-border bg-bg-surface shadow-card px-5 py-4">
         {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
         <audio ref={audioRef} src={src} preload="metadata" {...audioProps} />
 
@@ -135,7 +135,7 @@ export function MdxAudio({
             </div>
             {/* Thumb */}
             <div
-              className="pointer-events-none absolute size-2.5 -translate-x-1/2 rounded-full bg-accent/80 shadow-[0_0_6px_rgba(100,255,218,0.35)]"
+              className="pointer-events-none absolute size-2.5 -translate-x-1/2 rounded-full bg-accent/80 shadow-[0_0_6px_color-mix(in_srgb,var(--accent)_35%,transparent)]"
               style={{ left: `${progress}%` }}
             />
           </div>

@@ -162,7 +162,7 @@ export function ImageLightbox({ src, alt, isOpen, onClose }: ImageLightboxProps)
           aria-label={alt || "Enlarged image"}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/80 dark:bg-black/90" />
+          <div className="absolute inset-0 bg-black/85" />
 
           {/* Controls */}
           <div className="absolute right-4 top-4 z-10 flex gap-2">

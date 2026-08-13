@@ -214,7 +214,7 @@ export default function PromacroPrivacyPage() {
         <div className="mt-6 -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06]">
+              <tr className="border-b border-border">
                 <th className="py-3 pr-4 font-mono text-xs font-medium text-text-muted">
                   Service
                 </th>
@@ -230,7 +230,7 @@ export default function PromacroPrivacyPage() {
               {subprocessors.map((row) => (
                 <tr
                   key={row.service}
-                  className="border-b border-white/[0.04] align-top"
+                  className="border-b border-border align-top"
                 >
                   <td className="py-3 pr-4">
                     <a
