@@ -260,7 +260,7 @@ export function ChatPanel() {
       {/* Floating avatar trigger */}
       <m.button
         onClick={() => setOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 flex items-center justify-center w-[52px] h-[52px] rounded-full border-2 border-accent/40 bg-bg-surface shadow-lg shadow-black/30 transition-colors hover:border-accent/60 print:hidden ${
+        className={`fixed bottom-6 right-6 z-40 flex items-center justify-center w-[52px] h-[52px] rounded-full border-2 border-accent/40 bg-bg-surface shadow-lg shadow-shadow-cast transition-colors hover:border-accent/60 print:hidden ${
           open ? "hidden" : ""
         }`}
         whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
@@ -304,7 +304,7 @@ export function ChatPanel() {
               shouldReduceMotion ? { opacity: 0 } : { x: "100%", opacity: 0 }
             }
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed inset-0 z-50 flex flex-col bg-bg md:inset-auto md:bottom-0 md:right-0 md:top-0 md:w-[420px] md:border-l md:border-border"
+            className="fixed inset-0 z-50 flex flex-col bg-bg md:inset-auto md:bottom-0 md:right-0 md:top-0 md:w-[420px] md:border-l md:border-border md:shadow-2xl md:shadow-shadow-cast"
             role="dialog"
             aria-label="Chat with John's portfolio"
           >
@@ -358,7 +358,7 @@ export function ChatPanel() {
                     className={`inline-block max-w-[85%] rounded-lg px-4 py-2.5 text-sm ${
                       msg.role === "user"
                         ? "bg-accent/15 text-text-primary"
-                        : "bg-bg-surface text-text-secondary"
+                        : "border border-border bg-bg-surface text-text-secondary"
                     }`}
                   >
                     {msg.role === "user" ? (
@@ -380,7 +380,7 @@ export function ChatPanel() {
               ))}
 
               {error && (
-                <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
+                <div className="mb-4 rounded-lg border border-danger/25 bg-danger/10 px-4 py-2.5 text-sm text-danger">
                   <p>{error}</p>
                   <p className="mt-1 text-xs text-text-muted">
                     You can reach me directly at{" "}
@@ -450,7 +450,7 @@ export function ChatPanel() {
                   }
                   disabled={streaming || limitReached}
                   rows={1}
-                  className="flex-1 resize-none rounded-lg border border-border bg-bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none disabled:opacity-50"
+                  className="flex-1 resize-none rounded-lg border border-border-strong bg-bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-50"
                 />
                 <button
                   type="submit"

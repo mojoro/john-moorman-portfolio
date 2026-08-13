@@ -67,7 +67,7 @@ export function CommentForm({
             type="text"
             placeholder="Anonymous"
             maxLength={50}
-            className="w-full rounded-lg border border-border bg-bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none"
+            className="w-full rounded-lg border border-border-strong bg-bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           />
         </div>
 
@@ -85,7 +85,7 @@ export function CommentForm({
             rows={4}
             maxLength={1000}
             placeholder="Leave a comment..."
-            className="w-full resize-none rounded-lg border border-border bg-bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none"
+            className="w-full resize-none rounded-lg border border-border-strong bg-bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           />
         </div>
 
@@ -96,7 +96,7 @@ export function CommentForm({
         />
 
         {status === "error" && (
-          <p className="text-sm text-red-400">{errorMessage}</p>
+          <p className="text-sm text-danger">{errorMessage}</p>
         )}
 
         {status === "success" && (
