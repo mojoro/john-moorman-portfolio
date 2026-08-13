@@ -261,11 +261,12 @@ Animated PCB-style circuit board rendered on a canvas behind all content.
 - **Primary path (modern browsers):** OffscreenCanvas transferred to `workers/circuit-worker.ts`. Generation, rendering, and animation run entirely off the main thread.
 - **Fallback path (Safari < 17, older iOS):** `workers/circuit-generate.ts` handles generation in a worker; rendering runs on the main thread via requestAnimationFrame.
 - **Scroll effect:** canvas is 2x viewport height with two identical tiles. A CSS scroll-driven animation slides it from `translateY(0)` to `translateY(-50%)`, compositor-driven with zero JS lag.
+- **The viewport height is `lvh`, never `innerHeight`.** A phone resizes its layout viewport when the browser toolbar slides in or out, so `window.innerHeight` lurches mid-scroll and drags the board with it. The canvas box is sized in `lvh` and the tile height is measured off the element (`clientHeight / 2`), which is toolbar-immune. Below 768px the parallax is off entirely — scroll progress itself shifts when the toolbar moves, and no amount of stable arithmetic fixes that.
 - **Interactivity:** cursor proximity highlighting on circuit segments, click-to-pulse effects.
 - **Admin controls:** `/admin/circuit` provides sliders for generation math parameters (local dev only).
 - Canvas width adjusts for the sidebar offset on desktop.
 - **Two colours, not one.** The etched board (traces, pads) draws in `--circuit-ink`; the live signal (glows, pulses, cursor highlight) keeps `--accent`. They are the same value in dark mode, where the board glows. In light mode the ink goes navy so the background reads as a printed schematic rather than a cyan smudge, and glows/pulses drop to roughly a fifth of their dark-mode strength because paper has no backlight.
-- A horizontal vignette knocks the schematic out of the centre column, so it only survives in the outer margins. It must stay quiet enough there that the sidebar boundary at x=240 does not read as a seam.
+- A horizontal vignette knocks the schematic out of the centre column, so it only survives in the outer margins. It must stay quiet enough there that the sidebar boundary at x=240 does not read as a seam. Below 768px there is no margin to spare (the text column spans nearly the full width), so both themes drop the transparent edge band and knock the board out across the whole span, leaving it as a faint texture at the edges.
 
 ### Motion (Framer Motion)
 
