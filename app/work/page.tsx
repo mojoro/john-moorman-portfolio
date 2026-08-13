@@ -179,8 +179,8 @@ export default async function WorkIndex() {
       {/* Fun projects */}
       {funPosts.length > 0 && (
         <div className="mt-20">
-          <h2 className="font-display text-2xl font-semibold tracking-tight">
-            Fun projects
+          <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+            Fun, Open Source Projects
           </h2>
           <p className="mt-3 max-w-xl text-text-secondary">
             Things I built because I wanted them to exist. No client, no brief,

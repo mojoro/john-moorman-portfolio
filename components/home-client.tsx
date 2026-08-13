@@ -218,10 +218,10 @@ export function HomeClient({
           <>
             <SectionReveal delay={0.1}>
               <div className="mt-16">
-                <p className="font-mono text-xs uppercase tracking-widest text-text-muted">
-                  Fun projects
-                </p>
-                <p className="mt-2 max-w-xl text-sm text-text-secondary">
+                <h3 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">
+                  Fun, Open Source Projects
+                </h3>
+                <p className="mt-3 max-w-xl text-sm text-text-secondary">
                   Things I built because I wanted them to exist. No client, no
                   brief, every one of them shipped.
                 </p>
