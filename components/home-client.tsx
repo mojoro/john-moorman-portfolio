@@ -38,11 +38,10 @@ interface FeaturedWork {
   href: string
 }
 
-interface ChallengeWork {
-  week: number
+interface FunWork {
   title: string
-  status: "shipped" | "in-progress" | "upcoming"
-  href?: string
+  summary: string
+  href: string
 }
 
 interface OngoingWork {
@@ -56,12 +55,12 @@ export function HomeClient({
   blogPosts,
   featuredWork,
   ongoingWork,
-  challengeWork,
+  funWork,
 }: {
   blogPosts: BlogPost[]
   featuredWork: FeaturedWork[]
   ongoingWork: OngoingWork[]
-  challengeWork: ChallengeWork[]
+  funWork: FunWork[]
 }) {
   const shouldReduceMotion = useReducedMotion()
 
@@ -191,7 +190,13 @@ export function HomeClient({
               </p>
               <div className="mt-3 grid gap-4 sm:grid-cols-2">
                 {ongoingWork.map((project) => (
-                  <OngoingCard key={project.title} project={project} />
+                  <MiniProjectCard
+                    key={project.title}
+                    title={project.title}
+                    summary={project.summary}
+                    href={project.href}
+                    meta={project.since}
+                  />
                 ))}
               </div>
             </div>
@@ -207,57 +212,34 @@ export function HomeClient({
           ))}
         </div>
 
-        {/* 10-in-10 challenge callout */}
-        <SectionReveal delay={0.1}>
-          <div className="mt-16 rounded-lg border border-accent/20 bg-accent/5 p-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <span className="font-mono text-xs uppercase tracking-widest text-accent/70">
-                  Challenge
-                </span>
-                <h3 className="mt-1 text-lg font-semibold text-text-primary">
-                  10 Projects in 10 Weeks
-                </h3>
+        {/* Fun projects */}
+        {funWork.length > 0 && (
+          <>
+            <SectionReveal delay={0.1}>
+              <div className="mt-16">
+                <p className="font-mono text-xs uppercase tracking-widest text-text-muted">
+                  Fun projects
+                </p>
+                <p className="mt-2 max-w-xl text-sm text-text-secondary">
+                  Things I built because I wanted them to exist. No client, no
+                  brief, every one of them shipped.
+                </p>
               </div>
-              <span className="font-mono text-sm text-accent/80">
-                {challengeWork.filter((p) => p.status === "shipped").length + challengeWork.filter((p) => p.status === "in-progress").length} of 10 &middot;{" "}
-                {challengeWork.filter((p) => p.status === "shipped").length} shipped
-              </span>
-            </div>
-            <div className="mt-3 flex gap-1">
-              {Array.from({ length: 10 }, (_, i) => {
-                const shipped = challengeWork.filter((p) => p.status === "shipped").length
-                const inProgress = challengeWork.filter((p) => p.status === "in-progress").length
-                return (
-                  <div
-                    key={i}
-                    className={`h-1 flex-1 rounded-full ${
-                      i < shipped
-                        ? "bg-accent/70"
-                        : i < shipped + inProgress
-                        ? "bg-yellow-400/50"
-                        : "bg-text-muted/20"
-                    }`}
+            </SectionReveal>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {funWork.map((project, i) => (
+                <SectionReveal key={project.href} delay={(i + 1) * 0.1}>
+                  <MiniProjectCard
+                    title={project.title}
+                    summary={project.summary}
+                    href={project.href}
                   />
-                )
-              })}
+                </SectionReveal>
+              ))}
             </div>
-          </div>
-        </SectionReveal>
-
-        {/* 10-in-10 project cards (shipped + in-progress only) */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {challengeWork.flatMap((project, i) =>
-            project.status === "upcoming"
-              ? []
-              : [
-                  <SectionReveal key={project.week} delay={(i + 1) * 0.1}>
-                    <CurrentProjectCard project={project} />
-                  </SectionReveal>,
-                ]
-          )}
-        </div>
-
+          </>
+        )}
       </section>
 
       {/* ── Blog ── */}
@@ -493,95 +475,39 @@ function ProjectCard({
   )
 }
 
-function OngoingCard({ project }: { project: OngoingWork }) {
+function MiniProjectCard({
+  title,
+  summary,
+  href,
+  meta,
+}: {
+  title: string
+  summary: string
+  href: string
+  meta?: string
+}) {
   return (
     <Link
-      href={project.href}
-      className="group flex flex-col rounded-lg border border-border bg-bg-surface p-5 transition-colors hover:border-accent/40"
+      href={href}
+      className="group flex h-full flex-col rounded-lg border border-border bg-bg-surface p-5 transition-colors hover:border-accent/40"
     >
       <div className="flex items-baseline justify-between gap-3">
         <p className="font-medium text-text-primary transition-colors group-hover:text-accent">
-          {project.title}
+          {title}
           <span className="ml-1.5 inline-block text-xl text-text-muted transition-all duration-300 group-hover:text-accent group-hover:translate-x-0.5">
             &rarr;
           </span>
         </p>
-        <span className="shrink-0 font-mono text-[10px] text-text-muted">
-          {project.since}
-        </span>
+        {meta && (
+          <span className="shrink-0 font-mono text-[10px] text-text-muted">
+            {meta}
+          </span>
+        )}
       </div>
       <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-        {project.summary}
+        {summary}
       </p>
     </Link>
   )
 }
 
-function CurrentProjectCard({
-  project,
-}: {
-  project: ChallengeWork
-}) {
-  const shouldReduceMotion = useReducedMotion()
-
-  const badgeClass =
-    project.status === "shipped"
-      ? "bg-accent/10 text-accent"
-      : project.status === "in-progress"
-      ? "bg-yellow-400/10 text-yellow-400"
-      : "bg-text-muted/10 text-text-muted"
-
-  const badgeLabel =
-    project.status === "shipped"
-      ? "Shipped"
-      : project.status === "in-progress"
-      ? "In Progress"
-      : "Upcoming"
-
-  const borderClass =
-    project.status === "shipped"
-      ? "border-border bg-bg-surface"
-      : project.status === "in-progress"
-      ? "border-yellow-400/20 bg-bg-surface"
-      : "border-dashed border-border/60 bg-transparent"
-
-  const inner = (
-    <>
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-xs text-text-muted">
-          Week {project.week}
-        </span>
-        <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${badgeClass}`}>
-          {badgeLabel}
-        </span>
-      </div>
-      <p className={`mt-2 text-sm font-medium ${project.href ? "text-text-primary" : "italic text-text-muted"}`}>
-        {project.title}
-        {project.href && (
-          <span className="ml-1.5 inline-block text-xl text-text-muted transition-all duration-300 group-hover:text-accent group-hover:translate-x-0.5">
-            →
-          </span>
-        )}
-      </p>
-    </>
-  )
-
-  if (project.href) {
-    return (
-      <m.a
-        href={project.href}
-        className={`group block rounded-lg border p-4 transition-colors hover:border-accent/40 ${borderClass}`}
-        whileHover={shouldReduceMotion ? {} : { y: -4 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      >
-        {inner}
-      </m.a>
-    )
-  }
-
-  return (
-    <div className={`rounded-lg border p-4 ${borderClass}`}>
-      {inner}
-    </div>
-  )
-}

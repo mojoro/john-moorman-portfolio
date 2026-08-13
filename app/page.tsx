@@ -75,22 +75,25 @@ export default async function Home() {
       : []
   )
 
-  const challengeWork = workPosts
-    .filter((p) => p.frontmatter.challenge === "10-in-10" && p.frontmatter.week != null)
-    .sort((a, b) => (a.frontmatter.week ?? 0) - (b.frontmatter.week ?? 0))
-    .map((p) => ({
-      week: p.frontmatter.week as number,
-      title: p.frontmatter.title,
-      status: p.frontmatter.status ?? "upcoming",
-      href: p.frontmatter.status !== "upcoming" ? `/work/${p.slug}` : undefined,
-    }))
+  // Featured projects already get a full card above, so skip them here.
+  const funWork = workPosts.flatMap((p) =>
+    p.frontmatter.fun && !p.frontmatter.featured
+      ? [
+          {
+            title: p.frontmatter.title,
+            summary: p.frontmatter.description,
+            href: `/work/${p.slug}`,
+          },
+        ]
+      : []
+  )
 
   return (
     <HomeClient
       blogPosts={recentBlog}
       featuredWork={featuredWork}
       ongoingWork={ongoingWork}
-      challengeWork={challengeWork}
+      funWork={funWork}
     />
   )
 }

@@ -6,7 +6,7 @@ import type { Metadata } from "next"
 
 const TITLE = "Work · Case Studies by John Moorman"
 const DESCRIPTION =
-  "Selected engineering case studies: a €74K/year automation suite for Berlin Opera Academy, an AI real-estate intelligence pipeline, a 7-day AI job-search SaaS, and ten projects in ten weeks."
+  "Selected engineering case studies: a €74K/year automation suite for Berlin Opera Academy, an AI real-estate intelligence pipeline, a 7-day AI job-search SaaS, and a shelf of shipped personal projects."
 
 export const metadata: Metadata = {
   title: "Work",
@@ -61,7 +61,6 @@ function statusBadge(status?: string) {
 function ProjectCard({ post }: { post: Post }) {
   const status = post.frontmatter.status ?? "shipped"
   const isUpcoming = status === "upcoming"
-  const challenge = post.frontmatter.challenge
   const thumbnail = post.frontmatter.thumbnail
   const stats = (post.frontmatter.stats ?? []).slice(0, 2)
 
@@ -100,11 +99,6 @@ function ProjectCard({ post }: { post: Post }) {
                 Featured
               </span>
             )}
-            {challenge && (
-              <span className="rounded-full bg-yellow-400/10 px-2 py-0.5 font-mono text-[10px] text-yellow-400">
-                10 in 10
-              </span>
-            )}
             {statusBadge(status)}
           </div>
           <h2 className="mt-2 font-display text-xl font-semibold transition-colors group-hover:text-accent">
@@ -138,12 +132,18 @@ function ProjectCard({ post }: { post: Post }) {
 
 export default async function WorkIndex() {
   const allPosts = await getPosts("work")
-  const pinned = allPosts.find((p) => p.slug === "boa-automation")
-  const rest = allPosts.filter((p) => p.slug !== "boa-automation")
+  const funPosts = allPosts.filter((p) => p.frontmatter.fun)
 
-  const challengePosts = allPosts.filter((p) => p.frontmatter.challenge === "10-in-10")
-  const shipped = challengePosts.filter((p) => p.frontmatter.status === "shipped").length
-  const inProgress = challengePosts.filter((p) => p.frontmatter.status === "in-progress").length
+  // Live engagements lead, then BOA as the flagship case study, then the rest by date.
+  const clientPosts = allPosts.filter((p) => !p.frontmatter.fun)
+  const inProgress = clientPosts.filter(
+    (p) => p.frontmatter.status === "in-progress"
+  )
+  const boa = clientPosts.filter((p) => p.slug === "boa-automation")
+  const remaining = clientPosts.filter(
+    (p) => p.frontmatter.status !== "in-progress" && p.slug !== "boa-automation"
+  )
+  const ordered = [...inProgress, ...boa, ...remaining]
 
   return (
     <section className="py-20">
@@ -160,46 +160,9 @@ export default async function WorkIndex() {
         Selected work with technical depth.
       </p>
 
-      {pinned && (
-        <div className="mt-10">
-          <ProjectCard post={pinned} />
-        </div>
-      )}
-
-      {/* 10-in-10 Challenge Banner */}
-      <div className="mt-10 rounded-lg border border-accent/20 bg-accent/5 p-5">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <span className="font-mono text-xs uppercase tracking-widest text-accent/70">
-              Challenge
-            </span>
-            <h2 className="mt-1 text-lg font-semibold text-text-primary">
-              10 Projects in 10 Weeks
-            </h2>
-          </div>
-          <span className="font-mono text-sm text-accent/80">
-            {shipped + inProgress} of 10 &middot; {shipped} shipped
-          </span>
-        </div>
-        <div className="mt-3 flex gap-1">
-          {Array.from({ length: 10 }, (_, i) => (
-            <div
-              key={i}
-              className={`h-1 flex-1 rounded-full ${
-                i < shipped
-                  ? "bg-accent/70"
-                  : i < shipped + inProgress
-                  ? "bg-yellow-400/50"
-                  : "bg-text-muted/20"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-
       {/* Project List */}
       <div className="mt-10 space-y-6">
-        {rest.map((post) => (
+        {ordered.map((post) => (
           <ProjectCard key={post.slug} post={post} />
         ))}
 
@@ -207,6 +170,24 @@ export default async function WorkIndex() {
           <p className="text-text-muted">Case studies coming soon.</p>
         )}
       </div>
+
+      {/* Fun projects */}
+      {funPosts.length > 0 && (
+        <div className="mt-20">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            Fun projects
+          </h2>
+          <p className="mt-3 max-w-xl text-text-secondary">
+            Things I built because I wanted them to exist. No client, no brief,
+            every one of them shipped.
+          </p>
+          <div className="mt-10 space-y-6">
+            {funPosts.map((post) => (
+              <ProjectCard key={post.slug} post={post} />
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   )
 }

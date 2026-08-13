@@ -6,7 +6,7 @@ Personal portfolio and blog. Built with Next.js 15, TypeScript, and Tailwind CSS
 
 ## What's in here
 
-- **Homepage** with scroll-spy navigation, staggered Framer Motion reveals, and a 10-in-10 challenge progress tracker
+- **Homepage** with scroll-spy navigation, staggered Framer Motion reveals, and featured, ongoing, and fun project sections
 - **Work case studies** as MDX with table of contents, image lightbox, and per-project stats
 - **Blog** with MDX authoring, read time estimates, and anonymous comments (Neon + Turnstile)
 - **Ask John** AI chatbot (Anthropic Claude, Gemini fallback) with streaming responses, conversation persistence, rate limiting, and input sanitization

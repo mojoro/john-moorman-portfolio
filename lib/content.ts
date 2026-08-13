@@ -14,8 +14,8 @@ export interface PostFrontmatter {
   ongoing?: boolean
   /** Short label for the ongoing card, e.g. "Ongoing since May 2026". */
   ongoingSince?: string
-  challenge?: string
-  week?: number
+  /** Personal project built for its own sake — grouped under "Fun projects". */
+  fun?: boolean
   stats?: Array<{ value: string; label: string }>
   thumbnail?: string
 }

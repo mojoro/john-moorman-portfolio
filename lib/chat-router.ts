@@ -16,14 +16,15 @@ const ROUTER_TIMEOUT_MS = 8_000
 function buildRouterSystem(index: string): string {
   return `You are a query router for John Moorman's portfolio chatbot. You read a user's question and decide which project posts would help answer it.
 
-SITE INDEX (one line per project — slug · date · challenge · URL · [tags] — followed by title and one-line description):
+SITE INDEX (one line per project — slug · date · URL · [tags], with "· fun project" marking personal projects — followed by title and one-line description):
 ${index}
 
 YOUR JOB:
 - Return ONLY a JSON object of the form: {"slugs": ["slug1", "slug2"]}
 - List every slug whose full content would materially help answer the user's question.
-- If the user asks for a broad summary of all projects (e.g. "tell me about your work", "summarize your 10-in-10", "walk me through everything"), list ALL slugs.
-- If the user asks about a specific project, technology, or challenge week, list the relevant slugs only.
+- If the user asks for a broad summary of all projects (e.g. "tell me about your work", "what have you built", "walk me through everything"), list ALL slugs.
+- If the user asks about a specific project or technology, list the relevant slugs only.
+- If the user asks about personal or side projects, list the slugs marked "fun project".
 - If the user asks about John's background, skills, availability, or contact info without referencing any project, return {"slugs": []}.
 - If the query is off-topic (greetings, personal questions unrelated to John's work), return {"slugs": []}.
 - Only return slugs that appear exactly as written in the SITE INDEX above.

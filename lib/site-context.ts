@@ -3,15 +3,15 @@ import { getPosts, type Post, type PostFrontmatter } from "./content"
 /**
  * Two-tier site context for the chatbot.
  *
- * `siteIndex()` returns a compact listing (slug, date, challenge/week, URL,
+ * `siteIndex()` returns a compact listing (slug, date, kind, URL,
  * description, tags) of every published project on the site. It's meant to
  * live in the cached prefix of every chat system prompt so the router and
  * the main call can reason about which projects exist without loading the
  * full content of any of them. ~2-3K tokens.
  *
  * `loadPosts(slugs)` returns the full text of the requested projects,
- * newest first, formatted with the same headers used in the index so URLs
- * and week numbers line up. Returns empty string for an empty slug list.
+ * newest first, formatted with the same headers used in the index so the
+ * URLs line up. Returns empty string for an empty slug list.
  *
  * `allSlugs()` is a convenience for fallback paths that want to load
  * everything (e.g. when the router fails and we'd rather be slow than
@@ -19,7 +19,7 @@ import { getPosts, type Post, type PostFrontmatter } from "./content"
  *
  * For slugs that exist as both a blog post and a work case study, the blog
  * version supplies the long-form narrative and the work frontmatter
- * supplies the project metadata (challenge, week, status). Work-only slugs
+ * supplies the project metadata (fun, status). Work-only slugs
  * (BOA, finalflow, serenity-retreat, portfolio-site, real-estate-pipeline,
  * open-source) use the work content directly.
  */
@@ -30,8 +30,7 @@ interface IndexEntry {
   title: string
   date: string
   description: string
-  challenge?: string
-  week?: number
+  fun?: boolean
   tags?: string[]
 }
 
@@ -101,27 +100,21 @@ function toEntry(
     title: fm.title,
     date: fm.date,
     description: fm.description ?? "",
-    challenge: fm.challenge ?? workMeta?.challenge,
-    week: fm.week ?? workMeta?.week,
+    fun: fm.fun ?? workMeta?.fun,
     tags: fm.tags,
   }
 }
 
 function formatIndexLine(e: IndexEntry): string {
-  const weekPart =
-    e.challenge && e.week != null
-      ? ` · ${e.challenge} W${e.week}`
-      : e.challenge
-        ? ` · ${e.challenge}`
-        : ""
+  const kindPart = e.fun ? " · fun project" : ""
   const tagsPart = e.tags && e.tags.length ? ` [${e.tags.slice(0, 5).join(", ")}]` : ""
   const descPart = e.description ? ` — ${e.description}` : ""
-  return `- ${e.slug} · ${e.date}${weekPart} · ${e.url}${tagsPart}\n    ${e.title}${descPart}`
+  return `- ${e.slug} · ${e.date}${kindPart} · ${e.url}${tagsPart}\n    ${e.title}${descPart}`
 }
 
 function formatFullEntry(e: IndexEntry, body: string): string {
-  const weekPart = e.challenge && e.week != null ? ` · ${e.challenge} Week ${e.week}` : ""
-  const header = `### ${e.title} · ${e.date}${weekPart} (${e.url})`
+  const kindPart = e.fun ? " · fun project" : ""
+  const header = `### ${e.title} · ${e.date}${kindPart} (${e.url})`
   const desc = e.description ? `\n${e.description}` : ""
   return `${header}${desc}\n\n${body}`
 }

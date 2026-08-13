@@ -124,33 +124,15 @@ export function FrontmatterForm({
             </select>
           </label>
 
-          {/* Challenge */}
-          <label className="flex flex-col gap-1.5">
-            <span className={labelClasses}>Challenge</span>
+          {/* Fun project */}
+          <label className="flex items-center gap-2.5">
             <input
-              type="text"
-              value={(frontmatter.challenge as string) ?? ""}
-              onChange={(e) =>
-                update("challenge", e.target.value || undefined)
-              }
-              placeholder="10-in-10 challenge name"
-              className={inputClasses}
+              type="checkbox"
+              checked={(frontmatter.fun as boolean) ?? false}
+              onChange={(e) => update("fun", e.target.checked)}
+              className="size-4 rounded border-border bg-bg-surface accent-accent"
             />
-          </label>
-
-          {/* Week */}
-          <label className="flex flex-col gap-1.5">
-            <span className={labelClasses}>Week</span>
-            <input
-              type="number"
-              value={(frontmatter.week as number) ?? ""}
-              onChange={(e) => {
-                const val = e.target.value
-                update("week", val ? Number(val) : undefined)
-              }}
-              placeholder="Week number"
-              className={inputClasses}
-            />
+            <span className={labelClasses}>Fun project</span>
           </label>
         </>
       )}

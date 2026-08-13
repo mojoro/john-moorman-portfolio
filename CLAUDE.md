@@ -389,8 +389,7 @@ draft: true          # Remove or set false when ready to publish
 ```mdx
 featured: true       # Show on homepage featured section
 status: "shipped"    # "shipped" | "in-progress" | "upcoming"
-challenge: "10-in-10"  # Links to the 10-in-10 challenge tracker
-week: 3              # Challenge week number
+fun: true            # Personal project — groups under the "Fun projects" section
 stats:               # Displayed on featured project cards
   - value: "€74K"
     label: "Annual savings"
@@ -446,4 +445,4 @@ Replace CursorGlow with segment-level trace proximity highlight
 - `middleware.ts` sets an `x-pathname` header used by the root layout to detect admin routes
 - Circuit background is off-main-thread by design. Keep it that way. All heavy computation stays in `workers/`
 - Blog and work index pages have skeleton `loading.tsx` states for Suspense boundaries
-- The 10-in-10 challenge tracker on the homepage reads `challenge` and `week` frontmatter from work posts
+- The "Fun projects" sections on the homepage and `/work` read the `fun` frontmatter flag from work posts. The homepage grid skips anything already shown as `featured`

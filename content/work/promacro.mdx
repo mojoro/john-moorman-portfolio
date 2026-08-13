@@ -4,19 +4,18 @@ date: '2026-05-13'
 description: >-
   Diet-focused macro tracking app for a middle-aged and older audience.
   Natural-language meal entry as the headline feature. Built native with React
-  Native. Week 10 of the 10-in-10, v1 completed 2026-05-13.
+  Native. v1 completed 2026-05-13.
 tags:
   - React Native
   - TypeScript
   - OpenRouter
   - Mobile
 status: shipped
-challenge: 10-in-10
-week: 10
+fun: true
 featured: false
 stats:
-  - value: "Week 10"
-    label: "of 10-in-10"
+  - value: "Natural language"
+    label: "Meal entry"
   - value: "RN"
     label: "iOS + Android"
   - value: "OpenRouter"
@@ -24,7 +23,7 @@ stats:
 ---
 
 <Demo
-  note="v1 completed 2026-05-13, closing out the 10-in-10."
+  note="v1 completed 2026-05-13."
 />
 
 A macro tracking app built around hitting daily targets (protein and fiber by default) for an audience the existing apps mostly weren't designed for: people in middle age and older who want simple guidance, not a calorie-counting puzzle. Diet-focused rather than activity-focused. Guiding principle is simplicity: fewer numbers, clearer review, and entry that doesn't require scrolling a food database.
@@ -47,7 +46,7 @@ The stack is [React Native](https://reactnative.dev/), not a Progressive Web App
 
 Natural-language meal entry uses [OpenRouter](https://openrouter.ai/) with a structured-output schema keyed to the user's enabled nutrients. The model returns a typed object the client can render without parsing prose, and the same schema doubles as the contract for the daily review and the easy-add suggester.
 
-Photo-based meal entry and on-device inference (a small local model like Gemma for offline logging) were deferred to v2, which is what continues after the challenge.
+Photo-based meal entry and on-device inference (a small local model like Gemma for offline logging) are deferred to v2.
 
 ---
 
