@@ -64,6 +64,7 @@ app/
   api/contact/route.ts      — contact form handler
   api/invoicing/clients/route.ts        — GET list, POST create/update client
   api/invoicing/timesheet/route.ts      — GET entries, POST one or many
+  api/invoicing/timesheet/[id]/route.ts — DELETE an uninvoiced entry
   api/invoicing/invoices/route.ts       — GET list, POST generate invoice
   api/invoicing/invoices/[id]/route.ts  — GET one, DELETE
   not-found.tsx
