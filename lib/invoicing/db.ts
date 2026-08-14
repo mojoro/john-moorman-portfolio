@@ -199,6 +199,21 @@ export async function addTimesheetEntries(
   return rows.length
 }
 
+/**
+ * False when the row is gone or already invoiced. The invoice_id guard lives in
+ * the WHERE clause rather than a preceding SELECT so a concurrent invoice
+ * generation cannot slip in between the check and the delete.
+ */
+export async function deleteTimesheetEntry(id: number): Promise<boolean> {
+  const sql = getDb()
+  const rows = await sql`
+    DELETE FROM timesheet_entries
+    WHERE id = ${id} AND invoice_id IS NULL
+    RETURNING id
+  `
+  return rows.length > 0
+}
+
 export async function getSelectedTimesheetEntries(entryIds: number[]): Promise<SelectedTimesheetEntry[]> {
   if (entryIds.length === 0) return []
   const sql = getDb()
