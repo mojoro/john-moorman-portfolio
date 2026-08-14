@@ -3,6 +3,7 @@ import {
   addTimesheetEntry,
   createInvoiceForEntries,
   deleteInvoiceRecord,
+  deleteTimesheetEntry,
   getClients,
   getSelectedTimesheetEntries,
   invoiceNumberExists,
@@ -17,6 +18,7 @@ import { parseTimesheetCsv } from "./csv"
 import { buildInvoiceTotals, DEFAULT_VAT_RATE } from "./grouping"
 import { renderInvoicePdfBuffer } from "./pdf"
 import {
+  optionalBoolean,
   optionalDate,
   optionalString,
   requireDate,
@@ -111,9 +113,24 @@ export async function importTimesheetCsv(
   return { importedCount, skippedCount: parsed.entries.length - entriesToImport.length }
 }
 
+/**
+ * Deletes an uninvoiced entry. A row already attached to an invoice is refused
+ * rather than silently skipped: removing it would leave that invoice's stored
+ * totals unbacked by the timesheet they were computed from. Delete the invoice
+ * first, which releases its entries, then delete the entry.
+ */
+export async function removeTimesheetEntry(entryId: number): Promise<void> {
+  const deleted = await deleteTimesheetEntry(entryId)
+  if (!deleted) {
+    throw new ValidationError("Entry not found, or it belongs to an invoice. Delete the invoice first.")
+  }
+}
+
 export interface GenerateInvoiceOptions {
   /** Force a specific sequence instead of taking the lowest free one. */
   sequence?: number
+  /** One line per entry showing its own task, instead of one line per day. */
+  taskPerRow?: boolean
 }
 
 /**
@@ -135,7 +152,11 @@ export async function generateInvoice(
     const entries = await getSelectedTimesheetEntries(entryIds)
     if (entries.length !== entryIds.length) throw new ValidationError("Some selected entries no longer exist.")
 
-    const totals = buildInvoiceTotals(entries, { isKleinunternehmer: true, vatRate: DEFAULT_VAT_RATE })
+    const totals = buildInvoiceTotals(entries, {
+      isKleinunternehmer: true,
+      vatRate: DEFAULT_VAT_RATE,
+      taskPerRow: options.taskPerRow,
+    })
     const [firstEntry] = entries
     const [client] = (await getClients()).filter((candidate) => candidate.id === firstEntry.client_id)
     if (!client) throw new ValidationError("Client not found.")
@@ -247,14 +268,20 @@ export function parseEntryIds(input: unknown): number[] {
 }
 
 export function parseGenerateOptions(input: unknown): GenerateInvoiceOptions {
-  const { sequence } = asRecord(input)
-  if (sequence === undefined || sequence === null) return {}
+  const { sequence, taskPerRow } = asRecord(input)
+  const options: GenerateInvoiceOptions = {}
+
+  const perRow = optionalBoolean(taskPerRow, "taskPerRow")
+  if (perRow !== undefined) options.taskPerRow = perRow
+
+  if (sequence === undefined || sequence === null) return options
 
   const parsed = requirePositiveInt(sequence, "sequence")
   if (parsed > MAX_INVOICE_SEQUENCE) {
     throw new ValidationError(`sequence must be ${MAX_INVOICE_SEQUENCE} or lower`)
   }
-  return { sequence: parsed }
+  options.sequence = parsed
+  return options
 }
 
 function asRecord(value: unknown, field = "body"): Record<string, unknown> {
