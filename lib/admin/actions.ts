@@ -149,7 +149,9 @@ import {
   generateInvoice,
   importTimesheetCsv,
   MAX_CSV_BYTES,
+  parseGenerateOptions,
   removeInvoice,
+  removeTimesheetEntry,
   saveClient,
 } from "@/lib/invoicing/service"
 import { requirePositiveInt, requirePositiveIntArray, ValidationError } from "@/lib/invoicing/validate"
@@ -185,6 +187,20 @@ export async function addTimesheetEntryAction(formData: FormData): Promise<Actio
     })
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Failed to add timesheet entry." }
+  }
+
+  revalidatePath("/admin/timesheet")
+  return { success: true }
+}
+
+export async function deleteTimesheetEntryAction(entryId: number): Promise<ActionResult> {
+  const authError = await requireAuth()
+  if (authError) return authError
+
+  try {
+    await removeTimesheetEntry(requirePositiveInt(entryId, "entryId"))
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to delete timesheet entry." }
   }
 
   revalidatePath("/admin/timesheet")
@@ -246,7 +262,10 @@ export async function generateInvoiceAction(formData: FormData): Promise<ActionR
   if (rawEntryIds.length === 0) return { success: false, error: "Select at least one uninvoiced entry." }
 
   try {
-    const invoice = await generateInvoice(requirePositiveIntArray(rawEntryIds.map(String), "entryId"))
+    const invoice = await generateInvoice(
+      requirePositiveIntArray(rawEntryIds.map(String), "entryId"),
+      parseGenerateOptions({ taskPerRow: formValue(formData, "taskPerRow") })
+    )
 
     revalidatePath("/admin/timesheet")
     revalidatePath("/admin/invoices")
