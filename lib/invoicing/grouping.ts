@@ -1,4 +1,4 @@
-import type { InvoiceTotals, SelectedTimesheetEntry } from "./types"
+import type { InvoiceLineItem, InvoiceTotals, SelectedTimesheetEntry } from "./types"
 
 export const DEFAULT_VAT_RATE = 0.19
 export const KLEINUNTERNEHMER_NOTICE = "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet."
@@ -35,7 +35,7 @@ function entryDateLabel(entry: Pick<SelectedTimesheetEntry, "work_date" | "work_
 
 export function buildInvoiceTotals(
   entries: SelectedTimesheetEntry[],
-  options: { isKleinunternehmer?: boolean; vatRate?: number } = {}
+  options: { isKleinunternehmer?: boolean; vatRate?: number; taskPerRow?: boolean } = {}
 ): InvoiceTotals {
   if (entries.length === 0) {
     throw new Error("At least one timesheet entry is required")
@@ -53,22 +53,43 @@ export function buildInvoiceTotals(
 
   const [firstEntry] = entries
   const rate = firstEntry.hourly_rate_eur
-  const description = `Artistic Administration - ${firstEntry.client_name}`
-  const hoursByDateLabel = new Map<string, number>()
 
-  for (const entry of entries) {
-    const dateLabel = entryDateLabel(entry)
-    hoursByDateLabel.set(dateLabel, round2((hoursByDateLabel.get(dateLabel) ?? 0) + entry.hours))
+  /**
+   * Two itemisations. The default collapses entries onto one row per day under a
+   * single "Artistic Administration" label, which InvoiceDocument then hoists
+   * into the Leistung caption because every description matches. With taskPerRow
+   * each entry keeps its own row and task text, so the descriptions differ and
+   * the PDF renders the Beschreibung column instead. Callers already receive
+   * entries ordered by work_date, so the rows stay chronological either way.
+   */
+  let lineItems: InvoiceLineItem[]
+
+  if (options.taskPerRow) {
+    lineItems = entries.map((entry) => ({
+      date: entryDateLabel(entry),
+      description: entry.task,
+      hours: round2(entry.hours),
+      rate,
+      amount: round2(entry.hours * rate),
+    }))
+  } else {
+    const description = `Artistic Administration - ${firstEntry.client_name}`
+    const hoursByDateLabel = new Map<string, number>()
+
+    for (const entry of entries) {
+      const dateLabel = entryDateLabel(entry)
+      hoursByDateLabel.set(dateLabel, round2((hoursByDateLabel.get(dateLabel) ?? 0) + entry.hours))
+    }
+
+    const sortedDateLabels = [...hoursByDateLabel.entries()].sort(([a], [b]) => a.localeCompare(b))
+    lineItems = sortedDateLabels.map(([date, hours]) => ({
+      date,
+      description,
+      hours: round2(hours),
+      rate,
+      amount: round2(hours * rate),
+    }))
   }
-
-  const sortedDateLabels = [...hoursByDateLabel.entries()].sort(([a], [b]) => a.localeCompare(b))
-  const lineItems = sortedDateLabels.map(([date, hours]) => ({
-    date,
-    description,
-    hours: round2(hours),
-    rate,
-    amount: round2(hours * rate),
-  }))
 
   const periodDates = entries.flatMap((entry) => (entry.work_end_date ? [entry.work_date, entry.work_end_date] : [entry.work_date]))
   const subtotal = round2(lineItems.reduce((sum, item) => sum + item.amount, 0))

@@ -42,6 +42,44 @@ describe("invoicing grouping", () => {
     assert.equal(totals.total, 1790)
   })
 
+  it("itemizes one row per entry carrying its own task when taskPerRow is set", () => {
+    const totals = buildInvoiceTotals(
+      [
+        { ...baseEntry, id: 1, work_date: "2026-05-13", work_end_date: null, hours: 1.5, task: "Email" },
+        { ...baseEntry, id: 2, work_date: "2026-05-13", work_end_date: null, hours: 2.25, task: "Scheduling" },
+        { ...baseEntry, id: 3, work_date: "2026-05-21", work_end_date: "2026-05-31", hours: 41, task: "Admin" },
+      ],
+      { taskPerRow: true }
+    )
+
+    // Same-day entries stay separate here, unlike the default grouping above.
+    assert.deepEqual(totals.lineItems, [
+      { date: "2026-05-13", description: "Email", hours: 1.5, rate: 40, amount: 60 },
+      { date: "2026-05-13", description: "Scheduling", hours: 2.25, rate: 40, amount: 90 },
+      { date: "2026-05-21 - 2026-05-31", description: "Admin", hours: 41, rate: 40, amount: 1640 },
+    ])
+    assert.equal(totals.periodSummary, "2026-05-13, 2026-05-21, 2026-05-31")
+    assert.equal(totals.totalHours, 44.75)
+    assert.equal(totals.subtotal, 1790)
+    assert.equal(totals.vat, 0)
+    assert.equal(totals.total, 1790)
+  })
+
+  it("keeps totals identical whichever itemisation is used", () => {
+    const entries = [
+      { ...baseEntry, id: 1, work_date: "2026-05-13", work_end_date: null, hours: 1.5, task: "Email" },
+      { ...baseEntry, id: 2, work_date: "2026-05-13", work_end_date: null, hours: 2.25, task: "Scheduling" },
+      { ...baseEntry, id: 3, work_date: "2026-05-21", work_end_date: "2026-05-31", hours: 41, task: "Admin" },
+    ]
+    const grouped = buildInvoiceTotals(entries)
+    const perTask = buildInvoiceTotals(entries, { taskPerRow: true })
+
+    assert.equal(perTask.totalHours, grouped.totalHours)
+    assert.equal(perTask.subtotal, grouped.subtotal)
+    assert.equal(perTask.total, grouped.total)
+    assert.equal(perTask.periodSummary, grouped.periodSummary)
+  })
+
   it("rejects multi-client and already-invoiced selections", () => {
     assert.throws(
       () =>
