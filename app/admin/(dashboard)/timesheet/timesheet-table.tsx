@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { generateInvoiceAction } from "@/lib/admin/actions"
 import { useToast } from "@/components/admin/toast"
+import { DeleteTimesheetEntryButton } from "./delete-timesheet-entry-button"
 import type { Client, TimesheetEntry } from "@/lib/invoicing/types"
 
 type Props = {
@@ -16,6 +17,7 @@ export function TimesheetTable({ entries, clients }: Props) {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set())
   const [clientFilter, setClientFilter] = useState("all")
   const [showInvoiced, setShowInvoiced] = useState(false)
+  const [taskPerRow, setTaskPerRow] = useState(false)
   const [isPending, startTransition] = useTransition()
   const { show } = useToast()
   const router = useRouter()
@@ -75,6 +77,7 @@ export function TimesheetTable({ entries, clients }: Props) {
   const generate = () => {
     const formData = new FormData()
     for (const id of selectedIds) formData.append("entryId", String(id))
+    if (taskPerRow) formData.append("taskPerRow", "true")
 
     startTransition(async () => {
       const result = await generateInvoiceAction(formData)
@@ -137,14 +140,25 @@ export function TimesheetTable({ entries, clients }: Props) {
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={generate}
-          disabled={selectedCount === 0 || hasMixedClientSelection || isPending}
-          className="rounded-md bg-accent px-4 py-2 font-mono text-xs font-semibold text-bg transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {isPending ? "Generating…" : `Generate invoice (${selectedCount})`}
-        </button>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 font-mono text-xs text-text-muted">
+            <input
+              type="checkbox"
+              checked={taskPerRow}
+              onChange={(event) => setTaskPerRow(event.target.checked)}
+            />
+            Task per row
+          </label>
+
+          <button
+            type="button"
+            onClick={generate}
+            disabled={selectedCount === 0 || hasMixedClientSelection || isPending}
+            className="rounded-md bg-accent px-4 py-2 font-mono text-xs font-semibold text-bg transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isPending ? "Generating…" : `Generate invoice (${selectedCount})`}
+          </button>
+        </div>
       </div>
 
       {hasMixedClientSelection ? (
@@ -171,12 +185,13 @@ export function TimesheetTable({ entries, clients }: Props) {
               <th className="px-4 py-3">Task</th>
               <th className="px-4 py-3">Client</th>
               <th className="px-4 py-3">Invoice</th>
+              <th className="px-4 py-3"> </th>
             </tr>
           </thead>
           <tbody>
             {visibleEntries.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center font-mono text-xs text-text-muted">
+                <td colSpan={7} className="px-4 py-8 text-center font-mono text-xs text-text-muted">
                   No entries match this view.
                 </td>
               </tr>
@@ -210,6 +225,9 @@ export function TimesheetTable({ entries, clients }: Props) {
                       ) : (
                         <span className="text-text-muted">—</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {entry.invoice_id === null ? <DeleteTimesheetEntryButton entryId={entry.id} /> : null}
                     </td>
                   </tr>
                 )
