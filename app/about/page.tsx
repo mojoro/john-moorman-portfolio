@@ -117,13 +117,13 @@ export default function AboutPage() {
           is a production management platform for live performance, where I work
           fullstack.{" "}
           <Link
-            href="/work/spacifik"
+            href="/work/hotel-agentur"
             className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
           >
-            Spacifik
+            Hotel Agentur
           </Link>{" "}
-          is a Berlin web and marketing agency, where I handle technical SEO,
-          Python content pipelines, and performance across a multi-site hotel
+          is a hotel marketing agency, where I handle technical SEO, Python
+          content pipelines, and performance across a multi-site hotel
           portfolio. Both are client-owned codebases, so the details stay with
           the clients.
         </p>
