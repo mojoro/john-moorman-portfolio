@@ -6,6 +6,7 @@ import {
   requireInvoicePrefix,
   requirePositiveInt,
   requirePositiveIntArray,
+  optionalBoolean,
   optionalDate,
   ValidationError,
 } from "./validate"
@@ -63,6 +64,27 @@ describe("entry id validation", () => {
   it("rejects non-positive integers", () => {
     assert.throws(() => requirePositiveInt(-3, "id"), ValidationError)
     assert.throws(() => requirePositiveInt("abc", "id"), ValidationError)
+  })
+})
+
+describe("optional boolean validation", () => {
+  it("accepts booleans and the string forms a checkbox field sends", () => {
+    assert.equal(optionalBoolean(true, "taskPerRow"), true)
+    assert.equal(optionalBoolean(false, "taskPerRow"), false)
+    assert.equal(optionalBoolean("true", "taskPerRow"), true)
+    assert.equal(optionalBoolean("false", "taskPerRow"), false)
+  })
+
+  it("leaves absent values undefined rather than defaulting to false", () => {
+    assert.equal(optionalBoolean(undefined, "taskPerRow"), undefined)
+    assert.equal(optionalBoolean(null, "taskPerRow"), undefined)
+    assert.equal(optionalBoolean("", "taskPerRow"), undefined)
+  })
+
+  it("rejects values that only look truthy", () => {
+    for (const value of ["yes", "1", 1, "TRUE", {}]) {
+      assert.throws(() => optionalBoolean(value, "taskPerRow"), ValidationError)
+    }
   })
 })
 

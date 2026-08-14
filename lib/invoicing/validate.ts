@@ -82,3 +82,15 @@ export function optionalString(value: unknown): string | null {
   if (typeof value !== "string") return null
   return value.trim() || null
 }
+
+/**
+ * Absent stays undefined so callers can leave a flag unset rather than forcing
+ * false. Strings are accepted because form fields arrive as "true"/"false".
+ */
+export function optionalBoolean(value: unknown, field: string): boolean | undefined {
+  if (value === undefined || value === null || value === "") return undefined
+  if (typeof value === "boolean") return value
+  if (value === "true") return true
+  if (value === "false") return false
+  throw new ValidationError(`${field} must be a boolean`)
+}
