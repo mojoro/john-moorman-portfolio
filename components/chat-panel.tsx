@@ -184,6 +184,49 @@ export function ChatPanel() {
     if (list && wasPinned) list.scrollTop = list.scrollHeight
   }, [input, open])
 
+  // Phones: the software keyboard shrinks the visual viewport but leaves the
+  // layout viewport alone, so a `fixed inset-0` panel keeps its full height and
+  // the browser scrolls its header off the top to reveal the composer. Measure
+  // the strip the keyboard covers and let the panel give up that much from the
+  // message list instead of moving.
+  //
+  // innerHeight appears here only inside a delta. When the mobile toolbar
+  // slides, innerHeight and visualViewport.height move together and the result
+  // holds still, so this does not reintroduce the lurch CLAUDE.md warns about.
+  // Without the API (older browsers) nothing is written and the panel behaves
+  // exactly as it did before.
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!open || !vv) return
+
+    const root = document.documentElement
+    let frame = 0
+
+    const measure = () => {
+      frame = 0
+      const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+      root.style.setProperty("--chat-keyboard", `${Math.round(covered)}px`)
+      root.style.setProperty("--chat-viewport-top", `${Math.round(vv.offsetTop)}px`)
+      const list = messagesRef.current
+      if (list) list.scrollTop = list.scrollHeight
+    }
+
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure)
+    }
+
+    measure()
+    vv.addEventListener("resize", schedule)
+    vv.addEventListener("scroll", schedule)
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      vv.removeEventListener("resize", schedule)
+      vv.removeEventListener("scroll", schedule)
+      root.style.removeProperty("--chat-keyboard")
+      root.style.removeProperty("--chat-viewport-top")
+    }
+  }, [open])
+
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || streaming || limitReached) return
@@ -342,6 +385,10 @@ export function ChatPanel() {
             }
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed inset-0 z-50 flex flex-col bg-bg md:inset-auto md:bottom-0 md:right-0 md:top-0 md:w-[420px] md:border-l md:border-border md:shadow-2xl md:shadow-shadow-cast"
+            style={{
+              marginTop: "var(--chat-viewport-top, 0px)",
+              paddingBottom: "var(--chat-keyboard, 0px)",
+            }}
             role="dialog"
             aria-label="Chat with John's portfolio"
           >
