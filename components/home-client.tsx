@@ -219,7 +219,7 @@ export function HomeClient({
             <SectionReveal delay={0.1}>
               <div className="mt-16">
                 <h3 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">
-                  Fun, Open Source Projects
+                  Open Source Projects
                 </h3>
                 <p className="mt-3 max-w-xl text-sm text-text-secondary">
                   Things I built because I wanted them to exist. No client, no
