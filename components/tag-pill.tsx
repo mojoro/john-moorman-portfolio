@@ -48,6 +48,10 @@ export function TagPill({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
+      // Tags are secondary navigation, and an index page carries dozens of
+      // pills. Viewport prefetching them floods the network with archives
+      // nobody asked for; false still warms the route on hover.
+      prefetch={false}
       className={`${BASE} ${FOCUS} ${overCardLink ? OVER_CARD : ""} ${state}`}
     >
       {children}
