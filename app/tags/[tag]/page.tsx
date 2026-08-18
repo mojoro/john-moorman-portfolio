@@ -1,4 +1,4 @@
-import { getAllTags, getTagArchive, type ContentType } from "@/lib/tags"
+import { getAllTags, getTagArchive, tagHref, type ContentType } from "@/lib/tags"
 import { type Post } from "@/lib/content"
 import { TagPill } from "@/components/tag-pill"
 import Link from "next/link"
@@ -69,33 +69,39 @@ function PostRow({ post, type }: { post: Post; type: ContentType }) {
   const tags = post.frontmatter.tags ?? []
 
   return (
-    <article className="py-6 first:pt-0 last:pb-0">
-      <Link href={`/${type}/${post.slug}/`} className="group block">
-        <time
-          dateTime={post.frontmatter.date}
-          className="font-mono text-xs text-text-muted"
+    <article className="group relative py-6 first:pt-0 last:pb-0">
+      <time
+        dateTime={post.frontmatter.date}
+        className="font-mono text-xs text-text-muted"
+      >
+        {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}
+      </time>
+      <h3 className="mt-1 font-display text-lg font-semibold transition-colors group-hover:text-accent">
+        {/* Stretched across the card so the whole row stays clickable, while
+            leaving the tag pills free to be links of their own. */}
+        <Link
+          href={`/${type}/${post.slug}/`}
+          className="rounded after:absolute after:inset-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
         >
-          {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </time>
-        <h3 className="mt-1 font-display text-lg font-semibold transition-colors group-hover:text-accent">
           {post.frontmatter.title}
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-          {post.frontmatter.description}
-        </p>
-        {tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {/* Inert: this card is already a link, and anchors cannot nest. */}
-            {tags.map((tag) => (
-              <TagPill key={tag}>{tag}</TagPill>
-            ))}
-          </div>
-        )}
-      </Link>
+        </Link>
+      </h3>
+      <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+        {post.frontmatter.description}
+      </p>
+      {tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <TagPill key={tag} href={tagHref(tag)} overCardLink>
+              {tag}
+            </TagPill>
+          ))}
+        </div>
+      )}
     </article>
   )
 }
