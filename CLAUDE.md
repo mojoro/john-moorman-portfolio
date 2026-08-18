@@ -50,16 +50,20 @@ app/
   layout.tsx                — root layout (sidebar nav, fonts, theme, circuit bg, analytics)
                               conditionally hides site shell on /admin routes
   about/page.tsx
-  blog/page.tsx             — blog index
+  blog/page.tsx             — blog index (?tag= filter)
   blog/loading.tsx          — skeleton loading state
   blog/[slug]/page.tsx      — individual post (MDX + comments section)
-  work/page.tsx             — work/case study index
+  work/page.tsx             — work/case study index (?tag= filter)
   work/loading.tsx          — skeleton loading state
   work/[slug]/page.tsx      — individual case study (MDX)
+  tags/page.tsx             — tag index, weighted by use
+  tags/loading.tsx          — skeleton loading state
+  tags/[tag]/page.tsx       — tag archive, work and blog grouped separately
+  tags/[tag]/loading.tsx    — skeleton loading state
   resume/page.tsx           — printable resume
   og/route.tsx              — OG image generation (next/og)
   robots.ts                 — robots.txt generation
-  sitemap.ts                — dynamic sitemap from blog + work posts
+  sitemap.ts                — dynamic sitemap from blog + work posts + tags
   api/chat/route.ts         — Ask John chatbot (Node runtime, streaming)
   api/contact/route.ts      — contact form handler
   api/invoicing/clients/route.ts        — GET list, POST create/update client
@@ -107,7 +111,8 @@ components/
   contact-form.tsx
   comment-form.tsx          — anonymous blog comment form with Turnstile
   comment-list.tsx          — server component rendering comments per post
-  tag-pill.tsx              — reusable tag badge with hover styles
+  tag-pill.tsx              — reusable tag badge, link when given an href
+  tag-filter.tsx            — server-rendered ?tag= chip row for index pages
   prefetch-routes.tsx       — eager site-wide prefetch after first page load
   print-button.tsx
   table-of-contents.tsx     — sticky TOC with scroll-spy for blog/work posts
@@ -137,6 +142,7 @@ lib/
   sanitize.ts               — input sanitization (stripDangerous + sanitizeInput)
   db.ts                     — Neon PostgreSQL client (conversations, comments, admin queries)
   toc.ts                    — TOC helpers (slugify, TocItem type)
+  tags.ts                   — tag vocabulary: slugs, counts, archives, ?tag= parsing
   actions/comments.ts       — server action for blog comment submission
 
   admin/
@@ -430,6 +436,21 @@ Copy `content/blog/_template.mdx` as a starting point.
 
 **Blog comments:** Anonymous with optional name, Cloudflare Turnstile captcha, stored in Neon PostgreSQL. Manageable via `/admin/comments`.
 
+### Tags
+
+Blog posts and work case studies share one tag vocabulary, derived entirely
+from frontmatter. There is no tag registry to maintain: add a tag to a post and
+its archive page exists on the next build.
+
+- `/tags/` lists every tag in use, cards for the heavily used ones and pills for the tail.
+- `/tags/<slug>/` lists everything carrying it, case studies and writing in separate sections. All prerendered via `generateStaticParams`, with `dynamicParams = false` so unknown slugs never render.
+- `/blog/?tag=<slug>` and `/work/?tag=<slug>` narrow the index in place. Server-rendered, no client JS, `noindex` so they don't compete with the archive.
+- Slugs come from `tagSlug` in `lib/tags.ts`, which reuses `slugify` from `lib/toc.ts` after turning non-alphanumeric runs into separators, so "Next.js" is `next-js`. Case and spacing variants of a tag fold together and the most-used spelling becomes the display name; a fold across genuinely different spellings logs a build warning.
+- Drafts are excluded, so an unpublished post cannot invent or inflate a tag.
+
+Prefer an existing spelling over a new one. "Tailwind" and "Tailwind CSS" are
+two tags, not one.
+
 ---
 
 ## Commit Conventions
@@ -466,7 +487,7 @@ Replace CursorGlow with segment-level trace proximity highlight
 - Performance target: Lighthouse 95+ / Core Web Vitals green
 - `@vercel/analytics` is active — check Vercel dashboard for real visitor data
 - Eager prefetching: all site routes are prefetched after first page load via `components/prefetch-routes.tsx`
-- `TagPill` component (`components/tag-pill.tsx`) is the single source of truth for tag badge styles — use it everywhere
+- `TagPill` component (`components/tag-pill.tsx`) is the single source of truth for tag badge styles — use it everywhere. Pass `href` to make it a link; **omit `href` inside a card that is itself a link**, because nesting anchors is invalid HTML and breaks hydration
 - `middleware.ts` sets an `x-pathname` header used by the root layout to detect admin routes
 - Circuit background is off-main-thread by design. Keep it that way. All heavy computation stays in `workers/`
 - Blog and work index pages have skeleton `loading.tsx` states for Suspense boundaries
