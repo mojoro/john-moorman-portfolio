@@ -329,3 +329,12 @@ body {
   height: 0;
   width: 0;
 }
+
+/* WebKit (Orion, older Safari) reserves a horizontal scrollbar on textareas
+   even when there is nothing to scroll to. With the thumb styled as a solid
+   6px accent bar above, that empty track reads as a teal rule across the
+   bottom of every message box. No textarea on the site sets wrap="off", so
+   they all soft-wrap and none can legitimately scroll sideways. */
+textarea {
+  overflow-x: hidden;
+}
