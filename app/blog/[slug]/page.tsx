@@ -8,6 +8,7 @@ import { MdxAudio } from "@/components/mdx-audio"
 import { OgLink } from "@/components/mdx-og-link"
 import { TableOfContents } from "@/components/table-of-contents"
 import { TagPill } from "@/components/tag-pill"
+import { tagHref } from "@/lib/tags"
 import { CommentList } from "@/components/comment-list"
 import { CommentForm } from "@/components/comment-form"
 import Link from "next/link"
@@ -211,7 +212,9 @@ export default async function BlogPost({ params }: Props) {
           {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {post.frontmatter.tags.map((tag) => (
-                <TagPill key={tag}>{tag}</TagPill>
+                <TagPill key={tag} href={tagHref(tag)}>
+                  {tag}
+                </TagPill>
               ))}
             </div>
           )}

@@ -80,6 +80,7 @@ export default async function BlogIndex() {
               </p>
               {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
+                  {/* Inert: the card is already a link, and anchors cannot nest. */}
                   {post.frontmatter.tags.map((tag) => (
                     <TagPill key={tag}>{tag}</TagPill>
                   ))}

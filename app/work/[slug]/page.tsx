@@ -9,6 +9,7 @@ import { OgLink } from "@/components/mdx-og-link"
 import { WorkDemo, LiveEmbed } from "@/components/work-demo"
 import { TableOfContents } from "@/components/table-of-contents"
 import { TagPill } from "@/components/tag-pill"
+import { tagHref } from "@/lib/tags"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -206,7 +207,9 @@ export default async function WorkPost({ params }: Props) {
         {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
             {post.frontmatter.tags.map((tag) => (
-              <TagPill key={tag}>{tag}</TagPill>
+              <TagPill key={tag} href={tagHref(tag)}>
+                {tag}
+              </TagPill>
             ))}
           </div>
         )}

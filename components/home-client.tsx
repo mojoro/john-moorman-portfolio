@@ -269,6 +269,7 @@ export function HomeClient({
                 </h3>
                 <p className="mt-2 text-text-secondary">{post.description}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
+                  {/* Inert: the card is already a link, and anchors cannot nest. */}
                   {post.tags.map((tag) => (
                     <TagPill key={tag}>{tag}</TagPill>
                   ))}
@@ -433,6 +434,7 @@ function ProjectCard({
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
+        {/* Inert: the card is already a link, and anchors cannot nest. */}
         {project.tags.map((tag) => (
           <TagPill key={tag}>{tag}</TagPill>
         ))}
@@ -477,6 +479,7 @@ function MiniProjectCard({
       </p>
       {tags && tags.length > 0 && (
         <div className="mt-auto flex flex-wrap gap-2 pt-4">
+          {/* Inert: the card is already a link, and anchors cannot nest. */}
           {tags.map((tag) => (
             <TagPill key={tag}>{tag}</TagPill>
           ))}
