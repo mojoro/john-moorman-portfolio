@@ -60,7 +60,7 @@ app/
   og/route.tsx              — OG image generation (next/og)
   robots.ts                 — robots.txt generation
   sitemap.ts                — dynamic sitemap from blog + work posts
-  api/chat/route.ts         — Ask John chatbot (Edge runtime, streaming)
+  api/chat/route.ts         — Ask John chatbot (Node runtime, streaming)
   api/contact/route.ts      — contact form handler
   api/invoicing/clients/route.ts        — GET list, POST create/update client
   api/invoicing/timesheet/route.ts      — GET entries, POST one or many
@@ -284,8 +284,7 @@ Animated PCB-style circuit board rendered on a canvas behind all content.
 ## Environment Variables
 
 ```
-ANTHROPIC_API_KEY=          # Server-side only — never NEXT_PUBLIC_
-OPENROUTER_API_KEY=         # Chatbot — both the primary model and the Gemini fallback
+OPENROUTER_API_KEY=         # Chatbot — both the primary model and the Gemini fallback. Server-side only, never NEXT_PUBLIC_
 UPSTASH_REDIS_REST_URL=     # Upstash console
 UPSTASH_REDIS_REST_TOKEN=   # Upstash console
 DATABASE_URL=               # Neon PostgreSQL connection string
@@ -366,7 +365,7 @@ Six legacy invoices still use the older `PREFIX-YYYY-MM-DD-NN` format. They live
 
 ## Chatbot — Ask John
 
-The most important feature. Lives at `POST /api/chat` (Edge runtime, streaming).
+The most important feature. Lives at `POST /api/chat` (Node runtime, streaming).
 
 **Provider chain:** OpenRouter GPT-5.6 Luna (primary) -> OpenRouter Gemini (fallback). Both stream through the same OpenRouter endpoint on `OPENROUTER_API_KEY`.
 
@@ -374,10 +373,10 @@ The most important feature. Lives at `POST /api/chat` (Edge runtime, streaming).
 1. Upstash Redis: 20 requests/IP/hour, sliding window
 2. Input capped at 500 chars server-side; output capped at 1200 tokens
 3. Conversation history capped at 10 turns per session
-4. Anthropic console spend limit set (separate console setting — keep it active)
+4. OpenRouter credit limit set (separate dashboard setting — keep it active)
 5. Honeypot field + timing check (reject if message arrives within 500ms of page load)
 6. Input sanitized (strip HTML, injection markers)
-7. `ANTHROPIC_API_KEY` server-side only; route handler only
+7. `OPENROUTER_API_KEY` server-side only; route handler only
 
 **Conversation storage:** Each session's messages are upserted to Neon PostgreSQL via `lib/db.ts`. IP addresses are SHA-256 hashed before storage. City and country are captured from Vercel geo headers.
 

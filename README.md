@@ -9,7 +9,7 @@ Personal portfolio and blog. Built with Next.js 15, TypeScript, and Tailwind CSS
 - **Homepage** with scroll-spy navigation, staggered Framer Motion reveals, and featured, ongoing, and fun project sections
 - **Work case studies** as MDX with table of contents, image lightbox, and per-project stats
 - **Blog** with MDX authoring, read time estimates, and anonymous comments (Neon + Turnstile)
-- **Ask John** AI chatbot (Anthropic Claude, Gemini fallback) with streaming responses, conversation persistence, rate limiting, and input sanitization
+- **Ask John** AI chatbot (GPT-5.6 Luna, Gemini fallback, both via OpenRouter) with streaming responses, conversation persistence, rate limiting, and input sanitization
 - **Resume** page with print-optimized layout
 - **Contact form** with honeypot spam protection
 - Eager site-wide prefetching for near-instant page transitions
@@ -25,7 +25,7 @@ Personal portfolio and blog. Built with Next.js 15, TypeScript, and Tailwind CSS
 | Styling | Tailwind CSS v4 |
 | Animation | Framer Motion |
 | Content | MDX via next-mdx-remote |
-| AI | Anthropic API (Claude), Google Gemini fallback |
+| AI | OpenRouter (GPT-5.6 Luna, Gemini fallback) |
 | Database | Neon PostgreSQL (serverless, Edge-compatible) |
 | Rate limiting | Upstash Redis |
 | Captcha | Cloudflare Turnstile |
@@ -45,8 +45,7 @@ pnpm dev                      # http://localhost:3000
 
 | Variable | Purpose |
 |----------|---------|
-| `ANTHROPIC_API_KEY` | Chatbot (server-only) |
-| `GOOGLE_AI_API_KEY` | Gemini fallback (server-only) |
+| `OPENROUTER_API_KEY` | Chatbot, primary model and fallback (server-only) |
 | `DATABASE_URL` | Neon PostgreSQL connection string |
 | `UPSTASH_REDIS_REST_URL` | Rate limiting |
 | `UPSTASH_REDIS_REST_TOKEN` | Rate limiting |
@@ -64,7 +63,7 @@ app/
   work/page.tsx             Work index
   work/[slug]/page.tsx      Case study (MDX)
   resume/page.tsx           Printable resume
-  api/chat/route.ts         Ask John chatbot (Edge, streaming)
+  api/chat/route.ts         Ask John chatbot (Node runtime, streaming)
   api/contact/route.ts      Contact form handler
   og/route.tsx              Dynamic OG image
 
