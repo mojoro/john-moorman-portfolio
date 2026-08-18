@@ -5,6 +5,7 @@ import Link from "next/link"
 import { SectionReveal } from "@/components/section-reveal"
 import { ContactForm } from "@/components/contact-form"
 import { TagPill } from "@/components/tag-pill"
+import { tagHref } from "@/lib/tag-slug"
 
 function SectionHeading({
   number,
@@ -256,7 +257,7 @@ export function HomeClient({
         <div className="mt-10 space-y-8">
           {blogPosts.map((post, i) => (
             <SectionReveal key={post.href} delay={i * 0.1}>
-              <a href={post.href} className="group block">
+              <div className="group relative">
                 <p className="font-mono text-sm text-text-muted">
                   {new Date(post.date).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -265,16 +266,24 @@ export function HomeClient({
                   })}
                 </p>
                 <h3 className="mt-2 text-xl font-medium text-text-primary transition-colors group-hover:text-accent">
-                  {post.title}
+                  {/* Stretched across the card so the whole row stays clickable,
+                      while leaving the tag pills free to be links of their own. */}
+                  <a
+                    href={post.href}
+                    className="rounded after:absolute after:inset-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                  >
+                    {post.title}
+                  </a>
                 </h3>
                 <p className="mt-2 text-text-secondary">{post.description}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {/* Inert: the card is already a link, and anchors cannot nest. */}
                   {post.tags.map((tag) => (
-                    <TagPill key={tag}>{tag}</TagPill>
+                    <TagPill key={tag} href={tagHref(tag)} overCardLink>
+                      {tag}
+                    </TagPill>
                   ))}
                 </div>
-              </a>
+              </div>
             </SectionReveal>
           ))}
         </div>
@@ -403,9 +412,8 @@ function ProjectCard({
   const shouldReduceMotion = useReducedMotion()
 
   return (
-    <m.a
-      href={project.href}
-      className="group relative block rounded-lg border border-border bg-bg-surface p-6 shadow-card transition-colors hover:border-accent/40"
+    <m.div
+      className="group relative rounded-lg border border-border bg-bg-surface p-6 shadow-card transition-colors hover:border-accent/40"
       whileHover={shouldReduceMotion ? {} : { y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
@@ -415,7 +423,14 @@ function ProjectCard({
       <div>
         <p className="mb-2 font-mono text-xs text-accent">Featured</p>
         <h3 className="text-xl font-medium text-text-primary transition-colors group-hover:text-accent">
-          {project.title}
+          {/* Stretched across the card so the whole card stays clickable,
+              while leaving the tag pills free to be links of their own. */}
+          <a
+            href={project.href}
+            className="rounded after:absolute after:inset-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          >
+            {project.title}
+          </a>
         </h3>
         <p className="mt-2 text-sm text-text-secondary">{project.summary}</p>
       </div>
@@ -434,12 +449,13 @@ function ProjectCard({
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {/* Inert: the card is already a link, and anchors cannot nest. */}
         {project.tags.map((tag) => (
-          <TagPill key={tag}>{tag}</TagPill>
+          <TagPill key={tag} href={tagHref(tag)} overCardLink>
+            {tag}
+          </TagPill>
         ))}
       </div>
-    </m.a>
+    </m.div>
   )
 }
 
@@ -457,16 +473,20 @@ function MiniProjectCard({
   tags?: readonly string[]
 }) {
   return (
-    <Link
-      href={href}
-      className="group flex h-full flex-col rounded-lg border border-border bg-bg-surface p-5 shadow-card transition-colors hover:border-accent/40"
-    >
+    <div className="group relative flex h-full flex-col rounded-lg border border-border bg-bg-surface p-5 shadow-card transition-colors hover:border-accent/40">
       <div className="flex items-baseline justify-between gap-3">
         <p className="font-medium text-text-primary transition-colors group-hover:text-accent">
-          {title}
-          <span className="ml-1.5 inline-block text-xl text-text-muted transition-all duration-300 group-hover:text-accent group-hover:translate-x-0.5">
-            &rarr;
-          </span>
+          {/* Stretched across the card so the whole card stays clickable,
+              while leaving the tag pills free to be links of their own. */}
+          <Link
+            href={href}
+            className="rounded after:absolute after:inset-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          >
+            {title}
+            <span className="ml-1.5 inline-block text-xl text-text-muted transition-all duration-300 group-hover:text-accent group-hover:translate-x-0.5">
+              &rarr;
+            </span>
+          </Link>
         </p>
         {meta && (
           <span className="shrink-0 font-mono text-[10px] text-text-muted">
@@ -479,13 +499,14 @@ function MiniProjectCard({
       </p>
       {tags && tags.length > 0 && (
         <div className="mt-auto flex flex-wrap gap-2 pt-4">
-          {/* Inert: the card is already a link, and anchors cannot nest. */}
           {tags.map((tag) => (
-            <TagPill key={tag}>{tag}</TagPill>
+            <TagPill key={tag} href={tagHref(tag)} overCardLink>
+              {tag}
+            </TagPill>
           ))}
         </div>
       )}
-    </Link>
+    </div>
   )
 }
 
