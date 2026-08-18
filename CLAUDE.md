@@ -112,6 +112,7 @@ components/
   comment-form.tsx          — anonymous blog comment form with Turnstile
   comment-list.tsx          — server component rendering comments per post
   tag-pill.tsx              — reusable tag badge, link when given an href
+                              (`overCardLink` for pills sitting on a card link)
   tag-filter.tsx            — server-rendered ?tag= chip row for index pages
   prefetch-routes.tsx       — eager site-wide prefetch after first page load
   print-button.tsx
@@ -142,7 +143,8 @@ lib/
   sanitize.ts               — input sanitization (stripDangerous + sanitizeInput)
   db.ts                     — Neon PostgreSQL client (conversations, comments, admin queries)
   toc.ts                    — TOC helpers (slugify, TocItem type)
-  tags.ts                   — tag vocabulary: slugs, counts, archives, ?tag= parsing
+  tag-slug.ts               — tagSlug/tagHref, the client-safe half of the tag helpers
+  tags.ts                   — tag vocabulary: counts, archives, ?tag= parsing
   actions/comments.ts       — server action for blog comment submission
 
   admin/
@@ -451,6 +453,28 @@ its archive page exists on the next build.
 Prefer an existing spelling over a new one. "Tailwind" and "Tailwind CSS" are
 two tags, not one.
 
+#### Cards that carry tag pills
+
+Every card listing tags is a **stretched link**, never a link wrapping the
+card. An anchor cannot contain another anchor, so the layout is:
+
+- the card is a `group relative` container (`article` or `div`, not `a`),
+- its own link sits on the **title** and grows `after:absolute after:inset-0`,
+  which keeps the whole card clickable, thumbnail included,
+- the pills are `<TagPill href overCardLink>`, which raises them above that
+  overlay with `relative z-10`.
+
+Nothing between the card and the title link may be positioned, or the overlay
+shrinks to that ancestor instead of the card. The work card's content column is
+deliberately unpositioned for this reason, and its ↗ anchors to the card with a
+`top-44 sm:top-4` offset that clears the `h-40` thumbnail on narrow screens.
+
+`overCardLink` also sets `pointer-events-none md:pointer-events-auto`, so below
+`md` a tap anywhere on the card, pills included, follows the card's own link.
+Pills are 20px tall; on a touch screen they are a mis-tap, not a target. The
+pill stays keyboard reachable at every width, which is the intended escape
+hatch.
+
 ---
 
 ## Commit Conventions
@@ -487,7 +511,7 @@ Replace CursorGlow with segment-level trace proximity highlight
 - Performance target: Lighthouse 95+ / Core Web Vitals green
 - `@vercel/analytics` is active — check Vercel dashboard for real visitor data
 - Eager prefetching: all site routes are prefetched after first page load via `components/prefetch-routes.tsx`
-- `TagPill` component (`components/tag-pill.tsx`) is the single source of truth for tag badge styles — use it everywhere. Pass `href` to make it a link; **omit `href` inside a card that is itself a link**, because nesting anchors is invalid HTML and breaks hydration
+- `TagPill` component (`components/tag-pill.tsx`) is the single source of truth for tag badge styles — use it everywhere. Pass `href` to make it a link, and add `overCardLink` for a pill inside a card. See "Cards that carry tag pills" under Tags: the card link must never be the pill's ancestor, because an anchor inside an anchor is invalid HTML and breaks hydration
 - `middleware.ts` sets an `x-pathname` header used by the root layout to detect admin routes
 - Circuit background is off-main-thread by design. Keep it that way. All heavy computation stays in `workers/`
 - Blog and work index pages have skeleton `loading.tsx` states for Suspense boundaries
