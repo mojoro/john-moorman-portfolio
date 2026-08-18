@@ -1,5 +1,5 @@
 import { getPosts, type Post } from "@/lib/content"
-import { firstTagParam, getAllTags, postHasTag } from "@/lib/tags"
+import { firstTagParam, getAllTags, postHasTag, tagHref } from "@/lib/tags"
 import { TagPill } from "@/components/tag-pill"
 import { TagFilter } from "@/components/tag-filter"
 import Image from "next/image"
@@ -80,12 +80,10 @@ function ProjectCard({ post }: { post: Post }) {
   const stats = (post.frontmatter.stats ?? []).slice(0, 2)
 
   return (
-    <Link
-      key={post.slug}
-      href={`/work/${post.slug}`}
-      className={`group relative block overflow-hidden rounded-lg border transition-colors ${
+    <article
+      className={`group relative overflow-hidden rounded-lg border transition-colors ${
         isUpcoming
-          ? "pointer-events-none border-dashed border-border/60 opacity-50"
+          ? "border-dashed border-border/60 opacity-50"
           : "border-border bg-bg-surface shadow-card hover:border-accent/40"
       }`}
     >
@@ -102,9 +100,17 @@ function ProjectCard({ post }: { post: Post }) {
           </div>
         )}
 
-        <div className="relative flex-1 p-6">
+        {/* Not positioned: the title's stretched overlay has to reach the whole
+            card, thumbnail included, so the card must be its nearest ancestor.
+            That leaves the arrow anchored to the card too, hence the stacked
+            offset below, which clears the h-40 thumbnail on narrow screens. */}
+        <div className="flex-1 p-6">
           {!isUpcoming && (
-            <span className="absolute top-4 right-4 text-2xl leading-none text-text-muted transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+            <span
+              className={`absolute right-4 text-2xl leading-none text-text-muted transition-all duration-300 group-hover:text-accent group-hover:-translate-y-0.5 group-hover:translate-x-0.5 ${
+                thumbnail ? "top-44 sm:top-4" : "top-4"
+              }`}
+            >
               ↗
             </span>
           )}
@@ -117,7 +123,16 @@ function ProjectCard({ post }: { post: Post }) {
             {statusBadge(status)}
           </div>
           <h2 className="mt-2 font-display text-xl font-semibold transition-colors group-hover:text-accent">
-            {post.frontmatter.title}
+            {isUpcoming ? (
+              post.frontmatter.title
+            ) : (
+              <Link
+                href={`/work/${post.slug}/`}
+                className="rounded after:absolute after:inset-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+              >
+                {post.frontmatter.title}
+              </Link>
+            )}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
             {post.frontmatter.description}
@@ -134,15 +149,20 @@ function ProjectCard({ post }: { post: Post }) {
           )}
           {post.frontmatter.tags && post.frontmatter.tags.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
-              {/* Inert: the card is already a link, and anchors cannot nest. */}
-              {post.frontmatter.tags.map((tag) => (
-                <TagPill key={tag}>{tag}</TagPill>
-              ))}
+              {post.frontmatter.tags.map((tag) =>
+                isUpcoming ? (
+                  <TagPill key={tag}>{tag}</TagPill>
+                ) : (
+                  <TagPill key={tag} href={tagHref(tag)} overCardLink>
+                    {tag}
+                  </TagPill>
+                )
+              )}
             </div>
           )}
         </div>
       </div>
-    </Link>
+    </article>
   )
 }
 
