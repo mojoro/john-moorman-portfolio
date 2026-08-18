@@ -1,5 +1,7 @@
 import { getPosts, type Post } from "@/lib/content"
+import { firstTagParam, getAllTags, postHasTag } from "@/lib/tags"
 import { TagPill } from "@/components/tag-pill"
+import { TagFilter } from "@/components/tag-filter"
 import Image from "next/image"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -8,7 +10,7 @@ const TITLE = "Work · Case Studies by John Moorman"
 const DESCRIPTION =
   "Selected engineering case studies: a €74K/year automation suite for Berlin Opera Academy, an AI real-estate intelligence pipeline, an AI job-search SaaS, and a shelf of shipped personal projects."
 
-export const metadata: Metadata = {
+const BASE_METADATA: Metadata = {
   title: "Work",
   description: DESCRIPTION,
   alternates: { canonical: "/work" },
@@ -33,6 +35,19 @@ export const metadata: Metadata = {
     creator: "@John_Moorman",
     site: "@John_Moorman",
   },
+}
+
+interface Props {
+  searchParams: Promise<{ tag?: string | string[] }>
+}
+
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  const active = firstTagParam((await searchParams).tag)
+  // A filtered view is a slice of the tag archive; let the archive rank instead.
+  if (!active) return BASE_METADATA
+  return { ...BASE_METADATA, robots: { index: false, follow: true } }
 }
 
 function statusBadge(status?: string) {
@@ -131,8 +146,23 @@ function ProjectCard({ post }: { post: Post }) {
   )
 }
 
-export default async function WorkIndex() {
-  const allPosts = await getPosts("work")
+export default async function WorkIndex({ searchParams }: Props) {
+  const activeSlug = firstTagParam((await searchParams).tag)
+  const [everyPost, allTags] = await Promise.all([
+    getPosts("work"),
+    getAllTags(),
+  ])
+
+  const tags = allTags
+    .filter((tag) => tag.workCount > 0)
+    .map((tag) => ({ name: tag.name, slug: tag.slug, count: tag.workCount }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+
+  const allPosts = activeSlug
+    ? everyPost.filter((p) => postHasTag(p, activeSlug))
+    : everyPost
+  const activeName = tags.find((tag) => tag.slug === activeSlug)?.name
+
   const funPosts = allPosts.filter((p) => p.frontmatter.fun)
 
   // Live engagements lead, then the real-estate pipeline and BOA as the
@@ -166,13 +196,33 @@ export default async function WorkIndex() {
         Selected work with technical depth.
       </p>
 
+      <TagFilter
+        basePath="/work/"
+        tags={tags}
+        activeSlug={activeSlug}
+        label="Filter case studies by tag"
+      />
+
       {/* Project List */}
       <div className="mt-10 space-y-6">
         {ordered.map((post) => (
           <ProjectCard key={post.slug} post={post} />
         ))}
 
-        {allPosts.length === 0 && (
+        {allPosts.length === 0 && activeSlug && (
+          <p className="text-text-muted">
+            Nothing tagged {activeName ?? activeSlug} yet.{" "}
+            <Link
+              href="/work/"
+              className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
+            >
+              Show every case study
+            </Link>
+            .
+          </p>
+        )}
+
+        {everyPost.length === 0 && (
           <p className="text-text-muted">Case studies coming soon.</p>
         )}
       </div>

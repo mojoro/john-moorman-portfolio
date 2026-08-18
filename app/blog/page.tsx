@@ -1,5 +1,7 @@
 import { getPosts } from "@/lib/content"
+import { firstTagParam, getAllTags, postHasTag } from "@/lib/tags"
 import { TagPill } from "@/components/tag-pill"
+import { TagFilter } from "@/components/tag-filter"
 import Link from "next/link"
 import type { Metadata } from "next"
 
@@ -8,7 +10,7 @@ const TITLE = "Engineering Blog by John Moorman"
 const DESCRIPTION =
   "Posts on AI-native development, automation, web engineering, and lessons from shipping production systems with Next.js, TypeScript, and the Anthropic API."
 
-export const metadata: Metadata = {
+const BASE_METADATA: Metadata = {
   title: "Blog",
   description: DESCRIPTION,
   alternates: { canonical: "/blog" },
@@ -35,8 +37,32 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function BlogIndex() {
-  const posts = await getPosts("blog")
+interface Props {
+  searchParams: Promise<{ tag?: string | string[] }>
+}
+
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  const active = firstTagParam((await searchParams).tag)
+  // A filtered view is a slice of the tag archive; let the archive rank instead.
+  if (!active) return BASE_METADATA
+  return { ...BASE_METADATA, robots: { index: false, follow: true } }
+}
+
+export default async function BlogIndex({ searchParams }: Props) {
+  const activeSlug = firstTagParam((await searchParams).tag)
+  const [allPosts, allTags] = await Promise.all([getPosts("blog"), getAllTags()])
+
+  const tags = allTags
+    .filter((tag) => tag.blogCount > 0)
+    .map((tag) => ({ name: tag.name, slug: tag.slug, count: tag.blogCount }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+
+  const posts = activeSlug
+    ? allPosts.filter((post) => postHasTag(post, activeSlug))
+    : allPosts
+  const activeName = tags.find((tag) => tag.slug === activeSlug)?.name
 
   return (
     <section className="py-20">
@@ -53,6 +79,13 @@ export default async function BlogIndex() {
         Writing about things I&apos;ve built, lessons learned, and the
         occasional deep dive into a technical problem.
       </p>
+
+      <TagFilter
+        basePath="/blog/"
+        tags={tags}
+        activeSlug={activeSlug}
+        label="Filter posts by tag"
+      />
 
       <div className="mt-12 divide-y divide-accent/15">
         {posts.map((post) => (
@@ -90,7 +123,20 @@ export default async function BlogIndex() {
           </article>
         ))}
 
-        {posts.length === 0 && (
+        {posts.length === 0 && activeSlug && (
+          <p className="text-text-muted">
+            Nothing tagged {activeName ?? activeSlug} yet.{" "}
+            <Link
+              href="/blog/"
+              className="text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:decoration-accent"
+            >
+              Show every post
+            </Link>
+            .
+          </p>
+        )}
+
+        {allPosts.length === 0 && (
           <p className="text-text-muted">No posts yet. Check back soon.</p>
         )}
       </div>

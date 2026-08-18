@@ -154,3 +154,11 @@ export async function getTagArchive(
 export function postHasTag(post: Post, slug: string): boolean {
   return (post.frontmatter.tags ?? []).some((tag) => tagSlug(tag) === slug)
 }
+
+/** A `?tag=` value can arrive repeated or blank; take the first usable one. */
+export function firstTagParam(
+  value: string | string[] | undefined
+): string | undefined {
+  const raw = Array.isArray(value) ? value[0] : value
+  return raw?.trim() || undefined
+}
