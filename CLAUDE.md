@@ -132,6 +132,7 @@ workers/
 lib/
   content.ts                — MDX file loader (getPosts, getPost) with includeDrafts param
   chatbot-prompt.ts         — system prompt for the Ask John chatbot
+  circuit-watchdog.ts       — frame-cost watchdog shared by both circuit render paths
   ratelimit.ts              — Upstash Redis rate limiter
   sanitize.ts               — input sanitization (stripDangerous + sanitizeInput)
   db.ts                     — Neon PostgreSQL client (conversations, comments, admin queries)
@@ -263,6 +264,7 @@ Animated PCB-style circuit board rendered on a canvas behind all content.
 - **Fallback path (Safari < 17, older iOS):** `workers/circuit-generate.ts` handles generation in a worker; rendering runs on the main thread via requestAnimationFrame.
 - **Scroll effect:** canvas is 2x viewport height with two identical tiles. A CSS scroll-driven animation slides it from `translateY(0)` to `translateY(-50%)`, compositor-driven with zero JS lag.
 - **The viewport height is `lvh`, never `innerHeight`.** A phone resizes its layout viewport when the browser toolbar slides in or out, so `window.innerHeight` lurches mid-scroll and drags the board with it. The canvas box is sized in `lvh` and the tile height is measured off the element (`clientHeight / 2`), which is toolbar-immune. Below 768px the parallax is off entirely — scroll progress itself shifts when the toolbar moves, and no amount of stable arithmetic fixes that.
+- **Frame-rate watchdog (`lib/circuit-watchdog.ts`).** Both paths time their own `draw()` and back off if the device cannot afford it, rather than guessing from `navigator.hardwareConcurrency` or `deviceMemory` (wrong in both directions). Two signals: the mean cost of `draw()`, and the mean gap between draws, since `setInterval` does not skip frames the way rAF does and a stretched gap means the loop cannot be serviced on time. Two stages, both measured over a rolling 64-frame window (~2.1s at 33ms) with the first 10 frames after init/resize/regeneration/config/unhide discarded: **degrade** at a mean draw cost of 60% of the frame interval (~20ms of 33) or a mean gap of 1.6x the interval, which halves the density and drops 24 pulses to 8 (~24% cheaper draws, and the pulse cap is most of that — density only reaches the interior seeding and buys nothing below 0.5); **disable** at 85% (~28ms) if the thinner board is still over budget, which stops the loop, fades the canvas out and terminates the worker. Samples never accumulate while the page is hidden — a throttled tab is not a slow device, and the worker cannot read `document`, so visibility crosses by postMessage. `prefers-reduced-motion` draws one static frame and never starts a loop, so it is never watched. Any `circuit-config` event resets the window; an explicit `reset` restores full quality. Stage changes fire a `circuit-watchdog` CustomEvent on `window`.
 - **Interactivity:** cursor proximity highlighting on circuit segments, click-to-pulse effects.
 - **Admin controls:** `/admin/circuit` provides sliders for generation math parameters (local dev only).
 - Canvas width adjusts for the sidebar offset on desktop.
