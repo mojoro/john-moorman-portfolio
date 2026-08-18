@@ -1,6 +1,8 @@
 import { cache } from "react"
 import { getPosts, type Post } from "@/lib/content"
-import { slugify } from "@/lib/toc"
+import { tagSlug } from "@/lib/tag-slug"
+
+export { tagSlug, tagHref } from "@/lib/tag-slug"
 
 export type ContentType = "blog" | "work"
 
@@ -19,20 +21,6 @@ export interface TagArchive {
   slug: string
   blog: Post[]
   work: Post[]
-}
-
-/**
- * Heading anchors and tag URLs share one slugifier, but a tag turns every run
- * of non-alphanumerics into a separator first so "Next.js" reads as "next-js"
- * rather than "nextjs". Returns "" for a tag with nothing sluggable in it;
- * such a tag is unaddressable and gets dropped from the vocabulary.
- */
-export function tagSlug(tag: string): string {
-  return slugify(tag.replace(/[^\p{L}\p{N}]+/gu, " ").trim())
-}
-
-export function tagHref(tag: string): string {
-  return `/tags/${tagSlug(tag)}/`
 }
 
 /** Collapses whitespace so " Next.js " and "Next.js" are the same variant. */
