@@ -260,7 +260,7 @@ export function ChatPanel() {
       {/* Floating avatar trigger */}
       <m.button
         onClick={() => setOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 flex items-center justify-center w-[52px] h-[52px] rounded-full border-2 border-accent/40 bg-bg-surface shadow-lg shadow-shadow-cast transition-colors hover:border-accent/60 print:hidden ${
+        className={`fixed bottom-6 right-6 z-40 flex items-center justify-center w-[52px] h-[52px] cursor-pointer rounded-full border-2 border-accent/40 bg-bg-surface shadow-lg shadow-shadow-cast transition-colors hover:border-accent/60 print:hidden ${
           open ? "hidden" : ""
         }`}
         whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
@@ -320,7 +320,7 @@ export function ChatPanel() {
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="rounded-md p-1.5 text-text-muted transition-colors hover:text-text-primary"
+                className="cursor-pointer rounded-md p-1.5 text-text-muted transition-colors hover:text-text-primary"
                 aria-label="Close chat"
               >
                 <CloseIcon />
@@ -455,7 +455,7 @@ export function ChatPanel() {
                 <button
                   type="submit"
                   disabled={!input.trim() || streaming || limitReached}
-                  className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-bg transition-opacity hover:opacity-90 disabled:opacity-40"
+                  className="cursor-pointer rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-bg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                   aria-label="Send message"
                 >
                   <SendIcon />
