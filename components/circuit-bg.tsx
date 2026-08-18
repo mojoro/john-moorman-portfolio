@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 
+import { createFrameWatchdog } from "@/lib/circuit-watchdog"
+
 /**
  * PCB circuit board background.
  *
@@ -19,6 +21,11 @@ import { useEffect, useRef, useState } from "react"
  * The box is measured in lvh and the parallax is off below 768px, because a
  * phone's toolbar resizes the layout viewport mid-scroll and would otherwise
  * drag the board with it.
+ *
+ * Frame-rate watchdog: both paths time their own draw() and back off when a
+ * device cannot keep up — first by thinning the board, then by shutting it
+ * down. See lib/circuit-watchdog.ts for the thresholds. Stage changes are
+ * announced on window as a `circuit-watchdog` CustomEvent.
  *
  * StrictMode note: React StrictMode (dev) runs effects twice — mount,
  * cleanup, mount. transferControlToOffscreen is a one-shot operation and
@@ -119,6 +126,22 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       bodyResizeObs.disconnect()
     }
 
+    // ── Watchdog plumbing (shared by both paths) ───────────────────────────
+
+    const FADE_MS = 500
+    let fadeTimer: ReturnType<typeof setTimeout> | undefined
+
+    const announce = (stage: "degraded" | "disabled") =>
+      window.dispatchEvent(new CustomEvent("circuit-watchdog", { detail: { stage } }))
+
+    // A background that blinks out mid-scroll reads as a bug. Fading it leaves
+    // a page that simply has no board, which is a look the design survives.
+    const fadeOutCanvas = (onFaded: () => void) => {
+      canvas.style.transition = `opacity ${FADE_MS}ms ease-out`
+      canvas.style.opacity = "0"
+      fadeTimer = setTimeout(onFaded, FADE_MS + 50)
+    }
+
     // ── Primary path: OffscreenCanvas ──────────────────────────────────────
 
     if (typeof canvas.transferControlToOffscreen === "function") {
@@ -139,6 +162,22 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
         { type: "init", canvas: offscreen!, w: cw, h: ch, dpr, reducedMotion, theme: getTheme(), accent: getAccent(), ink: getInk(), density: getDensity() },
         [offscreen!],
       )
+
+      // The worker has no document to read visibility from, and a throttled
+      // background tab must not be mistaken for a slow device.
+      let boardDisabled = false
+      const onVisibility = () => worker.postMessage({ type: "visibility", hidden: document.hidden })
+      document.addEventListener("visibilitychange", onVisibility)
+      onVisibility()
+
+      worker.onmessage = (e: MessageEvent<{ type: "watchdog"; stage: "degraded" | "disabled" }>) => {
+        if (e.data.type !== "watchdog") return
+        announce(e.data.stage)
+        if (e.data.stage !== "disabled" || boardDisabled) return
+        // The worker has already stopped its loop and left the last frame up.
+        boardDisabled = true
+        fadeOutCanvas(() => worker.terminate())
+      }
 
       let lastW = cw
       let lastH = ch
@@ -190,12 +229,14 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
         navOffset && window.innerWidth >= 768 ? clientX - 240 : clientX
 
       const onMouseMove = (e: MouseEvent) => {
+        if (boardDisabled) return
         const now = performance.now()
         if (now - lastPointerSend < 33) return // ~30fps throttle
         lastPointerSend = now
         worker.postMessage({ type: "pointer", x: translateX(e.clientX), y: e.clientY + getScrollOffsetY(), pressed: false })
       }
       const onClick = (e: MouseEvent) => {
+        if (boardDisabled) return
         worker.postMessage({ type: "pointer", x: translateX(e.clientX), y: e.clientY + getScrollOffsetY(), pressed: true })
       }
       window.addEventListener("mousemove", onMouseMove)
@@ -203,10 +244,12 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
 
       return () => {
         clearTimeout(rt)
+        clearTimeout(fadeTimer)
         window.removeEventListener("resize", onResize)
         window.removeEventListener("circuit-config", onConfig)
         window.removeEventListener("mousemove", onMouseMove)
         window.removeEventListener("click", onClick)
+        document.removeEventListener("visibilitychange", onVisibility)
         detachScroll()
         obs.disconnect()
         worker.terminate()
@@ -237,6 +280,17 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
     let glowPh = new Float32Array(0), glowSp = new Float32Array(0), glowCount = 0
     let pulseData: PulseData[] = []
     let w = 0, h = 0, ready = false, lastW = 0, lastH = 0
+
+    // This path paints on the main thread, so a device that cannot keep up
+    // costs the whole page rather than one worker. Same thresholds as the
+    // worker path; the loop below is gated to the same 33ms frame interval.
+    const FRAME_INTERVAL = 33
+    let watchdog = createFrameWatchdog()
+    let watchdogDensity = 1.0
+    // Mirrors maxPulses in the worker. The generator hands back one pulse per
+    // four traces up to 24; the watchdog trims that list on the way in.
+    let pulseLimit = 24
+    let fallbackDisabled = false
 
     let cachedR = 100, cachedG = 255, cachedB = 218
     let inkR = 100, inkG = 255, inkB = 218
@@ -276,11 +330,13 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       canvas.width = w * dpr; canvas.height = h * 2 * dpr
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       genId++
+      // A regeneration invalidates every sample taken against the old board.
+      watchdog.reset()
       genWorker.postMessage({
         w,
         h,
         reducedMotion,
-        density: getDensity(),
+        density: getDensity() * watchdogDensity,
         id: genId,
       })
     }
@@ -292,7 +348,7 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
       padX = d.padX; padY = d.padY; padR = d.padR; padCount = d.padCount
       glowX = d.glowX; glowY = d.glowY; glowR = d.glowR
       glowPh = d.glowPh; glowSp = d.glowSp; glowCount = d.glowCount
-      pulseData = d.pulses
+      pulseData = (d.pulses as PulseData[]).slice(0, pulseLimit)
       ready = true
       updateColors()
       if (reducedMotion) draw(0)
@@ -429,7 +485,10 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
     requestGenerate(true)
 
     let rt: ReturnType<typeof setTimeout>
-    const onResize = () => { clearTimeout(rt); rt = setTimeout(() => requestGenerate(), 300) }
+    const onResize = () => {
+      if (fallbackDisabled) return
+      clearTimeout(rt); rt = setTimeout(() => requestGenerate(), 300)
+    }
     window.addEventListener("resize", onResize)
 
     const obs = new MutationObserver(() => { updateColors(); if (reducedMotion && ready) draw(0) })
@@ -438,35 +497,89 @@ export function CircuitBg({ navOffset }: { navOffset?: boolean } = {}) {
     // Fallback config handler — subset of worker capabilities
     const onConfig2 = (e: Event) => {
       const d = (e as CustomEvent<Record<string, unknown>>).detail
-      if (d.reset) { updateColors(); fadeOverride = null; requestGenerate(true); return }
+      if (fallbackDisabled) return
+      // Deliberate override: drop the samples taken under the old settings.
+      watchdog.reset()
+      if (d.reset) {
+        // Reset means reset, watchdog decisions included.
+        watchdog = createFrameWatchdog()
+        watchdogDensity = 1.0
+        pulseLimit = 24
+        updateColors(); fadeOverride = null; requestGenerate(true); return
+      }
       if (typeof d.traceAlpha === "number") traceColor = `rgba(${inkR},${inkG},${inkB},${d.traceAlpha})`
       if (typeof d.padAlpha === "number") padColor = `rgba(${inkR},${inkG},${inkB},${d.padAlpha})`
       if (typeof d.fadeStrength === "number") fadeOverride = d.fadeStrength
-      if (typeof d.density === "number") requestGenerate(true)
+      if (typeof d.density === "number") { watchdogDensity = 1.0; requestGenerate(true) }
       if (reducedMotion && ready) draw(0)
     }
     window.addEventListener("circuit-config", onConfig2)
 
+    // rAF stops while the tab is hidden, but the first frame back would still
+    // read as one enormous gap. Suspending drops that sample with the rest.
+    // Seeded immediately, because a page restored into a background tab starts
+    // hidden and never fires the event.
+    const onVisibility = () => watchdog.setSuspended(document.hidden)
+    document.addEventListener("visibilitychange", onVisibility)
+    onVisibility()
+
     if (reducedMotion) {
+      // One static frame and no loop, so there is nothing to watch.
       return () => {
         genWorker.terminate()
         window.removeEventListener("resize", onResize)
         window.removeEventListener("circuit-config", onConfig2)
+        document.removeEventListener("visibilitychange", onVisibility)
         detachScroll()
         obs.disconnect()
       }
     }
 
+    // Stage 1: same cut as the worker — halve the density, drop 24 pulses to
+    // 8. The pulse cap is the larger half of the saving; each pulse costs
+    // eight strokes and a radial gradient per tile per frame. requestGenerate
+    // re-arms the watchdog so the cheaper board is judged on its own frames.
+    const degradeFallback = () => {
+      watchdogDensity = 0.5
+      pulseLimit = 8
+      pulseData = pulseData.slice(0, pulseLimit)
+      requestGenerate(true)
+      announce("degraded")
+    }
+
+    // Stage 2: half a board is still too expensive. Stop rendering, fade the
+    // last frame out, and let the generation worker go.
+    const disableFallback = () => {
+      fallbackDisabled = true
+      announce("disabled")
+      fadeOutCanvas(() => {
+        genWorker.terminate()
+        ctx.clearRect(0, 0, w, h * 2)
+      })
+    }
+
     let fid: number, lt = 0
-    const loop = (t: number) => { if (t - lt >= 33) { draw(t); lt = t }; fid = requestAnimationFrame(loop) }
+    const loop = (t: number) => {
+      if (t - lt >= FRAME_INTERVAL) {
+        const started = performance.now()
+        draw(t)
+        lt = t
+        const action = watchdog.sample(started, performance.now() - started, FRAME_INTERVAL)
+        if (action === "degrade") degradeFallback()
+        else if (action === "disable") { disableFallback(); return }
+      }
+      fid = requestAnimationFrame(loop)
+    }
     fid = requestAnimationFrame(loop)
 
     return () => {
       cancelAnimationFrame(fid)
       clearTimeout(rt)
+      clearTimeout(fadeTimer)
       genWorker.terminate()
       window.removeEventListener("resize", onResize)
       window.removeEventListener("circuit-config", onConfig2)
+      document.removeEventListener("visibilitychange", onVisibility)
       detachScroll()
       obs.disconnect()
     }
