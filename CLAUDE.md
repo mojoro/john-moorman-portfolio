@@ -31,7 +31,7 @@ Make a founder or CTO with a real project think "this is the engineer I want on 
 - **Styling:** Tailwind CSS v4
 - **Animations:** Framer Motion
 - **Background:** Animated PCB circuit board canvas (Web Workers + OffscreenCanvas, CSS scroll-driven animation)
-- **AI Feature:** Anthropic API (Claude Haiku 4.5) for the chatbot, Gemini fallback via OpenRouter
+- **AI Feature:** OpenRouter (GPT-5.6 Luna) for the chatbot, Gemini fallback via OpenRouter
 - **Database:** Neon PostgreSQL (serverless, Edge-compatible) — stores chatbot conversations + blog comments
 - **Rate limiting:** Upstash Redis (`@upstash/ratelimit`) — 20 requests/IP/hour
 - **Captcha:** Cloudflare Turnstile (blog comments)
@@ -283,7 +283,7 @@ Animated PCB-style circuit board rendered on a canvas behind all content.
 
 ```
 ANTHROPIC_API_KEY=          # Server-side only — never NEXT_PUBLIC_
-OPENROUTER_API_KEY=         # Gemini fallback via OpenRouter
+OPENROUTER_API_KEY=         # Chatbot — both the primary model and the Gemini fallback
 UPSTASH_REDIS_REST_URL=     # Upstash console
 UPSTASH_REDIS_REST_TOKEN=   # Upstash console
 DATABASE_URL=               # Neon PostgreSQL connection string
@@ -366,7 +366,7 @@ Six legacy invoices still use the older `PREFIX-YYYY-MM-DD-NN` format. They live
 
 The most important feature. Lives at `POST /api/chat` (Edge runtime, streaming).
 
-**Provider chain:** Anthropic Claude Haiku 4.5 (primary) -> OpenRouter Gemini (fallback).
+**Provider chain:** OpenRouter GPT-5.6 Luna (primary) -> OpenRouter Gemini (fallback). Both stream through the same OpenRouter endpoint on `OPENROUTER_API_KEY`.
 
 **Cost protection layers (all implemented):**
 1. Upstash Redis: 20 requests/IP/hour, sliding window

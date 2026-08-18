@@ -9,7 +9,7 @@ import { classifyQuery } from "@/lib/chat-router"
 
 export const runtime = "nodejs"
 
-const PRIMARY_MODEL = "anthropic/claude-haiku-4.5"
+const PRIMARY_MODEL = "openai/gpt-5.6-luna"
 const FALLBACK_MODEL = "google/gemini-3-flash-preview"
 const MAX_TURNS = 10
 const MAX_OUTPUT_TOKENS = 1200
@@ -59,9 +59,9 @@ async function saveConversation(
  *  request fails so callers can fall back to another model.
  *
  *  The system prompt ships as a single content block marked with
- *  `cache_control: ephemeral` so Anthropic caches it for 5 minutes
- *  (90% discount on cached reads). The field is silently ignored by
- *  non-Anthropic providers, so the Gemini fallback still works. */
+ *  `cache_control: ephemeral`, which buys a cached-read discount on
+ *  providers that honour it. Providers that don't (currently both the
+ *  primary and the fallback) ignore the field, so the call still works. */
 async function streamOpenRouter(
   model: string,
   systemPrompt: string,
@@ -243,7 +243,7 @@ export async function POST(request: Request) {
     console.error("[chat] site-context load failed, continuing with bare system prompt:", e)
   }
 
-  // Primary: Claude Haiku 4.5 via OpenRouter. Fallback: Gemini via OpenRouter.
+  // Primary: GPT-5.6 Luna via OpenRouter. Fallback: Gemini via OpenRouter.
   try {
     const readable = await streamOpenRouter(PRIMARY_MODEL, systemPrompt, allMessages, ctx)
     return new Response(readable, { headers: responseHeaders })
