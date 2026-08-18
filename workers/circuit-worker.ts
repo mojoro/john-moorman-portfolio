@@ -16,9 +16,13 @@
  *   { type: 'theme',  theme, accent }
  *   { type: 'config', reset?, density?, traceAlpha?, padAlpha?, fadeStrength?, maxPulses?, fps? }
  *   { type: 'pointer', x, y, pressed }
+ *   { type: 'visibility', hidden }
+ *
+ * Protocol (worker → main):
+ *   { type: 'watchdog', stage: 'degraded' | 'disabled' }
  */
 
-export {}
+import { createFrameWatchdog } from "../lib/circuit-watchdog"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -131,6 +135,15 @@ let isLightMode = false
 
 // Animation
 let animTimer: ReturnType<typeof setInterval> | null = null
+
+// Frame-rate watchdog. Replaced wholesale by an /admin/circuit reset, which is
+// the one override that puts the board back to full quality.
+let watchdog = createFrameWatchdog()
+// Multiplier the watchdog applies on top of the density the main thread asked
+// for. Kept separate so a config message can still speak in absolute density.
+let watchdogDensity = 1.0
+
+const workerScope = self as unknown as { postMessage(message: unknown): void }
 
 // ── Color helpers ──────────────────────────────────────────────────────────
 
@@ -892,13 +905,36 @@ function draw(time: number) {
 
 // ── Animation loop ─────────────────────────────────────────────────────────
 
+// The density actually generated: what the main thread asked for, scaled by
+// whatever the watchdog has decided the device can afford.
+function effectiveDensity() {
+  return currentDensity * watchdogDensity
+}
+
+function frameIntervalMs() {
+  return fpsOverride != null ? Math.round(1000 / fpsOverride) : 33
+}
+
 function startLoop() {
   if (animTimer !== null) clearInterval(animTimer)
   if (reducedMotion) {
+    // One static frame, no loop — and so nothing for the watchdog to measure.
     draw(performance.now())
     return
   }
-  animTimer = setInterval(() => draw(performance.now()), fpsOverride != null ? Math.round(1000 / fpsOverride) : 33)
+  if (watchdog.stage === "disabled") return
+
+  const interval = frameIntervalMs()
+  // Whatever restarted the loop (init, resize, regeneration, an fps change)
+  // invalidates the samples that came before it.
+  watchdog.reset()
+  animTimer = setInterval(() => {
+    const started = performance.now()
+    draw(started)
+    const action = watchdog.sample(started, performance.now() - started, interval)
+    if (action === "degrade") degradeQuality()
+    else if (action === "disable") disableBoard()
+  }, interval)
 }
 
 function stopLoop() {
@@ -906,6 +942,34 @@ function stopLoop() {
     clearInterval(animTimer)
     animTimer = null
   }
+}
+
+/**
+ * Stage 1. Halve the generated density and cap the pulse count. Measured
+ * together at ~24 % off the cost of a draw, and the pulse cap is most of that:
+ * density only reaches the interior seeding, so halving it removes about 15 %
+ * of the traces and nothing below 0.5 removes any more, whereas each pulse
+ * costs eight strokes and a radial gradient per tile per frame. Twenty-four
+ * pulses down to eight leaves the board unmistakably alive.
+ */
+function degradeQuality() {
+  watchdogDensity = 0.5
+  maxPulses = Math.min(maxPulses, 8)
+  stopLoop()
+  ready = false
+  generate(w, h, reducedMotion, effectiveDensity())
+  startLoop()
+  workerScope.postMessage({ type: "watchdog", stage: "degraded" })
+}
+
+/**
+ * Stage 2. Still over budget on half a board, so the board goes. The last
+ * frame is deliberately left on the canvas: the main thread fades it out and
+ * terminates this worker, which reads as a decision rather than a crash.
+ */
+function disableBoard() {
+  stopLoop()
+  workerScope.postMessage({ type: "watchdog", stage: "disabled" })
 }
 
 // ── Message handling ───────────────────────────────────────────────────────
@@ -918,9 +982,17 @@ function stopLoop() {
     | { type: "theme"; theme: Theme; accent: string; ink?: string }
     | { type: "config"; reset?: boolean; paused?: boolean; density?: number; traceAlpha?: number; padAlpha?: number; fadeStrength?: number; maxPulses?: number; fps?: number; glowIntensity?: number; pulseBrightness?: number; pulseSpeed?: number; traceWidth?: number; glowRadius?: number; glowSpeed?: number; pulseTailMin?: number; pulseTailMax?: number; pulseHeadSize?: number; pulseSegments?: number; gridSize?: number; straightness?: number; maxSteps?: number; maxPaths?: number; bundleSizeMin?: number; bundleSizeMax?: number; pathLenMin?: number; pathLenMax?: number; branchChance?: number; padChance?: number; padSizeMin?: number; padSizeMax?: number; seamSpacing?: number; glowCount?: number }
     | { type: "pointer"; x: number; y: number; pressed: boolean }
+    | { type: "visibility"; hidden: boolean }
   >
 ) => {
   const msg = e.data
+
+  if (msg.type === "visibility") {
+    // A worker cannot read document.hidden, so the main thread tells it. A
+    // backgrounded tab is throttled, not slow, and must not feed the watchdog.
+    watchdog.setSuspended(msg.hidden)
+    return
+  }
 
   if (msg.type === "pointer") {
     mouseX = msg.x
@@ -940,7 +1012,7 @@ function stopLoop() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     applyAccent(msg.accent, msg.theme, msg.ink)
     currentDensity = msg.density
-    generate(w, h, reducedMotion, currentDensity)
+    generate(w, h, reducedMotion, effectiveDensity())
     startLoop()
     return
   }
@@ -953,7 +1025,7 @@ function stopLoop() {
     offscreen.height = h * 2 * dpr  // 2× viewport height for CSS animation
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     currentDensity = msg.density
-    generate(w, h, reducedMotion, currentDensity)
+    generate(w, h, reducedMotion, effectiveDensity())
     startLoop()
     return
   }
@@ -965,7 +1037,14 @@ function stopLoop() {
   }
 
   if (msg.type === "config") {
+    // An /admin/circuit change is a deliberate override: throw away samples
+    // taken under the old settings rather than let them condemn the new ones.
+    watchdog.reset()
     if (msg.reset) {
+      // Reset means reset — including whatever the watchdog decided. A fresh
+      // watchdog is the only way back to full quality.
+      watchdog = createFrameWatchdog()
+      watchdogDensity = 1.0
       traceAlphaOverride = null
       padAlphaOverride = null
       fadeStrengthOverride = null
@@ -1001,13 +1080,15 @@ function stopLoop() {
       traceColor = `rgba(${inkR},${inkG},${inkB},${defaultTraceAlpha})`
       padColor = `rgba(${inkR},${inkG},${inkB},${defaultPadAlpha})`
       stopLoop(); ready = false
-      generate(w, h, reducedMotion, currentDensity)
+      generate(w, h, reducedMotion, effectiveDensity())
       startLoop()
       return
     }
     let needsRegen = false
     if (msg.density !== undefined && msg.density !== currentDensity) {
-      currentDensity = msg.density; needsRegen = true
+      // An explicit density is the number the panel wants to see rendered, so
+      // drop the watchdog's own scaling instead of quietly halving it.
+      currentDensity = msg.density; watchdogDensity = 1.0; needsRegen = true
     }
     if (msg.traceAlpha !== undefined) {
       traceAlphaOverride = msg.traceAlpha
@@ -1047,7 +1128,7 @@ function stopLoop() {
     if (msg.padSizeMax !== undefined) { padSizeMaxOverride = msg.padSizeMax; needsRegen = true }
     if (msg.seamSpacing !== undefined) { seamSpacingOverride = msg.seamSpacing; needsRegen = true }
     if (msg.glowCount !== undefined) { glowCountOverride = msg.glowCount === 0 ? null : msg.glowCount; needsRegen = true }
-    if (needsRegen) { stopLoop(); ready = false; generate(w, h, reducedMotion, currentDensity); startLoop() }
+    if (needsRegen) { stopLoop(); ready = false; generate(w, h, reducedMotion, effectiveDensity()); startLoop() }
     else if (reducedMotion && ready) draw(performance.now())
     return
   }
