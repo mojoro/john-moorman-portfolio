@@ -1,12 +1,14 @@
 import { getPosts } from "@/lib/content"
+import { getAllTags } from "@/lib/tags"
 import type { MetadataRoute } from "next"
 
 const BASE_URL = "https://johnmoorman.com"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [blogPosts, workPosts] = await Promise.all([
+  const [blogPosts, workPosts, tags] = await Promise.all([
     getPosts("blog"),
     getPosts("work"),
+    getAllTags(),
   ])
 
   const now = new Date()
@@ -23,6 +25,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(post.frontmatter.date),
     changeFrequency: "yearly",
     priority: 0.8,
+  }))
+
+  const tagEntries: MetadataRoute.Sitemap = tags.map((tag) => ({
+    url: `${BASE_URL}/tags/${tag.slug}/`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.4,
   }))
 
   return [
@@ -50,7 +59,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: `${BASE_URL}/tags/`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
     ...workEntries,
     ...blogEntries,
+    ...tagEntries,
   ]
 }
