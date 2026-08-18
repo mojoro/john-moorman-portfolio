@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react"
 import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 import Image from "next/image"
 import ReactMarkdown from "react-markdown"
@@ -38,6 +38,10 @@ const STARTER_QUESTIONS = [
 ]
 
 const MAX_TURNS = 10
+/** Mirrors the server-side truncation in lib/sanitize.ts. */
+const MAX_INPUT_CHARS = 500
+/** Wrapped lines the composer grows to before it scrolls internally. */
+const MAX_INPUT_ROWS = 5
 
 export function ChatPanel() {
   const [open, setOpen] = useState(false)
@@ -70,6 +74,7 @@ export function ChatPanel() {
     return id
   })
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const shouldReduceMotion = useReducedMotion()
 
@@ -146,6 +151,38 @@ export function ChatPanel() {
       inputRef.current.focus()
     }
   }, [open])
+
+  // Grow the composer with its content up to MAX_INPUT_ROWS, then let it
+  // scroll. Keyed on `input`, so deleting text shrinks it back and sending
+  // (which clears `input`) snaps it to one row. The panel is a fixed-height
+  // surface, so the extra height comes out of the message list rather than
+  // pushing the composer off the bottom edge — pin the list if the reader was
+  // already at the newest message.
+  useLayoutEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+
+    const list = messagesRef.current
+    const wasPinned = list
+      ? list.scrollHeight - list.scrollTop - list.clientHeight < 80
+      : false
+
+    const styles = getComputedStyle(el)
+    const lineHeight = parseFloat(styles.lineHeight) || 20
+    const chrome =
+      parseFloat(styles.paddingTop) +
+      parseFloat(styles.paddingBottom) +
+      parseFloat(styles.borderTopWidth) +
+      parseFloat(styles.borderBottomWidth)
+    const maxHeight = lineHeight * MAX_INPUT_ROWS + chrome
+
+    el.style.height = "auto"
+    const contentHeight = el.scrollHeight
+    el.style.height = `${Math.min(contentHeight, maxHeight)}px`
+    el.style.overflowY = contentHeight > maxHeight ? "auto" : "hidden"
+
+    if (list && wasPinned) list.scrollTop = list.scrollHeight
+  }, [input, open])
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -328,7 +365,7 @@ export function ChatPanel() {
             </div>
 
             {/* Messages area */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 py-4">
               {messages.length === 0 && (
                 <div className="space-y-3">
                   <p className="text-sm text-text-secondary">
@@ -449,6 +486,7 @@ export function ChatPanel() {
                       : "Ask me anything..."
                   }
                   disabled={streaming || limitReached}
+                  maxLength={MAX_INPUT_CHARS}
                   rows={1}
                   className="flex-1 resize-none rounded-lg border border-border-strong bg-bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-50"
                 />
