@@ -9,7 +9,7 @@
  * every slug — slow but complete rather than fast but empty.
  */
 
-const ROUTER_MODEL = "anthropic/claude-haiku-4.5"
+const ROUTER_MODEL = "openai/gpt-5.6-luna"
 const ROUTER_MAX_TOKENS = 300
 const ROUTER_TIMEOUT_MS = 8_000
 
