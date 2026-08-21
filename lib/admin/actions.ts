@@ -360,3 +360,35 @@ export async function savePalette(colors: PaletteColors): Promise<ActionResult> 
   revalidatePath("/")
   return { success: true }
 }
+
+// ── Watchers ──
+
+import { getWatcher } from "@/lib/watchers/config"
+import { runWatcher } from "@/lib/watchers/run"
+
+/**
+ * Manual watcher trigger for the admin page. Calls the core directly instead of
+ * the cron route so it rides the admin session and never needs CRON_SECRET.
+ * A run that completes but reports `ok: false` surfaces as a warning, because
+ * the run itself was recorded — the failure is in the watcher, not the action.
+ */
+export async function runWatcherAction(watcherId: string): Promise<ActionResult> {
+  const authError = await requireAuth()
+  if (authError) return authError
+
+  const config = getWatcher(watcherId)
+  if (!config) return { success: false, error: `Unknown watcher "${watcherId}".` }
+
+  let result: Awaited<ReturnType<typeof runWatcher>>
+  try {
+    result = await runWatcher(config)
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Watcher run failed." }
+  }
+
+  revalidatePath("/admin/watchers")
+  return {
+    success: true,
+    warning: result.ok ? undefined : (result.error ?? "Watcher run reported a failure."),
+  }
+}

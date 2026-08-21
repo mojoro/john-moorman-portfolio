@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { label: "Timesheet", href: "/admin/timesheet" },
   { label: "Invoices", href: "/admin/invoices" },
   { label: "Clients", href: "/admin/clients" },
+  { label: "Watchers", href: "/admin/watchers" },
   { label: "Prompt", href: "/admin/prompt" },
   { label: "Palette", href: "/admin/palette" },
   { label: "Circuit", href: "/admin/circuit" },
