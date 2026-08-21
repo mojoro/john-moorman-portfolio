@@ -51,6 +51,31 @@ export const invoiceApiLimit = hasRedis
     })
   : null
 
+/**
+ * The watcher ingest API gets its own prefix so an external reporting bot going
+ * haywire cannot exhaust the invoicing API's budget, or vice versa.
+ */
+export const watcherApiLimit = hasRedis
+  ? new Ratelimit({
+      redis: redis!,
+      limiter: Ratelimit.slidingWindow(120, "1 h"),
+      prefix: "rl:watcher-api",
+      analytics: true,
+    })
+  : null
+
+export async function checkWatcherApiRateLimit(ip: string): Promise<{ allowed: boolean }> {
+  if (!watcherApiLimit) return { allowed: true }
+  try {
+    const { success } = await watcherApiLimit.limit(ip)
+    return { allowed: success }
+  } catch {
+    // Same reasoning as the invoicing limiter: the bearer token is the actual
+    // access control, this is only brute-force padding.
+    return { allowed: true }
+  }
+}
+
 export async function checkInvoiceApiRateLimit(ip: string): Promise<{ allowed: boolean }> {
   if (!invoiceApiLimit) return { allowed: true }
   try {
