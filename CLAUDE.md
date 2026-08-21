@@ -451,14 +451,65 @@ Schema is `db/migrations/005_watchers.sql`, applied manually like the others. Te
 
 ---
 
+## Neon Compute Cost
+
+Neon bills **CU-hours = compute size × time awake**, not queries. This compute
+sits at the 0.25 CU floor and has never autoscaled above it, so the bill is
+purely a function of how many *hours the box is awake*, and the work it does
+while awake is irrelevant.
+
+On the **Launch** plan scale-to-zero is fixed at 5 minutes and is not
+configurable; it can only be turned off, which is strictly worse. (One-minute
+timeouts are a Scale-plan feature and the upgrade costs far more than it saves
+here.) The consequence that matters: **every isolated thing that touches the
+database bills a 5-minute minimum.** One query and three hundred queries inside
+the same window cost exactly the same.
+
+**Nothing a visitor does wakes it.** `/blog/[slug]`, `/work/[slug]` and
+`/tags/[tag]` are all prerendered (`●` in the build output), so `getComments`
+runs at build time, not per request. The only runtime paths to Postgres are
+`/api/chat`, the comment server action, `/admin/*`, `/api/invoicing/*` and the
+daily watcher cron. Measured over one month: 32.8 hours awake against three
+chat sessions and zero new comments.
+
+So the cost is **development, not traffic**. What actually wakes it:
+
+- `pnpm dev` and `pnpm build` against the production `DATABASE_URL` (a build
+  prerenders every blog post, and each post calls `getComments`)
+- every `run_sql` from an agent with the Neon MCP attached
+- the Neon console's SQL editor and table browser
+
+None of that is worth contorting the app to avoid, at roughly $0.09 per awake
+hour. Just know that an afternoon of local work is the line item, and prefer
+one batched query over ten exploratory ones when poking at production.
+
+A local Postgres would remove it entirely but is **not** a drop-in: `lib/db.ts`
+uses `neon()` over HTTP and `lib/invoicing/db.ts` also opens a WebSocket `Pool`,
+both Neon-protocol-specific. Swapping to plain `pg` means replacing the driver
+on every data path, and a local HTTP proxy shim means a third-party container in
+the loop. Neither is justified at this spend.
+
+`db/migrations/` builds the full schema from scratch, in filename order, and
+every file is idempotent. `000_core.sql` holds `comments` and `conversations`,
+which predate the numbered migrations and were captured from the live schema.
+
+---
+
 ## Chatbot — Ask John
 
 The most important feature. Lives at `POST /api/chat` (Node runtime, streaming).
 
 **Provider chain:** OpenRouter GPT-5.6 Luna (primary) -> OpenRouter Gemini (fallback). Both stream through the same OpenRouter endpoint on `OPENROUTER_API_KEY`.
 
-**Cost protection layers (all implemented):**
-1. Upstash Redis: 20 requests/IP/hour, sliding window
+**Cost protection layers:**
+1. ~~Upstash Redis: 20 requests/IP/hour, sliding window~~ — **currently disabled.**
+   The import and the `checkRateLimit` block in `app/api/chat/route.ts` are
+   commented out. Deliberate: chat volume is a few sessions a month, so the
+   limiter was costing an Upstash round trip per request to protect against
+   traffic that does not exist. `lib/ratelimit.ts` still exports it and the
+   invoicing API still uses it, so re-enabling is uncommenting two blocks.
+   This is the one uncapped path to paid OpenRouter tokens; revisit if the
+   chatbot ever gets real traffic.
 2. Input capped at 500 chars server-side; output capped at 1200 tokens
 3. Conversation history capped at 10 turns per session
 4. OpenRouter credit limit set (separate dashboard setting — keep it active)
