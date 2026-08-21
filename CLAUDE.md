@@ -71,6 +71,8 @@ app/
   api/invoicing/timesheet/[id]/route.ts — DELETE an uninvoiced entry
   api/invoicing/invoices/route.ts       — GET list, POST generate invoice
   api/invoicing/invoices/[id]/route.ts  — GET one, DELETE
+  api/cron/watchers/route.ts            — daily job-board poll (CRON_SECRET bearer)
+  api/watchers/ingest/route.ts          — POST sightings from an external bot
   not-found.tsx
   error.tsx
 
@@ -91,6 +93,7 @@ app/
       clients/page.tsx      — invoicing client list + create/edit form
       timesheet/page.tsx    — timesheet log, CSV import, invoice generation
       invoices/page.tsx     — generated invoice list with PDF links + delete
+      watchers/page.tsx     — read-only watcher health + recent sightings
       invoices/file/[filename]/route.ts — auth-gated local invoice PDF download
 
 components/
@@ -168,7 +171,20 @@ lib/
     api-auth.ts             — bearer token check + rate limit for /api/invoicing/*
     api-response.ts         — JSON helpers, ValidationError to 400 mapping
 
+  watchers/
+    config.ts               — the WATCHERS array; config lives in code, never a UI
+    types.ts                — WatcherConfig, NormalizedJob, Sighting, WatcherStore
+    ashby.ts                — Ashby public API fetch + normalize, location blob
+    match.ts                — matching rules, exclude veto, known/fresh diff
+    telegram.ts             — sendMessage, HTML escaping, 4096-char chunking
+    db.ts                   — sightings, runs, admin read models
+    run.ts                  — one run: fetch, match, upsert, alert, record
+    validate.ts             — ingest payload validators + ValidationError
+    api-auth.ts             — cron + ingest bearer checks
+
 middleware.ts               — protects /admin routes, sets x-pathname header for layout
+
+vercel.json                 — the watcher cron schedule
 
 content/
   blog/
@@ -306,6 +322,10 @@ INVOICE_SENDER_ADDRESS=     # Invoice letterhead address — never hardcode, thi
 INVOICE_TAX_NUMBER=         # Steuernummer printed on invoices
 INVOICE_IBAN=               # IBAN printed on invoices
 INVOICE_API_TOKEN=          # Bearer token for the invoicing API — unset disables it (min 32 chars)
+TELEGRAM_BOT_TOKEN=         # Job-board watcher alerts (BotFather)
+TELEGRAM_CHAT_ID=           # Chat the watcher alerts go to
+CRON_SECRET=                # Vercel sends it as a bearer to /api/cron/watchers/ — unset rejects everything
+WATCHER_INGEST_TOKEN=       # Bearer token for the watcher ingest API — unset disables it (min 32 chars)
 ```
 
 ---
@@ -368,6 +388,66 @@ Six legacy invoices still use the older `PREFIX-YYYY-MM-DD-NN` format. They live
 `invoice_number_counters` is superseded and unused; `db/migrations/004_*.sql` drops it and is optional. `voided_invoice_numbers` is kept as a log of failed attempts but no longer gates allocation.
 
 **Reusing a number is safe for an invoice you never sent.** If a client already has the PDF, issue a corrected invoice with a new number rather than silently reusing the old one.
+
+---
+
+## Job-Board Watchers
+
+A daily cron polls a job board, records new matching openings in Neon, and sends one Telegram
+message. **Strictly admin-only.** Nothing about this is public: no routes, nav, sitemap, or site
+copy. The "not job hunting" rule above still governs everything a visitor can see.
+
+Config lives in `lib/watchers/config.ts` and nowhere else. There is no config UI and there should
+never be one — a watcher is a few lines of literal.
+
+**Matching.** Skip `isListed: false`. Build a lowercase location blob from the primary location,
+`workplaceType`, every secondary location and its postal address, and the top-level postal address.
+A job matches on remote (`isRemote`, `workplaceType === "Remote"`, or "remote" in the blob) or on a
+configured city. Any `exclude` substring hitting title-or-blob vetoes the match. The reasons that
+fired are stored per sighting so the exclude list can be tuned against real data.
+
+The blob is not optional cleverness: on the live Featherless board, Berlin appears only inside the
+18 `secondaryLocations` of a role whose primary location reads "Europe", and eight postings leave
+both structured remote fields `null` while writing "Remote (world)" in the location text.
+
+**Identity** is `jobUrl` (ends in a UUID, survives retitling), falling back to `title::location`.
+
+### Alert semantics — the part that is easy to break
+
+`notified_at` on `watcher_sightings` is the alert ledger, and only three rules matter:
+
+- A **failed Telegram send never stamps `notified_at`.** The run records `ok: false` and the next run
+  retries, because pending rows are re-read from the table rather than carried from the diff.
+- **`ON CONFLICT` never touches `notified_at`.** Re-seeing a job must not reopen a sent alert or
+  close an owed one.
+- The **first run for a watcher is a baseline**: everything is inserted already-notified and only a
+  one-line "baseline recorded: N matching roles" goes out. Baseline is `no known sightings AND no
+  prior successful run` — checking sightings alone would re-baseline after a first run that
+  legitimately matched nothing, swallowing the next run's finds.
+
+### Routes
+
+| Method | Path                     | Auth                                             |
+| ------ | ------------------------ | ------------------------------------------------ |
+| `GET`  | `/api/cron/watchers/`    | `Bearer $CRON_SECRET` (unset rejects everything)  |
+| `POST` | `/api/watchers/ingest/`  | `Bearer $WATCHER_INGEST_TOKEN` (404 when unset)   |
+
+The ingest route accepts `{ watcher, sightings: [...], run: {...} }` from an external bot and writes
+the same tables, so one admin page covers both. Its sightings land already-notified: the reporting
+bot owns its own alerting. Payloads are untrusted — lengths are capped and URLs must be `http(s)`.
+
+**The trailing slash in `vercel.json` is load-bearing.** `trailingSlash: true` makes
+`/api/cron/watchers` 308 to `/api/cron/watchers/`, and Vercel cron does not follow redirects, so
+without the slash the handler never runs. The schedule is UTC, and Hobby-plan crons fire within the
+hour rather than on the minute.
+
+`/admin/watchers` is read-only, plus a "Run now" button that calls the core directly through a server
+action rather than the HTTP route. It warns when the newest **successful** run is older than 36h —
+a dead cron produces no error anywhere, it just goes quiet, and that warning is the only thing that
+makes the silence visible.
+
+Schema is `db/migrations/005_watchers.sql`, applied manually like the others. Tests:
+`pnpm test:watchers`.
 
 ---
 
