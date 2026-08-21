@@ -131,18 +131,26 @@ export interface ChatSession {
   country: string | null
 }
 
-export async function getCommentCount(): Promise<number> {
-  if (!process.env.DATABASE_URL) return 0
-  const sql = getDb()
-  const rows = await sql`SELECT COUNT(*)::int AS count FROM comments`
-  return rows[0].count
+export interface DashboardCounts {
+  comments: number
+  chats: number
 }
 
-export async function getChatCount(): Promise<number> {
-  if (!process.env.DATABASE_URL) return 0
+/**
+ * Both dashboard counts in a single round trip. The neon() client speaks HTTP,
+ * so every tagged template is its own request rather than a statement on a held
+ * connection. Two unrelated COUNTs are cheap to fold into one query and there is
+ * no reason to pay twice for them.
+ */
+export async function getDashboardCounts(): Promise<DashboardCounts> {
+  if (!process.env.DATABASE_URL) return { comments: 0, chats: 0 }
   const sql = getDb()
-  const rows = await sql`SELECT COUNT(*)::int AS count FROM conversations`
-  return rows[0].count
+  const rows = await sql`
+    SELECT
+      (SELECT COUNT(*)::int FROM comments)      AS comments,
+      (SELECT COUNT(*)::int FROM conversations) AS chats
+  `
+  return rows[0] as DashboardCounts
 }
 
 export async function getAllComments(): Promise<Comment[]> {

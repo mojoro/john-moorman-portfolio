@@ -1,15 +1,14 @@
 import { getPosts } from "@/lib/content"
-import { getCommentCount, getChatCount, getRecentComments, getRecentChats } from "@/lib/db"
+import { getDashboardCounts, getRecentComments, getRecentChats } from "@/lib/db"
 import { StatCard } from "@/components/admin/stat-card"
 import Link from "next/link"
 
 export default async function AdminDashboardPage() {
-  const [blogPosts, workProjects, commentCount, chatCount, recentComments, recentChats] =
+  const [blogPosts, workProjects, counts, recentComments, recentChats] =
     await Promise.all([
       getPosts("blog"),
       getPosts("work"),
-      getCommentCount(),
-      getChatCount(),
+      getDashboardCounts(),
       getRecentComments(5),
       getRecentChats(5),
     ])
@@ -22,8 +21,8 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Blog Posts" value={blogPosts.length} />
         <StatCard label="Work Projects" value={workProjects.length} />
-        <StatCard label="Comments" value={commentCount} />
-        <StatCard label="Chat Sessions" value={chatCount} />
+        <StatCard label="Comments" value={counts.comments} />
+        <StatCard label="Chat Sessions" value={counts.chats} />
       </div>
 
       {/* Recent activity */}
