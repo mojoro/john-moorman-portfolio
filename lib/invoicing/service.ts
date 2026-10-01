@@ -5,6 +5,7 @@ import {
   deleteInvoiceRecord,
   deleteTimesheetEntry,
   getClients,
+  getInvoice,
   getSelectedTimesheetEntries,
   invoiceNumberExists,
   MAX_INVOICE_SEQUENCE,
@@ -12,7 +13,7 @@ import {
   recordVoidedInvoiceNumber,
   upsertClient,
 } from "./db"
-import { deleteInvoicePdf, uploadInvoicePdf } from "./blob"
+import { deleteInvoicePdf, readInvoicePdf, safeInvoiceFilename, uploadInvoicePdf } from "./blob"
 import { buildInvoiceNumber, todayIso } from "./invoice-number"
 import { parseTimesheetCsv } from "./csv"
 import { buildInvoiceTotals, DEFAULT_VAT_RATE } from "./grouping"
@@ -261,6 +262,17 @@ export async function removeInvoice(invoiceId: number): Promise<RemoveInvoiceRes
   }
 
   return { invoice, pdfDeleted, numberReleased: invoice.invoice_no }
+}
+
+/** The stored PDF for an invoice, or null when the invoice or its file is missing. */
+export async function getInvoicePdf(invoiceId: number): Promise<{ filename: string; pdf: Buffer } | null> {
+  const invoice = await getInvoice(invoiceId)
+  if (!invoice) return null
+
+  const pdf = await readInvoicePdf(invoice.pdf_blob_path)
+  if (!pdf) return null
+
+  return { filename: safeInvoiceFilename(invoice.invoice_no), pdf }
 }
 
 export function parseEntryIds(input: unknown): number[] {
