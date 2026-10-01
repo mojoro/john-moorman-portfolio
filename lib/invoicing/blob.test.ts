@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { after, describe, it } from "node:test"
 import { existsSync, rmSync } from "node:fs"
 import { join } from "node:path"
-import { deleteInvoicePdf, uploadInvoicePdf } from "./blob"
+import { deleteInvoicePdf, invoicePdfPathname, readInvoicePdf, uploadInvoicePdf } from "./blob"
 
 const invoiceNo = `TEST-LOCAL-${process.pid}`
 const localPath = join(process.cwd(), ".invoices", `${invoiceNo}.pdf`)
@@ -29,5 +29,21 @@ describe("invoice PDF storage", () => {
       if (originalToken === undefined) delete process.env.BLOB_READ_WRITE_TOKEN
       else process.env.BLOB_READ_WRITE_TOKEN = originalToken
     }
+  })
+
+  it("reads back a locally stored PDF by its stored pathname", async () => {
+    const result = await uploadInvoicePdf({ invoiceNo, buffer: Buffer.from("%PDF-roundtrip") })
+
+    const pdf = await readInvoicePdf(result.pathname)
+
+    assert.equal(pdf?.toString(), "%PDF-roundtrip")
+  })
+
+  it("returns null for a local PDF that does not exist", async () => {
+    assert.equal(await readInvoicePdf("local/invoices/MISSING-260901-1.pdf"), null)
+  })
+
+  it("maps a served filename to the local pathname outside Vercel", () => {
+    assert.equal(invoicePdfPathname(`${invoiceNo}.pdf`), `local/invoices/${invoiceNo}.pdf`)
   })
 })

@@ -1,12 +1,15 @@
-import { del, put } from "@vercel/blob"
-import { mkdir, rm, writeFile } from "node:fs/promises"
+import { del, get, put } from "@vercel/blob"
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 
-// Deliberately outside public/: these PDFs carry client billing PII and must not
-// be served as static assets. They go out via the authenticated route handler at
-// /admin/invoices/file/[filename] instead.
+// These PDFs carry client billing PII, so neither store is publicly readable.
+// Locally they sit outside public/; on Vercel they go to a private Blob store.
+// Either way they are only served through the admin-gated route at
+// /admin/invoices/file/[filename] or the bearer-gated invoicing API.
 const LOCAL_INVOICE_DIR = join(process.cwd(), ".invoices")
 const LOCAL_PATH_PREFIX = "local/invoices/"
+const BLOB_PATH_PREFIX = "invoices/"
+const ADMIN_FILE_URL_PREFIX = "/admin/invoices/file/"
 
 function hasBlobCredentials(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_OIDC_TOKEN)
@@ -24,33 +27,57 @@ async function uploadLocalInvoicePdf(input: { invoiceNo: string; buffer: Buffer 
   const filename = safePdfFilename(input.invoiceNo)
   await mkdir(LOCAL_INVOICE_DIR, { recursive: true })
   await writeFile(join(LOCAL_INVOICE_DIR, filename), input.buffer)
-  return { url: `/admin/invoices/file/${filename}`, pathname: `${LOCAL_PATH_PREFIX}${filename}` }
+  return { url: `${ADMIN_FILE_URL_PREFIX}${filename}`, pathname: `${LOCAL_PATH_PREFIX}${filename}` }
 }
 
 export function safeInvoiceFilename(filename: string): string {
   return safePdfFilename(filename.replace(/\.pdf$/i, ""))
 }
 
-export function readLocalInvoicePath(filename: string): string {
-  return join(LOCAL_INVOICE_DIR, safeInvoiceFilename(filename))
+/** Where this environment stores the PDF served under `filename`. */
+export function invoicePdfPathname(filename: string): string {
+  const prefix = shouldUseLocalStorage() ? LOCAL_PATH_PREFIX : BLOB_PATH_PREFIX
+  return `${prefix}${safeInvoiceFilename(filename)}`
 }
 
 async function deleteLocalInvoicePdf(pathname: string): Promise<void> {
   if (!pathname.startsWith(LOCAL_PATH_PREFIX)) return
   const filename = pathname.slice(LOCAL_PATH_PREFIX.length)
-  await rm(join(LOCAL_INVOICE_DIR, safePdfFilename(filename.replace(/\.pdf$/i, ""))), { force: true })
+  await rm(join(LOCAL_INVOICE_DIR, safeInvoiceFilename(filename)), { force: true })
 }
 
 export async function uploadInvoicePdf(input: { invoiceNo: string; buffer: Buffer }): Promise<{ url: string; pathname: string }> {
   if (shouldUseLocalStorage()) return uploadLocalInvoicePdf(input)
 
-  const result = await put(`invoices/${input.invoiceNo}.pdf`, input.buffer, {
-    access: "public",
+  // A fixed pathname lets the admin route find the blob from the filename alone.
+  // Overwriting is safe: a number is only reused once its invoice row is gone,
+  // so anything still at this path is an orphan from a failed cleanup.
+  const filename = safePdfFilename(input.invoiceNo)
+  const result = await put(`${BLOB_PATH_PREFIX}${filename}`, input.buffer, {
+    access: "private",
     contentType: "application/pdf",
-    addRandomSuffix: true,
+    addRandomSuffix: false,
+    allowOverwrite: true,
   })
 
-  return { url: result.url, pathname: result.pathname }
+  return { url: `${ADMIN_FILE_URL_PREFIX}${filename}`, pathname: result.pathname }
+}
+
+/** Returns the stored PDF, or null when nothing is stored at `pathname`. */
+export async function readInvoicePdf(pathname: string): Promise<Buffer | null> {
+  if (pathname.startsWith(LOCAL_PATH_PREFIX)) {
+    const filename = safeInvoiceFilename(pathname.slice(LOCAL_PATH_PREFIX.length))
+    try {
+      return await readFile(join(LOCAL_INVOICE_DIR, filename))
+    } catch {
+      return null
+    }
+  }
+
+  // Skip the CDN copy: it can lag a regenerated invoice that reused this number.
+  const result = await get(pathname, { access: "private", useCache: false })
+  if (!result || result.statusCode !== 200) return null
+  return Buffer.from(await new Response(result.stream).arrayBuffer())
 }
 
 export async function deleteInvoicePdf(pathname: string): Promise<void> {
